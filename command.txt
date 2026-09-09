@@ -1,0 +1,24 @@
+# ========== 联合推理 Pipeline ==========
+# 完整流程：RDNet去反射 + CLAHE/Gamma增强
+python3 scripts/pipeline.py /path/to/images output/
+
+# 只对已有透射图做增强（跳过RDNet）
+python3 scripts/pipeline.py /path/to/rdnet_output output/ --skip-rdnet
+
+# 只做CLAHE增强
+python3 scripts/pipeline.py /path/to/images output/ --enhance clahe
+
+# 只做Gamma增强
+python3 scripts/pipeline.py /path/to/images output/ --enhance gamma
+
+# ========== 单独RDNet推理 ==========
+cd RDNet && python3 inference_simple.py /path/to/images
+
+# ========== RDNet 测试（标准benchmark） ==========
+python3 test_sirs.py --icnn_path rdnet.pth --resume
+
+# ========== RDNet 训练 ==========
+cd RDNet && python3 train.py
+
+# 环境激活
+conda activate xreflection

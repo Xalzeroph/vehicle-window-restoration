@@ -1,0 +1,16 @@
+# 模型权重(避免入库)
+*.pth
+pretrained/
+RDNet/pretrained/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 日志/杂项
+nohup.out
+*.log
+
+# 工具生成目录
+.claude/
+.codegraph/
