@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+venv/
+.env
+
+# Training outputs
+checkpoints/
+logs/
+runs/
+*.pt
+*.pth
+*.ckpt
+*.log
+
+# Local datasets and generated artifacts
+dataset/
+datasets/
+data/
+e1_pred/
+e1_testset/
+synth_pilot_*/
+rdnet_real*/
+*.png
+*.jpg
+*.jpeg
+*.mp4
+*.avi
+
+# IDE/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
