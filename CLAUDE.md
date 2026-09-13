@@ -67,3 +67,4 @@ cd RDNet && python3 train.py
 - 深色贴膜场景（α << 1）：先 RDNet 去反射，再 ExpoMamba 提亮
 - 普通反射场景：RDNet 单独即可
 - 模型权重在 `pretrained/` 下（符号链接到原始位置）
+- **磁盘（2026-09-12）**：物理盘 `/DataDisk`（`/dev/sda2`）已故障、整盘只读（读正常、写报 EROFS）。本项目所在 `/DataDisk/zmy_code` 与 `/DataDisk/miniconda` 已迁至 NVMe（LVM `ubuntu-vg/workspace`），经 bind mount 保持旧路径可用，故以上所有路径照常使用；**但不要直接读写 `/DataDisk` 上其他（非 zmy_code/miniconda）路径**。详见 `/home/courseliu/2026-09-12_DataDisk坏盘迁移记录.md`
