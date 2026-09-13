@@ -25,7 +25,8 @@ sys.path.insert(0, RDNET)
 os.chdir(RDNET)
 
 from models.arch.RDnet_ import FullNet_NLP  # noqa: E402
-from models.arch.rdnet_atap import FullNet_NLP_ATap, load_official_atap  # noqa: E402
+from models.arch.rdnet_atap import (FullNet_NLP_ATap, FullNet_NLP_ATap_Code,  # noqa: E402
+                                    load_official_atap)
 from models.arch.classifier import PretrainedConvNext  # noqa: E402
 from skimage.metrics import structural_similarity as ssim_fn  # noqa: E402
 
@@ -54,13 +55,13 @@ def grad_mag(a):
     return gx + gy
 
 
-def build(arm, ckpt, device):
+def build(arm, ckpt, device, code_cond=False):
     if arm == "M0":
         net = FullNet_NLP([64, 128, 256, 512], [2, 2, 4, 2], 4, 4)
         net.load_state_dict(torch.load(RDNET_CKPT, map_location="cpu")["icnn"])
     else:
-        net = FullNet_NLP_ATap([64, 128, 256, 512], [2, 2, 4, 2], 4, 4,
-                               inject=(arm == "A"))
+        cls = FullNet_NLP_ATap_Code if code_cond else FullNet_NLP_ATap
+        net = cls([64, 128, 256, 512], [2, 2, 4, 2], 4, 4, inject=(arm == "A"))
         if ckpt:
             ck = torch.load(ckpt, map_location="cpu")["icnn"]
             miss, unex = net.load_state_dict(ck, strict=False)
@@ -79,17 +80,25 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--arm", choices=["A", "B", "M0"], required=True)
     ap.add_argument("--ckpt", default=None, help="默认 pilot_ckpt/{arm}/ckpt_final.pth (M0 不需要)")
+    ap.add_argument("--init", default=None, help="显式 ckpt 路径 (优先于 --ckpt)")
+    ap.add_argument("--code-cond", action="store_true", help="α 头 v2 (code 条件化) 结构")
     ap.add_argument("--ts", default=os.path.join(PROJ, "synth_rrw_v21_0913"))
     ap.add_argument("--levels", default="1.0,0.6,0.3")
     ap.add_argument("--gpu", type=int, default=0)
     ap.add_argument("--out-root", default=os.path.join(PROJ, "pilot_pred"))
     ap.add_argument("--tag", default="", help="输出后缀: {out_root}{tag}/ 与 pilot_eval_{arm}{tag}.csv")
     args = ap.parse_args()
-    if args.ckpt is None and args.arm != "M0":
+    if args.init is not None:
+        args.ckpt = args.init
+    elif args.ckpt is None and args.arm != "M0":
         args.ckpt = os.path.join(PROJ, "pilot_ckpt", args.arm, "ckpt_final.pth")
+    for k in ("ckpt", "ts", "out_root"):            # 脚本 chdir 到 RDNet, 相对路径锚定项目根
+        v = getattr(args, k)
+        if v and not os.path.isabs(v):
+            setattr(args, k, os.path.join(PROJ, v))
 
     device = torch.device(f"cuda:{args.gpu}")
-    net, net_c = build(args.arm, args.ckpt, device)
+    net, net_c = build(args.arm, args.ckpt, device, args.code_cond)
     levels = [float(x) for x in args.levels.split(",")]
     scenes = sorted(glob.glob(os.path.join(args.ts, "gt", "*.png")))
 
@@ -136,6 +145,11 @@ def main():
                            a_mae_film=float(ae[film].mean()) if film.any() else np.nan,
                            a_mae_naked=float(ae[naked].mean()) if naked.any() else np.nan,
                            a_frac_band=float(band.mean()))
+                for rname, rmask in (("film", film), ("naked", naked)):
+                    if rmask.any() and rmask.sum() > 16:
+                        rec[f"a_hat_{rname}"] = float(ah[rmask].mean())
+                        rec[f"a_gt_{rname}"] = float(ag[rmask].mean())
+                        rec[f"a_corr_{rname}"] = float(np.corrcoef(ah[rmask], ag[rmask])[0, 1])
             rows.append(rec)
             print(f"[{args.arm}] lv={lv:g} {stem}: PSNR {rec['psnr']:.2f} (gm {rec['psnr_gm']:.2f}) "
                   f"SSIM {rec['ssim']:.3f} T̄={rec['t_mean']:.0f} GT̄={rec['gt_mean']:.0f}"
@@ -143,7 +157,8 @@ def main():
 
     csv = os.path.join(PROJ, f"pilot_eval_{args.arm}{args.tag}.csv")
     keys = ["level", "scene", "psnr", "ssim", "psnr_gm", "ssim_gm", "psnr_in_gm", "ssim_in_gm",
-            "t_mean", "gt_mean", "a_mae", "a_mae_band", "a_mae_film", "a_mae_naked", "a_frac_band"]
+            "t_mean", "gt_mean", "a_mae", "a_mae_band", "a_mae_film", "a_mae_naked", "a_frac_band",
+            "a_hat_film", "a_gt_film", "a_corr_film", "a_hat_naked", "a_gt_naked", "a_corr_naked"]
     with open(csv, "w") as fp:
         fp.write(",".join(keys) + "\n")
         for r in rows:
@@ -158,7 +173,10 @@ def main():
               f"gm {m('psnr_gm'):6.2f}/{m('ssim_gm'):.4f} | in_gm {m('psnr_in_gm'):6.2f} | "
               f"T̄ {m('t_mean'):5.1f} vs GT {m('gt_mean'):5.1f}"
               + (f" | αMAE {m('a_mae'):.3f} (band {m('a_mae_band'):.3f}/film {m('a_mae_film'):.3f}/naked {m('a_mae_naked'):.3f})"
-                 if any('a_mae' in r for r in sel) else ""))
+                 if any('a_mae' in r for r in sel) else "")
+              + (f" | α̂ film {m('a_hat_film'):.3f}/GT {m('a_gt_film'):.3f} corr {m('a_corr_film'):.3f}"
+                 f" naked {m('a_hat_naked'):.3f}/GT {m('a_gt_naked'):.3f} corr {m('a_corr_naked'):.3f}"
+                 if any('a_hat_film' in r for r in sel) else ""))
     print("csv ->", csv)
 
 

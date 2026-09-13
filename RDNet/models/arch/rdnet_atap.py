@@ -61,7 +61,7 @@ class FullNet_NLP_ATap(FullNet_NLP):
                             align_corners=False)
         return torch.cat([x_stem, c3u], dim=1)
 
-    def _alpha_hat(self, x_stem, c3b, x_in):
+    def _alpha_hat(self, x_stem, c3b, x_in, code=None):
         logits = self.alpha_head(self._fuse(self.alpha_c3, x_stem, c3b))  # h/2
         up = F.interpolate(logits, size=x_in.shape[-2:], mode="bilinear",
                            align_corners=False)
@@ -74,12 +74,12 @@ class FullNet_NLP_ATap(FullNet_NLP):
         return torch.stack([a.mean((1, 2, 3)), a.std((1, 2, 3)),
                             (a < 0.5).float().mean((1, 2, 3))], dim=-1)
 
-    def forward_alpha_only(self, x_in):
+    def forward_alpha_only(self, x_in, code=None):
         """阶段 1 用: 只跑到 α 头 (跳过 4 个 subnet 列), 供 L_α 单独训练。"""
         x_base, x_stem = self.baseball(x_in)
         x_stem = self.baseball_adapter[0](x_stem)
         c3b = self.baseball_adapter[4](x_base[3])
-        return self._alpha_hat(x_stem, c3b, x_in)
+        return self._alpha_hat(x_stem, c3b, x_in, code)
 
     def _delta(self, x_stem, c3b, x_in):
         d = self.delta_head(self._fuse(self.delta_c3, x_stem, c3b))  # h/2
@@ -98,7 +98,7 @@ class FullNet_NLP_ATap(FullNet_NLP):
                               self.baseball_adapter[4](x_base[3]))
         c0, c1, c2, c3 = c0b, c1b, c2b, c3b
 
-        alpha = self._alpha_hat(x_stem, c3b, x_in)
+        alpha = self._alpha_hat(x_stem, c3b, x_in, alpha_code)
         stats = self._alpha_stats(alpha)
         delta = self._delta(x_stem, c3b, x_in) if self.inject else None
 
@@ -122,6 +122,33 @@ class FullNet_NLP_ATap(FullNet_NLP):
                 x_img_out.append(out)
 
         return x_img_out, {"alpha": alpha, "delta": delta, "stats": stats}
+
+
+class FullNet_NLP_ATap_Code(FullNet_NLP_ATap):
+    """α 头 v2: classifier code 注入全局档位先验 + 低容量空间 offset。
+
+    动机 (2026-09-13 饱和测试): 原 α 头在直接监督下饱和于 naked≈0.7、结构 corr≈0,
+    诊断为其局部特征无法区分"裸区 α=1"与"膜区 α=0.3"的全局档位。code (6 维,
+    KDNet 的 transmission-rate 预测) 正是全局档位信息, 故:
+      z = 0.5·tanh(z_global(code)) + Δz_spatial(features)
+      α̂ = α_min + (1−α_min)·σ(z)
+    Δz 零初始化 → 起点即纯 code 全局先验; 空间头从零学起。
+    """
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        fuse_ch = self.alpha_head[0].in_channels  # x_stem(64) + proj(c3)(512)
+        self.alpha_global_head = nn.Sequential(nn.Linear(6, 64), nn.GELU(), nn.Linear(64, 1))
+        self.alpha_film = nn.Linear(6, fuse_ch)
+
+    def _alpha_hat(self, x_stem, c3b, x_in, code=None):
+        if code is None:
+            return super()._alpha_hat(x_stem, c3b, x_in)
+        feat = self._fuse(self.alpha_c3, x_stem, c3b)
+        dz = self.alpha_head(feat + self.alpha_film(code)[:, :, None, None])  # h/2
+        up = F.interpolate(dz, size=x_in.shape[-2:], mode="bilinear", align_corners=False)
+        dz = up + self.alpha_refine(torch.cat([up, x_in], dim=1))
+        z = 0.5 * torch.tanh(self.alpha_global_head(code))[:, :, None, None] + dz
+        return self.alpha_min + (1.0 - self.alpha_min) * torch.sigmoid(z)
 
 
 def load_official_atap(model, ckpt_path, verbose=True):
