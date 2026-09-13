@@ -19,15 +19,19 @@ conda activate xreflection
 
 ```
 TintedGlass_Enhance/
-├── docs/                   # 研究文档（md/txt）
+├── docs/                   # 研究文档（实验记录/评审/调研，md）与早期资料（txt）
+├── fig/                    # 实验记录图（结果曲线/判定与核验 sheet/拼图）
 ├── RDNet/                  # RDNet 代码（反射去除）
 ├── ExpoMamba/              # ExpoMamba 代码（低光增强）
 ├── pretrained/             # 预训练模型权重（符号链接）
 ├── scripts/                # 推理/工具脚本
 │   └── pipeline.py         # 联合推理：RDNet → ExpoMamba
+├── eval_*.csv              # 评测指标输出（脚本写入项目根）
 ├── CLAUDE.md               # 本项目说明
 └── command.txt             # 常用命令
 ```
+
+注意：`r_rrw_strong/`、`synth_rrw_*/`、`probe_rscale_0913/` 等实验数据产物目录不入 git（见 .gitignore），可由 `scripts/` 下生成器重建。
 
 ## 常用命令
 

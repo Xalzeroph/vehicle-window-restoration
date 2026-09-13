@@ -234,7 +234,7 @@ def main():
     ap.add_argument("--p-sweep", type=str, default="", help="如 0,0.5,1: 渲染 p 扫描对比 sheet 后退出")
     ap.add_argument("--sat-sweep", type=str, default="", help="如 1,0.6,0.45,0.3: 渲染色度压缩扫描后退出")
     ap.add_argument("--sat-level", type=float, default=0.3, help="色度扫描用的 α 档")
-    ap.add_argument("--preview-out", default="/DataDisk/zmy_code/TintedGlass_Enhance/synth_v21_preview.png")
+    ap.add_argument("--preview-out", default="/DataDisk/zmy_code/TintedGlass_Enhance/fig/synth_v21_preview.png")
     args = ap.parse_args()
     if args.sat_sweep:
         render_sat_sweep(args)

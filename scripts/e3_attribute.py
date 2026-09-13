@@ -45,7 +45,7 @@ def main():
     ap.add_argument("--ts", required=True)
     ap.add_argument("--pred", required=True)
     ap.add_argument("--model", default="rdnet")
-    ap.add_argument("--out-prefix", default="/home/courseliu/vehicle_ssd/E3")
+    ap.add_argument("--out-prefix", default="/DataDisk/zmy_code/TintedGlass_Enhance/fig/E3")
     args = ap.parse_args()
 
     with open(os.path.join(args.ts, "meta.json")) as fp:
