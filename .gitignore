@@ -19,3 +19,6 @@ nohup.out
 r_rrw_strong/
 synth_rrw_*/
 probe_rscale_0913/
+train_pairs_*/
+pilot_ckpt/
+pilot_pred*/
