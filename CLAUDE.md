@@ -70,5 +70,23 @@ cd RDNet && python3 train.py
 - RDNet 要求输入尺寸能被 32 整除
 - 深色贴膜场景（α << 1）：先 RDNet 去反射，再 ExpoMamba 提亮
 - 普通反射场景：RDNet 单独即可
-- 模型权重在 `pretrained/` 下（符号链接到原始位置）
-- **磁盘（2026-09-12）**：物理盘 `/DataDisk`（`/dev/sda2`）已故障、整盘只读（读正常、写报 EROFS）。本项目所在 `/DataDisk/zmy_code` 与 `/DataDisk/miniconda` 已迁至 NVMe（LVM `ubuntu-vg/workspace`），经 bind mount 保持旧路径可用，故以上所有路径照常使用；**但不要直接读写 `/DataDisk` 上其他（非 zmy_code/miniconda）路径**。详见 `/home/courseliu/2026-09-12_DataDisk坏盘迁移记录.md`
+- 模型权重在 `pretrained/` 下（符号链接到 `RDNet-main/`；ExpoMamba 权重在 `pretrained/expomamba/`）
+
+## 服务器环境与守则（2026-09-14 迁入共享机）
+
+本项目现运行于实验室共享服务器 `init-SYS-4029GP-TRT`（Ubuntu 24.04，80 核 / 251G 内存，8× RTX 3080 **10GB**，`/home` 下约 14 个用户）。旧机（3080Ti / `/DataDisk` 坏盘 / IERR 崩溃）事实已作废，见 `2026-09-14_项目搬迁方案.md`。
+
+### 环境事实
+
+- 项目路径 `/DataDisk/zmy_code/TintedGlass_Enhance`；`/home/zmy/mycode -> /DataDisk/zmy_code` 软链，两种写法等价
+- conda：`/DataDisk/miniconda/envs/xreflection`（torch 2.12.0+cu126，8 卡可见）
+- 磁盘：`/DataDisk` = 系统盘 `/dev/sda2`（879G，余 ~600G，项目与 miniconda 都在其上）；`/home` = 独立 4T 盘（余 1.5T，全组共用）；`/storage` 5T **已 100% 满，禁止写入**
+- 2026-09-14 搬迁 smoke：`python scripts/pipeline.py` 端到端通过
+
+### 共享机守则
+
+1. **GPU 先到先得**：跑任务前 `nvidia-smi` 查空闲卡，用 `CUDA_VISIBLE_DEVICES=N` 显式钉卡；不占满全部 8 卡，任务结束确认显存释放。显存仅 10GB（旧机 12GB），大 batch 训练先小步验证 OOM。
+2. **CPU/内存是公共资源**：其他用户常驻任务（如 MATLAB）会吃满 CPU；重任务设 `OMP_NUM_THREADS` / `num_workers` 上限，别抢满 80 核。
+3. **产物落盘**：实验产物/数据集一律放**项目目录内**（延续旧机习惯）；不写 `/storage`；`/DataDisk` 是系统盘，累计产物超 ~200G 时再议转移。
+4. **不动他人目录**：`/home/{fangyuan,kyshen,hjl,...}` 属其他用户；sudo 需密码，系统级操作先问用户。
+5. 长任务用 `tmux`/`nohup` 跑防 SSH 断开；GPU0 有桌面会话常驻少量显存占用，优先用 1–7 号卡。
