@@ -221,7 +221,7 @@ def render_p_sweep(args):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--e1", default="/home/courseliu/vehicle_ssd/e1_testset")
+    ap.add_argument("--e1", default="/home/zmy/vehicle_ssd/e1_testset")
     ap.add_argument("--r-pool", default="/DataDisk/zmy_code/TintedGlass_Enhance/r_rrw_strong/pool")
     ap.add_argument("--out", default=None)
     ap.add_argument("--spatial", type=float, default=0.3)

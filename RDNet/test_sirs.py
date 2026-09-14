@@ -19,13 +19,13 @@ opt.display_id = 0
 opt.verbose = False
 
 # 直接使用你的实际数据集绝对路径
-eval_dataset_real = datasets.DSRTestDataset('/home/courseliu/mycode/datasets/real/real20',
+eval_dataset_real = datasets.DSRTestDataset('/home/zmy/mycode/datasets/real/real20',
                                             if_align=opt.if_align)
-eval_dataset_solidobject = datasets.DSRTestDataset('/home/courseliu/mycode/datasets/SIR2/SolidObjectDataset/solid200',
+eval_dataset_solidobject = datasets.DSRTestDataset('/home/zmy/mycode/datasets/SIR2/SolidObjectDataset/solid200',
                                                    if_align=opt.if_align)
-eval_dataset_postcard = datasets.DSRTestDataset('/home/courseliu/mycode/datasets/SIR2/postcard/postcard199',
+eval_dataset_postcard = datasets.DSRTestDataset('/home/zmy/mycode/datasets/SIR2/postcard/postcard199',
                                                 if_align=opt.if_align)
-eval_dataset_wild = datasets.DSRTestDataset('/home/courseliu/mycode/datasets/SIR2/Wildscene/wild55',
+eval_dataset_wild = datasets.DSRTestDataset('/home/zmy/mycode/datasets/SIR2/Wildscene/wild55',
                                             if_align=opt.if_align)
 
 eval_dataloader_real = datasets.DataLoader(

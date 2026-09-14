@@ -7,8 +7,8 @@ R 不经衰减直接叠加（表面反射物理），n 可选高斯噪声。
 
 用法示例：
   python3 scripts/synth_tinted_degrade.py \
-      --src /home/courseliu/vehicle_ssd/datasets/augmented \
-      --out /home/courseliu/vehicle_ssd/synth_pilot_0909 \
+      --src /home/zmy/vehicle_ssd/datasets/augmented \
+      --out /home/zmy/vehicle_ssd/synth_pilot_0909 \
       --scenes 3 --alphas 1.0,0.6,0.3,0.15,0.1,0.05 --spatial 0.3 --noise 2
 """
 import argparse, glob, hashlib, csv, os

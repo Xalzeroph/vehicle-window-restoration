@@ -9,16 +9,16 @@ import numpy as np
 from PIL import Image
 
 PAIRS = [
-    ("nature20", "/home/courseliu/mycode/datasets/nature/nature20/blended",
-     "/home/courseliu/mycode/datasets/nature/nature20/transmission"),
-    ("real20", "/home/courseliu/mycode/datasets/real/real20/blended",
-     "/home/courseliu/mycode/datasets/real/real20/transmission_layer"),
-    ("sir2_solid200", "/home/courseliu/mycode/datasets/SIR2/SolidObjectDataset/solid200/blended",
-     "/home/courseliu/mycode/datasets/SIR2/SolidObjectDataset/solid200/transmission_layer"),
-    ("sir2_wild55", "/home/courseliu/mycode/datasets/SIR2/Wildscene/wild55/blended",
-     "/home/courseliu/mycode/datasets/SIR2/Wildscene/wild55/transmission_layer"),
-    ("sir2_postcard199", "/home/courseliu/mycode/datasets/SIR2/postcard/postcard199/blended",
-     "/home/courseliu/mycode/datasets/SIR2/postcard/postcard199/transmission_layer"),
+    ("nature20", "/home/zmy/mycode/datasets/nature/nature20/blended",
+     "/home/zmy/mycode/datasets/nature/nature20/transmission"),
+    ("real20", "/home/zmy/mycode/datasets/real/real20/blended",
+     "/home/zmy/mycode/datasets/real/real20/transmission_layer"),
+    ("sir2_solid200", "/home/zmy/mycode/datasets/SIR2/SolidObjectDataset/solid200/blended",
+     "/home/zmy/mycode/datasets/SIR2/SolidObjectDataset/solid200/transmission_layer"),
+    ("sir2_wild55", "/home/zmy/mycode/datasets/SIR2/Wildscene/wild55/blended",
+     "/home/zmy/mycode/datasets/SIR2/Wildscene/wild55/transmission_layer"),
+    ("sir2_postcard199", "/home/zmy/mycode/datasets/SIR2/postcard/postcard199/blended",
+     "/home/zmy/mycode/datasets/SIR2/postcard/postcard199/transmission_layer"),
 ]
 
 

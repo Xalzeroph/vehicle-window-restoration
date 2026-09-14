@@ -29,9 +29,9 @@ from synth_tinted_degrade import load, save, coverage_mask, arc_gradient, \
 LEVELS = [1.0, 0.6, 0.3]
 LEVEL_TAGS = {1.0: "l100", 0.6: "l060", 0.3: "l030"}
 DEFAULT_T_SRC = [
-    ("sir2", "/home/courseliu/mycode/datasets/SIR2/SIR/transmission_layer"),
-    ("nature", "/home/courseliu/mycode/datasets/nature/natural_T"),
-    ("scenes", "/home/courseliu/vehicle_ssd/datasets/scenes"),
+    ("sir2", "/home/zmy/mycode/datasets/SIR2/SIR/transmission_layer"),
+    ("nature", "/home/zmy/mycode/datasets/nature/natural_T"),
+    ("scenes", "/home/zmy/vehicle_ssd/datasets/scenes"),
 ]
 IMG_EXT = (".png", ".jpg", ".jpeg", ".bmp")
 

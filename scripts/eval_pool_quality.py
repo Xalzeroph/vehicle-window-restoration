@@ -19,9 +19,9 @@ from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_rrw_pool as brp
 
-REAL_GLOBS = ["/home/courseliu/vehicle_ssd/rdnet_real426_0909/*/ytmt_ucs_sirs_r.png",
-              "/home/courseliu/vehicle_ssd/rdnet_real512_0909/*/ytmt_ucs_sirs_r.png",
-              "/home/courseliu/vehicle_ssd/rdnet_real901_0909/*/ytmt_ucs_sirs_r.png"]
+REAL_GLOBS = ["/home/zmy/vehicle_ssd/rdnet_real426_0909/*/ytmt_ucs_sirs_r.png",
+              "/home/zmy/vehicle_ssd/rdnet_real512_0909/*/ytmt_ucs_sirs_r.png",
+              "/home/zmy/vehicle_ssd/rdnet_real901_0909/*/ytmt_ucs_sirs_r.png"]
 
 
 def corr(a, b):

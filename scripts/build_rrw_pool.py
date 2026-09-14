@@ -38,7 +38,7 @@ import cv2
 from PIL import Image, ImageDraw
 from scipy.stats import rankdata
 
-AUG_T = "/home/courseliu/vehicle_ssd/datasets/augmented/a00000_label.jpg"
+AUG_T = "/home/zmy/vehicle_ssd/datasets/augmented/a00000_label.jpg"
 
 
 def imread_rgb(p):
@@ -286,8 +286,8 @@ def _find_real(stem_glob):
 
 def make_strength_figure(recs, out_dir, args):
     real_rows = []
-    for tag, pat in [("4.26", "/home/courseliu/vehicle_ssd/rdnet_real426_0909/*"),
-                     ("162901", "/home/courseliu/vehicle_ssd/rdnet_real901_0909/*")]:
+    for tag, pat in [("4.26", "/home/zmy/vehicle_ssd/rdnet_real426_0909/*"),
+                     ("162901", "/home/zmy/vehicle_ssd/rdnet_real901_0909/*")]:
         mi, rr = _find_real(pat)
         if mi:
             real_rows.append((f"real {tag} input", imread_rgb(mi)))

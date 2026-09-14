@@ -15,9 +15,9 @@ import numpy as np
 from PIL import Image
 
 DEFAULT_T_SRC = [
-    ("sir2", "/home/courseliu/mycode/datasets/SIR2/SIR/transmission_layer"),
-    ("nature", "/home/courseliu/mycode/datasets/nature/natural_T"),
-    ("scenes", "/home/courseliu/vehicle_ssd/datasets/scenes"),
+    ("sir2", "/home/zmy/mycode/datasets/SIR2/SIR/transmission_layer"),
+    ("nature", "/home/zmy/mycode/datasets/nature/natural_T"),
+    ("scenes", "/home/zmy/vehicle_ssd/datasets/scenes"),
 ]
 IMG_EXT = (".png", ".jpg", ".jpeg", ".bmp")
 
@@ -45,7 +45,7 @@ def d4(x):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--e1-meta", default="/home/courseliu/vehicle_ssd/e1_testset/meta.json")
+    ap.add_argument("--e1-meta", default="/home/zmy/vehicle_ssd/e1_testset/meta.json")
     ap.add_argument("--thresh", type=float, default=0.95)
     ap.add_argument("--topk", type=int, default=3)
     args = ap.parse_args()
