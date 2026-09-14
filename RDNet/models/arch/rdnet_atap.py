@@ -151,6 +151,131 @@ class FullNet_NLP_ATap_Code(FullNet_NLP_ATap):
         return self.alpha_min + (1.0 - self.alpha_min) * torch.sigmoid(z)
 
 
+def box_mean_channels(x, scales=(0.03, 0.10, 0.25)):
+    """x (B,3,H,W) → (B,9,H,W): 3 尺度 box-mean (stride 1, 反射 padding)。"""
+    outs = []
+    H = x.shape[-2]
+    for s in scales:
+        k = max(3, int(round(H * s)) | 1)
+        outs.append(F.avg_pool2d(F.pad(x, (k // 2,) * 4, mode="reflect"), k, 1))
+    return torch.cat(outs, dim=1)
+
+
+class AlphaRawEncoder(nn.Module):
+    """组件① raw 特征源: 独立轻量编码器 (不依赖 FocalNet)。
+
+    输入 12ch (RGB + 3 尺度 box-mean), 4 级 stride-2 conv (base 32), 各级上采样到
+    h/2 后拼接 → 128@h/2, 与 taps 配置输出同形状可直接换接。
+    """
+    def __init__(self, in_ch=12, base=32, out_ch=128):
+        super().__init__()
+        c = [base, base * 2, base * 4, base * 8]
+        self.b1 = nn.Sequential(nn.Conv2d(in_ch, c[0], 3, 2, 1), nn.GELU(),
+                                nn.Conv2d(c[0], c[0], 3, 1, 1), nn.GELU())
+        self.b2 = nn.Sequential(nn.Conv2d(c[0], c[1], 3, 2, 1), nn.GELU(),
+                                nn.Conv2d(c[1], c[1], 3, 1, 1), nn.GELU())
+        self.b3 = nn.Sequential(nn.Conv2d(c[1], c[2], 3, 2, 1), nn.GELU(),
+                                nn.Conv2d(c[2], c[2], 3, 1, 1), nn.GELU())
+        self.b4 = nn.Sequential(nn.Conv2d(c[2], c[3], 3, 2, 1), nn.GELU(),
+                                nn.Conv2d(c[3], c[3], 3, 1, 1), nn.GELU())
+        self.out = nn.Conv2d(sum(c), out_ch, 3, 1, 1)
+
+    def forward(self, x):
+        f1 = self.b1(x)
+        f2 = self.b2(f1)
+        f3 = self.b3(f2)
+        f4 = self.b4(f3)
+        up = lambda t: F.interpolate(t, size=f1.shape[-2:], mode="bilinear",
+                                     align_corners=False)
+        return self.out(torch.cat([f1, up(f2), up(f3), up(f4)], dim=1))
+
+
+class FullNet_NLP_ATap_Fac(FullNet_NLP_ATap):
+    """组件① 分解式 α 头 (docs/2026.9.13_架构创新线实施方案 §2)。
+
+    与生成器结构同构: α = 1 − m·(1 − c·g)
+      z_m → m̂ = σ(z_m)  覆盖率掩膜, 可辨识部分, 复用 alpha_refine 边界精修
+      z_g → ĝ = 1 + g_scale·tanh(z_g)  膜内缓变增益 (软界 ±g_scale)
+      level: GAP+GMP ⊕ 21 维全局统计 → p∈Δ³ → ĉ = Σ p_k·ᾱ_k (档位后验)
+    naked 锚定由构造保证 (m̂→0 ⇒ α̂→1); 参数前缀 alpha_fac.*。
+
+    raw_encoder=True 时 α 相关特征完全来自 AlphaRawEncoder (不读 FocalNet),
+    同一头 + 同一监督下与 taps 对比即"特征源假设"判决。
+    """
+    LEVELS = (1.0, 0.6, 0.3)
+
+    # g_scale=1.0: 生成器 g = 1 + 0.3·f 中 f 是逐图单位方差场, 故 ±0.3 只是 ±1σ 带,
+    # 实测支撑 [0.06, 1.96] (36% 像素出带); 软界取 ±1.0 才覆盖得住。
+    def __init__(self, *args, g_scale=1.0, m_bias_init=1.8, raw_encoder=False, **kw):
+        super().__init__(*args, **kw)
+        fuse_ch = self.alpha_head[0].in_channels          # x_stem(64) + proj(c3)(64)
+        self.alpha_fac = nn.Module()                      # 参数前缀统一 alpha_fac.*
+        self.alpha_fac.m = nn.Sequential(
+            nn.Conv2d(fuse_ch, 64, 3, padding=1), nn.GELU(), nn.Conv2d(64, 1, 1))
+        self.alpha_fac.g = nn.Sequential(
+            nn.Conv2d(fuse_ch, 64, 3, padding=1), nn.GELU(), nn.Conv2d(64, 1, 1))
+        self.alpha_fac.level = nn.Sequential(
+            nn.Linear(fuse_ch * 2 + 21, 64), nn.GELU(), nn.Linear(64, len(self.LEVELS)))
+        self.alpha_raw_enc = AlphaRawEncoder() if raw_encoder else None
+        self.g_scale = g_scale
+        with torch.no_grad():       # 起点: m̂≈σ(1.8)=0.86, ĝ≡1, p 均匀 (ĉ=0.633)
+            nn.init.zeros_(self.alpha_fac.m[-1].weight)
+            self.alpha_fac.m[-1].bias.fill_(m_bias_init)
+            nn.init.zeros_(self.alpha_fac.g[-1].weight)
+            nn.init.zeros_(self.alpha_fac.g[-1].bias)
+            nn.init.zeros_(self.alpha_fac.level[-1].weight)
+            nn.init.zeros_(self.alpha_fac.level[-1].bias)
+        self.register_buffer("alpha_levels", torch.tensor(self.LEVELS))
+
+    @staticmethod
+    def _global_stats(x):
+        """21 维全局统计 (同探针 5): 每通道 mean/std/p10/p50/p90 + 色差均值×2
+        + lum std / p95−p5 / <0.1 占比 / >0.9 占比。"""
+        B = x.shape[0]
+        v = x.float().reshape(B, 3, -1)                                  # B×3×N
+        qs = torch.quantile(v, torch.tensor([0.1, 0.5, 0.9], device=x.device), dim=2)
+        lum = v.mean(1)                                                  # B×N
+        lq = torch.quantile(lum, torch.tensor([0.05, 0.95], device=x.device), dim=1)
+        return torch.cat([v.mean(2), v.std(2), *qs.unbind(0),
+                          (v[:, 0] - v[:, 1]).mean(1, keepdim=True),
+                          (v[:, 1] - v[:, 2]).mean(1, keepdim=True),
+                          lum.std(1, keepdim=True), (lq[1] - lq[0]).unsqueeze(1),
+                          (lum < 0.1).float().mean(1, keepdim=True),
+                          (lum > 0.9).float().mean(1, keepdim=True)], dim=1)
+
+    def _fac_feat(self, x_stem, c3b, x_in):
+        if self.alpha_raw_enc is not None:
+            return self.alpha_raw_enc(torch.cat([x_in, box_mean_channels(x_in)], dim=1))
+        return self._fuse(self.alpha_c3, x_stem, c3b)
+
+    def _fac_heads(self, feat, x_in):
+        zm = self.alpha_fac.m(feat)                                      # h/2 logits
+        up = F.interpolate(zm, size=x_in.shape[-2:], mode="bilinear", align_corners=False)
+        m = torch.sigmoid(up + self.alpha_refine(torch.cat([up, x_in], dim=1)))
+        g = 1.0 + self.g_scale * torch.tanh(F.interpolate(
+            self.alpha_fac.g(feat), size=x_in.shape[-2:], mode="bilinear",
+            align_corners=False))
+        gap = F.adaptive_avg_pool2d(feat, 1).flatten(1)
+        gmp = F.adaptive_max_pool2d(feat, 1).flatten(1)
+        p = torch.softmax(self.alpha_fac.level(
+            torch.cat([gap, gmp, self._global_stats(x_in)], dim=1)), dim=1)
+        c = (p * self.alpha_levels).sum(1).view(-1, 1, 1, 1)
+        alpha = (1.0 - m * (1.0 - c * g)).clamp(self.alpha_min, 1.0)
+        return alpha, m, g, p
+
+    def _alpha_hat(self, x_stem, c3b, x_in, code=None):
+        return self._fac_heads(self._fac_feat(x_stem, c3b, x_in), x_in)[0]
+
+    def forward_alpha_only(self, x_in, code=None):
+        """返回 (α̂, m̂, ĝ, p); raw 配置下完全不走 backbone。"""
+        if self.alpha_raw_enc is not None:
+            return self._fac_heads(self._fac_feat(None, None, x_in), x_in)
+        x_base, x_stem = self.baseball(x_in)
+        x_stem = self.baseball_adapter[0](x_stem)
+        c3b = self.baseball_adapter[4](x_base[3])
+        return self._fac_heads(self._fac_feat(x_stem, c3b, x_in), x_in)
+
+
 def load_official_atap(model, ckpt_path, verbose=True):
     """官方 rdnet.pth['icnn'] → αTAP 模型。prompt.0 加宽: 官方 6 列 + 新列零初始化。"""
     sd = torch.load(ckpt_path, map_location="cpu")["icnn"]
