@@ -23,3 +23,7 @@ train_pairs_*/
 train_triplets_*/
 pilot_ckpt/
 pilot_pred*/
+
+# RDNet 运行产物(训练日志/TensorBoard events, 运行自动生成)
+checkpoints/
+experiment/
