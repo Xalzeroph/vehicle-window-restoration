@@ -207,8 +207,10 @@ class FullNet_NLP_ATap_Fac(FullNet_NLP_ATap):
     # g_scale=1.0: 生成器 g = 1 + 0.3·f 中 f 是逐图单位方差场, 故 ±0.3 只是 ±1σ 带,
     # 实测支撑 [0.06, 1.96] (36% 像素出带); 软界取 ±1.0 才覆盖得住。
     def __init__(self, *args, g_scale=1.0, m_bias_init=1.8, raw_encoder=False,
-                 region_level=False, level_reg=False, **kw):
+                 region_level=False, level_reg=False, levels=None, **kw):
         super().__init__(*args, **kw)
+        if levels is not None:
+            self.LEVELS = tuple(float(x) for x in levels)
         self.region_level = region_level
         self.level_reg = level_reg and region_level   # 序数回归仅在区域池化头下启用
         fuse_ch = self.alpha_head[0].in_channels          # x_stem(64) + proj(c3)(64)

@@ -26,7 +26,7 @@ from PIL import Image, ImageDraw
 from synth_tinted_degrade import load, save, coverage_mask, arc_gradient, \
     alpha_from, r_overlay_field, compose_alpha
 
-LEVELS = [1.0, 0.6, 0.3]
+LEVELS = [1.0, 0.6, 0.3]           # 可被 --levels 覆盖（main 内设全局）
 LEVEL_TAGS = {1.0: "l100", 0.6: "l060", 0.3: "l030"}
 DEFAULT_T_SRC = [
     ("sir2", "/home/zmy/mycode/datasets/SIR2/SIR/transmission_layer"),
@@ -195,11 +195,17 @@ def main():
     ap.add_argument("--t-extra-weight", type=float, default=1.0, help="附加 T 源权重")
     ap.add_argument("--t-extra-glob", default="*", help="附加 T 源文件通配(如可见光干净图用 '*_label.jpg')")
     ap.add_argument("--t-exclude-json", default="", help="逗号分隔 JSON 列表, 收集其中 scenes[].src_t 并排除(防泄漏)")
+    ap.add_argument("--levels", default="1.0,0.6,0.3",
+                    help="档位列表(逗号分隔); 例 '1.0,0.6,0.3,0.15,0.1'")
     ap.add_argument("--clip-cap", type=float, default=0.05, help="档 1.0 clip_frac 重采样上限(<=0 关闭)")
     ap.add_argument("--clip-max-retry", type=int, default=4)
     ap.add_argument("--preview", type=int, default=0, help="只出目检 sheet(行=场景)后退出")
     ap.add_argument("--check", default="", help="对已生成目录跑自检后退出")
     args = ap.parse_args()
+    global LEVELS, LEVEL_TAGS
+    LEVELS = [float(x) for x in args.levels.split(",")]
+    LEVEL_TAGS = {lv: f"l{int(round(lv * 100)):03d}" for lv in LEVELS}
+    print(f"档位: {LEVELS}  标签: {list(LEVEL_TAGS.values())}")
 
     if args.check:
         raise SystemExit(run_check(args.check))
@@ -223,8 +229,10 @@ def main():
     for name, fs in t_files.items():
         print(f"T[{name}]: {len(fs)}" + (f" (已排除 {len(excl)} 张泄漏源)" if excl else ""))
         assert fs, f"T 源为空: {name}"
-    r_files = pool_files(args.r_pool, test_scene_ids(args.test_meta))
-    print(f"R pool: {len(r_files)} (已排除测试场景)")
+    metas = [m.strip() for m in args.test_meta.split(",") if m.strip()]
+    excl = set().union(*(test_scene_ids(m) for m in metas)) if metas else set()
+    r_files = pool_files(args.r_pool, excl)
+    print(f"R pool: {len(r_files)} (已排除 {len(metas)} 个测试集的 R 源, 共 {len(excl)} 个)")
 
     def sample_sources(rng):
         ti = int(rng.choice(len(t_pools), p=t_weights))

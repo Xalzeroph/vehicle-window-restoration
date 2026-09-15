@@ -21,7 +21,7 @@ from PIL import Image, ImageDraw
 from synth_tinted_degrade import load, save, tint_field, compose_alpha, coverage_mask, \
     arc_gradient, alpha_from, r_overlay_field
 
-ALPHAS = [1.0, 0.6, 0.3]
+ALPHAS = [1.0, 0.6, 0.3]     # 可被 --alphas 覆盖（main 内设全局）
 SEED = 20260913
 
 
@@ -224,6 +224,8 @@ def main():
     ap.add_argument("--e1", default="/home/zmy/vehicle_ssd/e1_testset")
     ap.add_argument("--r-pool", default="/DataDisk/zmy_code/TintedGlass_Enhance/data/pools/r_rrw_strong/pool")
     ap.add_argument("--out", default=None)
+    ap.add_argument("--alphas", default="1.0,0.6,0.3",
+                    help="α 档位列表(逗号分隔); scan 用 '1.0,0.6,0.3,0.15,0.1,0.05'")
     ap.add_argument("--spatial", type=float, default=0.3)
     ap.add_argument("--noise", type=float, default=1.5)
     ap.add_argument("--cover-frac", type=float, nargs=2, default=[0.78, 0.92])
@@ -236,6 +238,9 @@ def main():
     ap.add_argument("--sat-level", type=float, default=0.3, help="色度扫描用的 α 档")
     ap.add_argument("--preview-out", default="/DataDisk/zmy_code/TintedGlass_Enhance/fig/synth_v21_preview.png")
     args = ap.parse_args()
+    global ALPHAS
+    ALPHAS = [float(x) for x in args.alphas.split(",")]
+    print(f"α 档位: {ALPHAS}")
     if args.sat_sweep:
         render_sat_sweep(args)
         return

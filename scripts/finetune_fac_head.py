@@ -13,7 +13,7 @@
   python3 scripts/finetune_fac_head.py --encoder raw  --gpu 1 --iters 4000 --batch 2
 输出: runs/ckpt/fac_{encoder}/ckpt_final.pth + train_log.csv (每 500 iter 中间 ckpt)
 """
-import argparse, os, sys, time
+import argparse, json, os, sys, time
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -31,7 +31,8 @@ from models.arch.rdnet_atap import (FullNet_NLP_ATap_Fac,  # noqa: E402
                                     load_official_atap)
 
 RDNET_CKPT = os.path.join(PROJ, "pretrained", "rdnet.pth")
-TAGS = ("l100", "l060", "l030")
+TAGS = ("l100", "l060", "l030")          # 可被数据集 meta 覆盖（main 内设全局）
+N_LV = 3
 BAND_TAU = 0.02
 NAKED_TAU = 0.95
 OBS_TAU = 0.95          # m_lab = 1[α_GT < OBS_TAU]: 可观测膜指标
@@ -44,6 +45,14 @@ class TripletDataset(Dataset):
         self.root = root
         self.ids = sorted(os.path.splitext(f)[0] for f in os.listdir(os.path.join(root, "T")))
         assert self.ids, f"空数据集: {root}"
+        global TAGS, N_LV
+        meta_path = os.path.join(root, "meta.json")
+        if os.path.exists(meta_path):        # 档位以数据集 meta 为准（3 或 N 档均可）
+            with open(meta_path) as fp:
+                lvs = json.load(fp).get("levels")
+            if lvs:
+                TAGS = tuple(f"l{round(float(lv) * 100):03d}" for lv in lvs)
+                N_LV = len(TAGS)
 
     def __len__(self):
         return len(self.ids)
@@ -74,7 +83,7 @@ def fac_losses(net, I, T, A, g_gt, m_gt, lvl_idx, args):
     """附录 A 六项损失。batch = k 场景 × 3 档 (scene-major)。"""
     k3 = I.shape[0]
     alpha, m, g, p = net.forward_alpha_only(I)
-    k = k3 // 3
+    k = k3 // N_LV
     m_lab = (A < OBS_TAU).float()                                    # 可观测膜指标
     obs = torch.ones_like(m_lab)
     if getattr(args, "ignore_clipped", False):
@@ -100,22 +109,23 @@ def fac_losses(net, I, T, A, g_gt, m_gt, lvl_idx, args):
                 * w_a).sum() / w_a.sum().clamp(min=1.0))
 
     # --- 三连图项: reshape 成 (k,3,...) 后按档位配对 ---
-    M = m.view(k, 3, 1, *m.shape[-2:])
-    G = g.view(k, 3, 1, *g.shape[-2:])
-    obs_ok = A.view(k, 3, 1, *A.shape[-2:]) < OBS_TAU                 # 双侧可观测
+    M = m.view(k, N_LV, 1, *m.shape[-2:])
+    G = g.view(k, N_LV, 1, *g.shape[-2:])
+    obs_ok = A.view(k, N_LV, 1, *A.shape[-2:]) < OBS_TAU              # 双侧可观测
+    PAIRS = [(i, i + 1) for i in range(N_LV - 1)] + [(0, N_LV - 1)]
     L_trip = torch.zeros((), device=I.device)
-    for lo, hi in ((0, 1), (1, 2), (0, 2)):
+    for lo, hi in PAIRS:
         o = (obs_ok[:, lo] & obs_ok[:, hi]).float()
         den = o.sum().clamp(min=1.0)
         L_trip = L_trip + (((M[:, lo] - M[:, hi]).abs() + (G[:, lo] - G[:, hi]).abs()) * o).sum() / den
-    L_trip = L_trip / 3.0
+    L_trip = L_trip / len(PAIRS)
 
-    C_mag = c_mag.view(k, 3)
+    C_mag = c_mag.view(k, N_LV)
     L_rank = torch.zeros((), device=I.device)
-    for lo, hi in ((0, 1), (1, 2), (0, 2)):
+    for lo, hi in PAIRS:
         margin = 0.1 * (net.alpha_levels[lo] - net.alpha_levels[hi])
         L_rank = L_rank + F.relu(margin - (C_mag[:, lo] - C_mag[:, hi])).mean()
-    L_rank = L_rank / 3.0
+    L_rank = L_rank / len(PAIRS)
 
     L_lreg = torch.zeros((), device=I.device)
     if getattr(net, "level_reg", False):
@@ -139,11 +149,13 @@ def fac_losses(net, I, T, A, g_gt, m_gt, lvl_idx, args):
     return total, stats
 
 
-def build(encoder, device, init=None, lr=1e-4, region_level=False, level_reg=False):
+def build(encoder, device, init=None, lr=1e-4, region_level=False, level_reg=False,
+          levels=None):
     net = FullNet_NLP_ATap_Fac(channels=[64, 128, 256, 512], layers=[2, 2, 4, 2],
                                num_subnet=4, loss_col=4, inject=True,
                                raw_encoder=(encoder == "raw"),
-                               region_level=region_level, level_reg=level_reg)
+                               region_level=region_level, level_reg=level_reg,
+                               levels=levels)
     load_official_atap(net, RDNET_CKPT, verbose=False)
     if init:
         load_ckpt_into(net, init)
@@ -206,8 +218,12 @@ def main():
     print(f"[fac-{args.encoder}] 场景 {len(ds)} × 3 档, iters={args.iters} "
           f"batch={args.batch}×3={args.batch*3} -> {out}")
 
+    ds_root = args.triplets if os.path.isabs(args.triplets) else os.path.join(PROJ, args.triplets)
+    with open(os.path.join(ds_root, "meta.json")) as fp:
+        _lvls = json.load(fp).get("levels")          # 档位以数据集为准
     net = build(args.encoder, device, args.init,
-                region_level=args.region_level, level_reg=args.level_reg)
+                region_level=args.region_level, level_reg=args.level_reg,
+                levels=_lvls)
     opt = torch.optim.Adam([p for p in net.parameters() if p.requires_grad], lr=args.lr)
     sched = None
     if args.lr_schedule == "cosine":
@@ -228,10 +244,10 @@ def main():
             k = I3.shape[0]
             I = I3.flatten(0, 1).to(device, non_blocking=True)      # (k*3,3,H,W)
             A = A3.flatten(0, 1).to(device, non_blocking=True)
-            T = T.repeat_interleave(3, 0).to(device, non_blocking=True)
-            g_gt = g3.repeat_interleave(3, 0).unsqueeze(1).to(device, non_blocking=True)
-            m_gt = m3.repeat_interleave(3, 0).unsqueeze(1).to(device, non_blocking=True)
-            lvl_idx = torch.arange(3, device=device).repeat(k)
+            T = T.repeat_interleave(N_LV, 0).to(device, non_blocking=True)
+            g_gt = g3.repeat_interleave(N_LV, 0).unsqueeze(1).to(device, non_blocking=True)
+            m_gt = m3.repeat_interleave(N_LV, 0).unsqueeze(1).to(device, non_blocking=True)
+            lvl_idx = torch.arange(N_LV, device=device).repeat(k)
 
             with torch.cuda.amp.autocast():
                 loss, run = fac_losses(net, I, T, A, g_gt, m_gt, lvl_idx, args)

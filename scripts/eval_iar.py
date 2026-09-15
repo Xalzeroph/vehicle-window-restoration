@@ -81,8 +81,11 @@ def build(encoder, ckpt, device, region_level=False, level_reg=False):
                                raw_encoder=(encoder == "raw"),
                                region_level=region_level, level_reg=level_reg)
     miss, unex = net.load_state_dict(ck["icnn"], strict=False)
+    ck_lv = ck_args.get("levels") or list(net.LEVELS)
+    if [round(float(x), 3) for x in ck_lv] != [round(float(x), 3) for x in LEVELS]:
+        print(f"⚠️ ckpt 训练档位 {ck_lv} 与评测档位 {LEVELS} 不一致: 档位 acc 口径不可比!")
     print(f"[fac-{encoder}] load {ckpt}: missing={len(miss)} unexpected={len(unex)} "
-          f"region_level={region_level} level_reg={level_reg}")
+          f"region_level={region_level} level_reg={level_reg} levels={ck_lv}")
     return net.eval().to(device)
 
 
