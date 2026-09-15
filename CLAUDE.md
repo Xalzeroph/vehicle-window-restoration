@@ -65,6 +65,17 @@ cd RDNet && python3 train.py
 - `--if_align`：将图像对齐到 32 的倍数
 - `--save_memory`：使用可逆模式节省显存
 
+## 研究工作流（research-loop）
+
+实验轮次走固化流程：**P0 破题(预登记判决门) → P1 方案 → P2 Opus 红队审核(关键轮) →
+P3 执行 → P4 分析 → P5 写 `docs/` md 汇报 → P6 确认后 git 提交**。三个必停门：
+方案定稿 / 启动 >30min GPU 任务 / git 提交。
+
+- 协议全文：`.claude/skills/research-loop/SKILL.md`（说"开新一轮/走工作流"即触发）
+- 执行链：`Makefile`（`make help`；check-pool / triplets / train / eval-all / report / clean-ckpts）
+- 每轮护栏：新数据先过 `scripts/check_t_src_leak.py`（内容级泄漏核查）；评测必带
+  常数/平凡基线 + v2.1 & indomain 双测试集；引用历史数字前查 `docs/` 修正框
+
 ## 注意事项
 
 - RDNet 要求输入尺寸能被 32 整除

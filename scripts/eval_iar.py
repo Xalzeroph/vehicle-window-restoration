@@ -18,7 +18,7 @@ taps/raw 两配置同头同监督, 对照即 §2.4 特征源判决。
 输出: fac_pred_{encoder}/alpha_{lv:g}/{stem}_a.npy + _m.npy (fp16);
       eval_iar_{encoder}.csv (逐图行)
 """
-import argparse, glob, os, sys
+import argparse, glob, json, os, sys
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -227,7 +227,16 @@ def main():
         fp.write(",".join(keys) + "\n")
         for r in rows:
             fp.write(",".join(f"{r[k]:.5f}" if isinstance(r[k], float) else str(r[k]) for k in keys) + "\n")
-    print(f"\n-> {csv}\n-> {out_root}/alpha_*/{{stem}}_a.npy|_m.npy")
+    summary = dict(encoder=args.encoder, tag=args.tag, ts=os.path.basename(os.path.normpath(args.ts)),
+                   n=len(rows), auc=auc_all, iou=iou_all, bf1=bf1_all, acc=acc, ece=ece,
+                   naked=naked_all, naked_const=naked_const, mae_const=mae_const,
+                   spread=spread, spread_gt=spread_gt,
+                   mae_per_lv={f"{lv:g}": per_lv[lv]["mae"] for lv in LEVELS},
+                   conf=conf.tolist())
+    js = os.path.join(PROJ, f"eval_iar_{args.encoder}{args.tag}_summary.json")
+    with open(js, "w") as fp:
+        json.dump(summary, fp, ensure_ascii=False, indent=1)
+    print(f"\n-> {csv}\n-> {js}\n-> {out_root}/alpha_*/{{stem}}_a.npy|_m.npy")
 
 
 if __name__ == "__main__":
