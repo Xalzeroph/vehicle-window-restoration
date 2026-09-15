@@ -111,7 +111,7 @@ def main():
 
     train_files = []
     for name, d in parse_pools(args.t_src):
-        fs = sorted(f for f in glob.glob(os.path.join(d, args.t_glob))
+        fs = sorted(f for f in glob.glob(os.path.join(d, args.t_glob), recursive=True)
                     if os.path.splitext(f)[1].lower() in IMG_EXT)
         print(f"T[{name}]: {len(fs)}  ({d})")
         assert fs, f"T 源为空: {name}"
