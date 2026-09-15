@@ -36,8 +36,8 @@ DEFAULT_T_SRC = [
 IMG_EXT = (".png", ".jpg", ".jpeg", ".bmp")
 
 
-def glob_images(d):
-    return sorted(f for f in glob.glob(os.path.join(d, "*"))
+def glob_images(d, pattern="*"):
+    return sorted(f for f in glob.glob(os.path.join(d, pattern))
                   if os.path.splitext(f)[1].lower() in IMG_EXT)
 
 
@@ -190,6 +190,11 @@ def main():
     ap.add_argument("--r-pool", default="/DataDisk/zmy_code/TintedGlass_Enhance/r_rrw_strong/pool")
     ap.add_argument("--test-meta", default="/DataDisk/zmy_code/TintedGlass_Enhance/synth_rrw_v21_0913/meta.json")
     ap.add_argument("--t-weights", default="0.35,0.25,0.40", help="对应 sir2,nature,scenes 抽样权重")
+    ap.add_argument("--t-extra-dir", default="", help="附加第 4 个 T 源目录(如域匹配的 augmented 池)")
+    ap.add_argument("--t-extra-name", default="extra", help="附加 T 源名称")
+    ap.add_argument("--t-extra-weight", type=float, default=1.0, help="附加 T 源权重")
+    ap.add_argument("--t-extra-glob", default="*", help="附加 T 源文件通配(如可见光干净图用 '*_label.jpg')")
+    ap.add_argument("--t-exclude-json", default="", help="逗号分隔 JSON 列表, 收集其中 scenes[].src_t 并排除(防泄漏)")
     ap.add_argument("--clip-cap", type=float, default=0.05, help="档 1.0 clip_frac 重采样上限(<=0 关闭)")
     ap.add_argument("--clip-max-retry", type=int, default=4)
     ap.add_argument("--preview", type=int, default=0, help="只出目检 sheet(行=场景)后退出")
@@ -199,18 +204,31 @@ def main():
     if args.check:
         raise SystemExit(run_check(args.check))
 
-    t_weights = np.array([float(x) for x in args.t_weights.split(",")])
+    t_pools = list(DEFAULT_T_SRC)
+    w = [float(x) for x in args.t_weights.split(",")]
+    if args.t_extra_dir:
+        t_pools.append((args.t_extra_name, args.t_extra_dir))
+        w.append(args.t_extra_weight)
+    t_weights = np.array(w)
     t_weights = t_weights / t_weights.sum()
-    t_files = {name: glob_images(d) for name, d in DEFAULT_T_SRC}
+    excl = set()
+    for jf in filter(None, (s.strip() for s in args.t_exclude_json.split(","))):
+        with open(jf) as fp:
+            for s in json.load(fp).get("scenes", []):
+                if s.get("src_t"):
+                    excl.add(os.path.basename(s["src_t"]))
+    t_files = {name: [f for f in glob_images(d, args.t_extra_glob if name == args.t_extra_name else "*")
+                      if os.path.basename(f) not in excl]
+               for name, d in t_pools}
     for name, fs in t_files.items():
-        print(f"T[{name}]: {len(fs)}")
+        print(f"T[{name}]: {len(fs)}" + (f" (已排除 {len(excl)} 张泄漏源)" if excl else ""))
         assert fs, f"T 源为空: {name}"
     r_files = pool_files(args.r_pool, test_scene_ids(args.test_meta))
     print(f"R pool: {len(r_files)} (已排除测试场景)")
 
     def sample_sources(rng):
-        ti = int(rng.choice(len(DEFAULT_T_SRC), p=t_weights))
-        t_name = DEFAULT_T_SRC[ti][0]
+        ti = int(rng.choice(len(t_pools), p=t_weights))
+        t_name = t_pools[ti][0]
         t_f = t_files[t_name][int(rng.integers(0, len(t_files[t_name])))]
         r_f = r_files[int(rng.integers(0, len(r_files)))]
         return t_name, t_f, r_f

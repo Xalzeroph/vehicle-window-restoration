@@ -105,6 +105,7 @@ def main():
 
     per_lv = {}   # lv -> dict(lists)
     pool = {k: ([], []) for k in ("naked", "film")}   # 跨档像素池 (pred, gt)
+    BASE = {k: [] for k in ("const", "n_px", "n_naked", "const_ae")}   # 常数基线累加器
     rows = []
     for lv in LEVELS:
         outd = os.path.join(out_root, f"alpha_{lv:g}")
@@ -126,11 +127,22 @@ def main():
             pr_m = mh > 0.5
             inter = float((pr_m & m_lab).sum()); union = float((pr_m | m_lab).sum())
             prec, rec, f1 = boundary_f1(edges(m_lab), edges(pr_m))
+            lab = m_lab.ravel().astype(float); mm = mh.ravel()
+            n1 = lab.sum(); n0 = lab.size - n1
+            if n1 > 0 and n0 > 0:
+                rk = np.argsort(np.argsort(mm))
+                auc = float((rk[lab > 0].sum() - n1 * (n1 + 1) / 2) / (n1 * n0))
+            else:
+                auc = float("nan")
+            BASE["const"].append(float(gts.mean())); BASE["n_px"].append(int(gts.size))
+            BASE["n_naked"].append(int((gts >= NAKED_TAU).sum()))
+            BASE["const_ae"].append(float(np.abs(gts - gts.mean()).sum()))
             order = np.argsort(-ph)
             pred_idx = int(order[0])
             true_idx = LEVELS.index(lv)
             rows.append(dict(encoder=args.encoder, level=lv, scene=stem,
                              iou=inter / union if union > 0 else np.nan,
+                             auc=auc, cov=float(m_lab.mean()),
                              bnd_prec=prec, bnd_rec=rec, bnd_f1=f1,
                              lv_pred=pred_idx, lv_true=true_idx,
                              p_max=float(ph.max()),
@@ -191,13 +203,25 @@ def main():
           + " | ".join(f"{lv:g}: {per_lv[lv]['mae']:.3f}/{per_lv[lv]['iou']:.3f}/{per_lv[lv]['bf1']:.3f}"
                        for lv in LEVELS))
     print(f"档位 acc={acc:.3f} ECE={ece:.3f} (GT spread {spread_gt:.3f})")
+
+    # ---- 基线对照（判定指标是否高于摆烂线）----
+    auc_all = float(np.nanmean([r["auc"] for r in rows]))
+    cov_all = float(np.nanmean([r["cov"] for r in rows]))
+    n_px = max(sum(BASE["n_px"]), 1); n_naked = max(sum(BASE["n_naked"]), 1)
+    naked_const = float(np.sum([c * n for c, n in zip(BASE["const"], BASE["n_naked"])]) / n_naked)
+    mae_const = float(np.sum(BASE["const_ae"]) / n_px)
+    print(f"\n---- 基线对照 ----")
+    print(f"mask AUC (m̂ 排序 vs m_lab)             {auc_all:.3f}   (0.5=瞎猜)")
+    print(f"平凡 IoU (全判膜)                       {cov_all:.3f}   (模型 IoU {iou_all:.3f})")
+    print(f"常数 α̂=逐图均值: naked={naked_const:.3f} (模型 {naked_all:.3f}) | αMAE={mae_const:.3f} (模型 "
+          + " / ".join(f"{per_lv[lv]['mae']:.3f}" for lv in LEVELS) + ")")
     conf = np.zeros((3, 3), int)
     for r in rows:
         conf[r["lv_true"], r["lv_pred"]] += 1
     print("混淆 (行=真档 [1.0,0.6,0.3], 列=预测):\n" + str(conf))
 
     csv = os.path.join(PROJ, f"eval_iar_{args.encoder}{args.tag}.csv")
-    keys = ["encoder", "level", "scene", "iou", "bnd_prec", "bnd_rec", "bnd_f1",
+    keys = ["encoder", "level", "scene", "iou", "auc", "cov", "bnd_prec", "bnd_rec", "bnd_f1",
             "lv_pred", "lv_true", "p_max", "a_mae"]
     with open(csv, "w") as fp:
         fp.write(",".join(keys) + "\n")

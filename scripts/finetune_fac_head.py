@@ -60,7 +60,8 @@ class TripletDataset(Dataset):
             for t in TAGS]))
         T = torch.from_numpy(self._img("T", sid + ".png").copy())
         g = torch.from_numpy(np.load(os.path.join(self.root, "g", sid + ".npy")).astype(np.float32))
-        return I, T, A, g
+        m = torch.from_numpy(np.load(os.path.join(self.root, "m", sid + ".npy")).astype(np.float32))
+        return I, T, A, g, m
 
 
 def edge_band(m, px=3):
@@ -69,13 +70,17 @@ def edge_band(m, px=3):
     return F.max_pool2d((mx - mn).clamp(0, 1), 2 * px + 1, 1, px)
 
 
-def fac_losses(net, I, T, A, g_gt, lvl_idx, args):
+def fac_losses(net, I, T, A, g_gt, m_gt, lvl_idx, args):
     """附录 A 六项损失。batch = k 场景 × 3 档 (scene-major)。"""
     k3 = I.shape[0]
     alpha, m, g, p = net.forward_alpha_only(I)
     k = k3 // 3
     m_lab = (A < OBS_TAU).float()                                    # 可观测膜指标
-    w_b = 1.0 + 5.0 * edge_band(m_lab)
+    obs = torch.ones_like(m_lab)
+    if getattr(args, "ignore_clipped", False):
+        # 膜区但 α 被 clip ≥0.95 → 与裸区物理不可分, 标签矛盾(教幻觉), 掩膜损失不监督
+        obs = 1.0 - (m_gt > 0.5).float() * (1.0 - m_lab)
+    w_b = (1.0 + 5.0 * edge_band(m_lab)) * obs
 
     bce = -(m_lab * (m + 1e-6).log() + (1.0 - m_lab) * (1.0 - m + 1e-6).log())   # BCE, autocast 安全
     L_mask = (bce * w_b).sum() / w_b.sum().clamp(min=1.0)
@@ -152,6 +157,8 @@ def main():
     ap.add_argument("--lam-trip", type=float, default=0.5)
     ap.add_argument("--lam-rank", type=float, default=0.3)
     ap.add_argument("--lam-alpha", type=float, default=1.0)
+    ap.add_argument("--ignore-clipped", action="store_true",
+                    help="掩膜损失忽略'膜区但 α 被 clip≥0.95'的不可观测像素(消伪标签矛盾)")
     ap.add_argument("--init", default=None, help="初始 ckpt (默认官方 rdnet.pth)")
     ap.add_argument("--gpu", type=int, default=0)
     ap.add_argument("--seed", type=int, default=20260914)
@@ -187,7 +194,7 @@ def main():
     it = 0
     run = {}
     while it < args.iters:
-        for I3, T, A3, g3 in dl:
+        for I3, T, A3, g3, m3 in dl:
             if it >= args.iters:
                 break
             k = I3.shape[0]
@@ -195,10 +202,11 @@ def main():
             A = A3.flatten(0, 1).to(device, non_blocking=True)
             T = T.repeat_interleave(3, 0).to(device, non_blocking=True)
             g_gt = g3.repeat_interleave(3, 0).unsqueeze(1).to(device, non_blocking=True)
+            m_gt = m3.repeat_interleave(3, 0).unsqueeze(1).to(device, non_blocking=True)
             lvl_idx = torch.arange(3, device=device).repeat(k)
 
             with torch.cuda.amp.autocast():
-                loss, run = fac_losses(net, I, T, A, g_gt, lvl_idx, args)
+                loss, run = fac_losses(net, I, T, A, g_gt, m_gt, lvl_idx, args)
 
             opt.zero_grad(set_to_none=True)
             scaler.scale(loss).backward()
