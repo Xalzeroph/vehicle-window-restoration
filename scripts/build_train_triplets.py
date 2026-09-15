@@ -15,8 +15,8 @@
 α 可由落盘量精确重建: α = clip(ᾱ·g·m + (1−m), 0.01, 1.0)。
 
 用法:
-  python3 scripts/build_train_triplets.py --out train_triplets_0913 --n-scenes 800
-  python3 scripts/build_train_triplets.py --check train_triplets_0913   # 自检(S0 门)
+  python3 scripts/build_train_triplets.py --out data/train_sets/train_triplets_0913 --n-scenes 800
+  python3 scripts/build_train_triplets.py --check data/train_sets/train_triplets_0913   # 自检(S0 门)
   python3 scripts/build_train_triplets.py --preview 3                   # 目检 sheet
 """
 import argparse, glob, json, os
@@ -179,7 +179,7 @@ def run_check(out):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default="/DataDisk/zmy_code/TintedGlass_Enhance/train_triplets_0913")
+    ap.add_argument("--out", default="/DataDisk/zmy_code/TintedGlass_Enhance/data/train_sets/train_triplets_0913")
     ap.add_argument("--n-scenes", type=int, default=800, help="源场景数(× 3 档 = 样本数)")
     ap.add_argument("--size", type=int, default=224)
     ap.add_argument("--seed", type=int, default=20260913)
@@ -187,8 +187,8 @@ def main():
     ap.add_argument("--noise", type=float, default=1.5)
     ap.add_argument("--r-sat", type=float, default=0.45)
     ap.add_argument("--cover-frac", type=float, nargs=2, default=[0.78, 0.92])
-    ap.add_argument("--r-pool", default="/DataDisk/zmy_code/TintedGlass_Enhance/r_rrw_strong/pool")
-    ap.add_argument("--test-meta", default="/DataDisk/zmy_code/TintedGlass_Enhance/synth_rrw_v21_0913/meta.json")
+    ap.add_argument("--r-pool", default="/DataDisk/zmy_code/TintedGlass_Enhance/data/pools/r_rrw_strong/pool")
+    ap.add_argument("--test-meta", default="/DataDisk/zmy_code/TintedGlass_Enhance/data/test_sets/synth_rrw_v21_0913/meta.json")
     ap.add_argument("--t-weights", default="0.35,0.25,0.40", help="对应 sir2,nature,scenes 抽样权重")
     ap.add_argument("--t-extra-dir", default="", help="附加第 4 个 T 源目录(如域匹配的 augmented 池)")
     ap.add_argument("--t-extra-name", default="extra", help="附加 T 源名称")

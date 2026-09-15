@@ -18,7 +18,7 @@ os.chdir(RDNET)
 
 from models.arch.rdnet_atap import FullNet_NLP_ATap, FullNet_NLP_ATap_Fac  # noqa: E402
 
-TRIPLETS = os.path.join(PROJ, "train_triplets_0913")
+TRIPLETS = os.path.join(PROJ, "data/train_sets/train_triplets_0913")
 LEVEL_TAGS = ("l100", "l060", "l030")
 
 

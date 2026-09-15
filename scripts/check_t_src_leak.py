@@ -18,7 +18,7 @@
   # 任意池(如 augmented) vs 测试集 gt 图:
   python3 scripts/check_t_src_leak.py \
       --t-src aug=/home/zmy/vehicle_ssd/datasets/augmented --t-glob '*_label.jpg' \
-      --ts-dir synth_rrw_v21_0913/gt
+      --ts-dir data/test_sets/synth_rrw_v21_0913/gt
 退出码: 1 = 发现泄漏
 """
 import argparse, glob, hashlib, json, os
@@ -88,7 +88,7 @@ def main():
                     help="训练 T 池（可重复）；默认 sir2/nature/scenes")
     ap.add_argument("--t-glob", default="*", help="池文件通配，如 '*_label.jpg'")
     ap.add_argument("--e1-meta", default="/home/zmy/vehicle_ssd/e1_testset/meta.json")
-    ap.add_argument("--ts-dir", default="", help="测试图目录（如 synth_rrw_v21_0913/gt）；优先于 e1-meta")
+    ap.add_argument("--ts-dir", default="", help="测试图目录（如 data/test_sets/synth_rrw_v21_0913/gt）；优先于 e1-meta")
     ap.add_argument("--thresh", type=float, default=0.95, help="感知/裁剪级 r 阈值")
     ap.add_argument("--mse-thresh", type=float, default=1.0, help="[2] 缩放派生 MSE 阈值 (0-255)")
     ap.add_argument("--topk", type=int, default=3)

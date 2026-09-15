@@ -17,16 +17,8 @@ nohup.out
 **/.claude/settings.local.json
 .codegraph/
 
-# 实验数据产物(体积大, 可由 scripts/ 下生成器重建)
-r_rrw_strong/
-synth_rrw_*/
-probe_rscale_0913/
-matched_pool_*/
-train_pairs_*/
-train_triplets_*/
-pilot_ckpt/
-pilot_pred*/
-
-# RDNet 运行产物(训练日志/TensorBoard events, 运行自动生成)
-checkpoints/
-experiment/
+# 实验数据产物与训练产物(体积大, 可由 scripts/ 下生成器重建; 2026-09-15 目录整理)
+#   data/{pools,test_sets,train_sets,rdnet_runs}   数据/日志
+#   runs/{ckpt,pred}                               权重/逐图预测
+data/
+runs/

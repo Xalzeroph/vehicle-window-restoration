@@ -24,14 +24,25 @@ TintedGlass_Enhance/
 ├── RDNet/                  # RDNet 代码（反射去除）
 ├── ExpoMamba/              # ExpoMamba 代码（低光增强）
 ├── pretrained/             # 预训练模型权重（符号链接）
-├── scripts/                # 推理/工具脚本
+├── scripts/                # 推理/实验脚本（probes_0915/ 为一次性探针）
 │   └── pipeline.py         # 联合推理：RDNet → ExpoMamba
-├── eval_*.csv              # 评测指标输出（脚本写入项目根）
+├── .claude/skills/         # research-loop 工作流协议（随库入库）
+├── data/                   # 实验数据产物（不入 git，可由 scripts/ 重建）
+│   ├── pools/              # T/R 源池、matched_pool_*、probe_rscale_*
+│   ├── test_sets/          # synth_rrw_v21_0913 / _indomain / v2 / demo
+│   ├── train_sets/         # train_triplets_*、train_pairs_*
+│   └── rdnet_runs/         # RDNet 训练日志/events（原 checkpoints/、experiment/）
+├── runs/                   # 训练产物（不入 git）
+│   ├── ckpt/               # 模型权重（原 pilot_ckpt/）
+│   └── pred/               # 逐图预测 fac_pred_* / pilot_pred* / synth_rrw_*_pred
+├── eval/                   # 评测输出 CSV/JSON（入 git）
+├── Makefile                # 实验执行链（make help）
 ├── CLAUDE.md               # 本项目说明
 └── command.txt             # 常用命令
 ```
 
-注意：`r_rrw_strong/`、`synth_rrw_*/`、`probe_rscale_0913/` 等实验数据产物目录不入 git（见 .gitignore），可由 `scripts/` 下生成器重建。
+（2026-09-15 目录整理：数据/权重的旧路径 `synth_rrw_*`、`train_triplets_*`、`pilot_ckpt/`、`fac_pred_*`、
+根下 `eval_*.csv` 分别迁入 `data/`、`runs/`、`eval/`；历史 docs 中的旧路径按当时事实保留。）
 
 ## 常用命令
 

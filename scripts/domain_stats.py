@@ -21,7 +21,7 @@ IMG_EXT = (".png", ".jpg", ".jpeg", ".bmp")
 S = 224
 
 DEFAULT_SRC = [
-    ("test_v2.1   ", "synth_rrw_v21_0913/gt/*.png"),
+    ("test_v2.1   ", "data/test_sets/synth_rrw_v21_0913/gt/*.png"),
     ("sir2        ", "/home/zmy/mycode/datasets/SIR2/SIR/transmission_layer/*"),
     ("nature      ", "/home/zmy/mycode/datasets/nature/natural_T/*"),
     ("scenes      ", "/home/zmy/vehicle_ssd/datasets/scenes/*"),

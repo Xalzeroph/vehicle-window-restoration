@@ -9,8 +9,8 @@
 
 用法:
   python3 scripts/eval_pool_quality.py \
-      --pools /DataDisk/zmy_code/TintedGlass_Enhance/r_rrw_strong \
-              /DataDisk/zmy_code/TintedGlass_Enhance/r_rrw_strong_v3
+      --pools /DataDisk/zmy_code/TintedGlass_Enhance/data/pools/r_rrw_strong \
+              /DataDisk/zmy_code/TintedGlass_Enhance/data/pools/r_rrw_strong_v3
 """
 import argparse, csv, glob, os, sys
 import numpy as np

@@ -3,7 +3,7 @@
 
 与基准 v2.1 一致的要素:
   - α 场: coverage_mask(突变膜边) + arc_gradient(弧度缓变), s=0.3, 膜外 α=1
-  - R: r_rrw_strong/pool (ρ 已烘焙, 不再归一化) × r_overlay_field 非均匀叠加, 色度压缩 k=0.45
+  - R: data/pools/r_rrw_strong/pool (ρ 已烘焙, 不再归一化) × r_overlay_field 非均匀叠加, 色度压缩 k=0.45
   - 噪声 σ=1.5(0-255 域); 三档 ᾱ=1.0/0.6/0.3 均衡轮转(各 n/3)
   - 输出 I/T/R_eff uint8 + 真值 α(x) float16 npy; 饱和掩膜不落盘(I>=254 现算)
 
@@ -11,8 +11,8 @@
 T(自 augmented 派生)已核验无近重复内容。
 
 用法:
-  python3 scripts/build_train_pairs.py --out train_pairs_pilot --n 2400
-  python3 scripts/build_train_pairs.py --out train_pairs_pilot --preview 6   # 只出目检 sheet
+  python3 scripts/build_train_pairs.py --out data/train_sets/train_pairs_pilot --n 2400
+  python3 scripts/build_train_pairs.py --out data/train_sets/train_pairs_pilot --preview 6   # 只出目检 sheet
 """
 import argparse, glob, json, os
 import numpy as np
@@ -105,7 +105,7 @@ def make_sheet(rows, path, cw=224):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default="/DataDisk/zmy_code/TintedGlass_Enhance/train_pairs_pilot")
+    ap.add_argument("--out", default="/DataDisk/zmy_code/TintedGlass_Enhance/data/train_sets/train_pairs_pilot")
     ap.add_argument("--n", type=int, default=2400, help="样本数(按 1:1:1 轮转三档)")
     ap.add_argument("--size", type=int, default=224)
     ap.add_argument("--seed", type=int, default=20260913)
@@ -113,8 +113,8 @@ def main():
     ap.add_argument("--noise", type=float, default=1.5)
     ap.add_argument("--r-sat", type=float, default=0.45)
     ap.add_argument("--cover-frac", type=float, nargs=2, default=[0.78, 0.92])
-    ap.add_argument("--r-pool", default="/DataDisk/zmy_code/TintedGlass_Enhance/r_rrw_strong/pool")
-    ap.add_argument("--test-meta", default="/DataDisk/zmy_code/TintedGlass_Enhance/synth_rrw_v21_0913/meta.json")
+    ap.add_argument("--r-pool", default="/DataDisk/zmy_code/TintedGlass_Enhance/data/pools/r_rrw_strong/pool")
+    ap.add_argument("--test-meta", default="/DataDisk/zmy_code/TintedGlass_Enhance/data/test_sets/synth_rrw_v21_0913/meta.json")
     ap.add_argument("--t-weights", default="0.35,0.25,0.40", help="对应 sir2,nature,scenes 抽样权重")
     ap.add_argument("--preview", type=int, default=0, help="只出目检 sheet(行=样本)后退出")
     args = ap.parse_args()

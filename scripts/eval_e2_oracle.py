@@ -9,8 +9,8 @@
   RDNet / RDNet(GM) / 输入(GM): 读 pred-root 的 ytmt_ucs_sirs_l.png
 
 用法:
-  python3 scripts/eval_e2_oracle.py --testset synth_rrw_v21_0913 \
-      --pred-root synth_rrw_v21_pred --model v21 --plot E2_oracle_curve_v21.png
+  python3 scripts/eval/eval_e2_oracle.py --testset data/test_sets/synth_rrw_v21_0913 \
+      --pred-root runs/pred/synth_rrw_v21_pred --model v21 --plot E2_oracle_curve_v21.png
 """
 import argparse, glob, os
 import numpy as np
@@ -74,7 +74,7 @@ def main():
               f"{r['rd']:6.2f} {r['rdgm']:6.2f} {r['ingm']:6.2f}  {np.mean(maskf):.3f}")
         rows.append((float(akey), r))
 
-    csvp = os.path.join(os.path.dirname(args.testset.rstrip("/")), f"eval_e2_oracle_{args.model}.csv")
+    csvp = os.path.join(os.path.dirname(args.testset.rstrip("/")), f"eval/eval_e2_oracle_{args.model}.csv")
     with open(csvp, "w") as fp:
         fp.write("level," + ",".join(keys) + "\n")
         for lvl, r in rows:

@@ -5,7 +5,7 @@
   naked 区 (α_GT>=0.95):  α̂ 均值 (目标 >=0.9) / corr
   film 区 (非边界非 naked): α̂ 均值 vs GT / MAE / corr
   边界带 (|∇α|>0.02):       MAE / band-share
-数据源: pilot_pred{tag}/{run}/alpha_X/*_a.npy 与测试集 alpha/{stem}_aX.npy。
+数据源: runs/pred/pilot_pred{tag}/{run}/alpha_X/*_a.npy 与测试集 alpha/{stem}_aX.npy。
 
 用法:
   python3 scripts/analyze_alpha_sat.py
@@ -15,14 +15,14 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
-TS = os.path.join(PROJ, "synth_rrw_v21_0913")
+TS = os.path.join(PROJ, "data/test_sets/synth_rrw_v21_0913")
 LEVELS = [1.0, 0.6, 0.3]
 RUNS = [  # (显示名, pred 根目录, run 目录名)
-    ("A_r1 (1000)", "pilot_pred", "A"),
-    ("A_r3 (4000)", "pilot_pred_r3", "A"),
-    ("A_sat (8000, official-init)", "pilot_pred_sat", "A_sat"),
-    ("A_sat_r3 (8000, warm from A_r3)", "pilot_pred_sat_r3", "A_sat_r3"),
-    ("A_sat_cc (4000, code-cond)", "pilot_pred_sat_cc", "A_sat_cc"),
+    ("A_r1 (1000)", "runs/pred/pilot_pred", "A"),
+    ("A_r3 (4000)", "runs/pred/pilot_pred_r3", "A"),
+    ("A_sat (8000, official-init)", "runs/pred/pilot_pred_sat", "A_sat"),
+    ("A_sat_r3 (8000, warm from A_r3)", "runs/pred/pilot_pred_sat_r3", "A_sat_r3"),
+    ("A_sat_cc (4000, code-cond)", "runs/pred/pilot_pred_sat_cc", "A_sat_cc"),
 ]
 
 
@@ -76,8 +76,8 @@ def main():
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.2))
-    logs = [(os.path.join(PROJ, "pilot_ckpt/A_sat/train_log.csv"), "sat (official-init)"),
-            (os.path.join(PROJ, "pilot_ckpt/A_sat_r3/train_log.csv"), "sat_r3 (warm from A_r3)")]
+    logs = [(os.path.join(PROJ, "runs/ckpt/A_sat/train_log.csv"), "sat (official-init)"),
+            (os.path.join(PROJ, "runs/ckpt/A_sat_r3/train_log.csv"), "sat_r3 (warm from A_r3)")]
     for ax, (tag, ref) in zip(axes, [("naked α̂ (目标≥0.9)", "naked"), ("L_α", "L_alpha"), ("α̂ MAE", "alpha_mae")]):
         for path, label in logs:
             if not os.path.exists(path):

@@ -8,9 +8,9 @@
 (边界带 |∇α|>0.02 / 膜内 / 裸区 α≥0.95)。
 
 用法:
-  python3 scripts/eval_pilot.py --arm A --ckpt pilot_ckpt/A/ckpt_final.pth --gpu 0
+  python3 scripts/eval_pilot.py --arm A --ckpt runs/ckpt/A/ckpt_final.pth --gpu 0
   python3 scripts/eval_pilot.py --arm M0 --gpu 0
-输出: pilot_pred/{arm}/alpha_X/{stem}{,_r}.png + {stem}_a.npy; pilot_eval_{arm}.csv
+输出: runs/pred/pilot_pred/{arm}/alpha_X/{stem}{,_r}.png + {stem}_a.npy; eval/pilot_eval_{arm}.csv
 """
 import argparse, glob, json, os, sys
 import numpy as np
@@ -79,19 +79,19 @@ def build(arm, ckpt, device, code_cond=False):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--arm", choices=["A", "B", "M0"], required=True)
-    ap.add_argument("--ckpt", default=None, help="默认 pilot_ckpt/{arm}/ckpt_final.pth (M0 不需要)")
+    ap.add_argument("--ckpt", default=None, help="默认 runs/ckpt/{arm}/ckpt_final.pth (M0 不需要)")
     ap.add_argument("--init", default=None, help="显式 ckpt 路径 (优先于 --ckpt)")
     ap.add_argument("--code-cond", action="store_true", help="α 头 v2 (code 条件化) 结构")
-    ap.add_argument("--ts", default=os.path.join(PROJ, "synth_rrw_v21_0913"))
+    ap.add_argument("--ts", default=os.path.join(PROJ, "data/test_sets/synth_rrw_v21_0913"))
     ap.add_argument("--levels", default="1.0,0.6,0.3")
     ap.add_argument("--gpu", type=int, default=0)
-    ap.add_argument("--out-root", default=os.path.join(PROJ, "pilot_pred"))
-    ap.add_argument("--tag", default="", help="输出后缀: {out_root}{tag}/ 与 pilot_eval_{arm}{tag}.csv")
+    ap.add_argument("--out-root", default=os.path.join(PROJ, "runs/pred/pilot_pred"))
+    ap.add_argument("--tag", default="", help="输出后缀: {out_root}{tag}/ 与 eval/pilot_eval_{arm}{tag}.csv")
     args = ap.parse_args()
     if args.init is not None:
         args.ckpt = args.init
     elif args.ckpt is None and args.arm != "M0":
-        args.ckpt = os.path.join(PROJ, "pilot_ckpt", args.arm, "ckpt_final.pth")
+        args.ckpt = os.path.join(PROJ, "runs/ckpt", args.arm, "ckpt_final.pth")
     for k in ("ckpt", "ts", "out_root"):            # 脚本 chdir 到 RDNet, 相对路径锚定项目根
         v = getattr(args, k)
         if v and not os.path.isabs(v):
@@ -155,7 +155,7 @@ def main():
                   f"SSIM {rec['ssim']:.3f} T̄={rec['t_mean']:.0f} GT̄={rec['gt_mean']:.0f}"
                   + (f" aMAE={rec.get('a_mae', np.nan):.3f}" if "a_mae" in rec else ""))
 
-    csv = os.path.join(PROJ, f"pilot_eval_{args.arm}{args.tag}.csv")
+    csv = os.path.join(PROJ, f"eval/pilot_eval_{args.arm}{args.tag}.csv")
     keys = ["level", "scene", "psnr", "ssim", "psnr_gm", "ssim_gm", "psnr_in_gm", "ssim_in_gm",
             "t_mean", "gt_mean", "a_mae", "a_mae_band", "a_mae_film", "a_mae_naked", "a_frac_band",
             "a_hat_film", "a_gt_film", "a_corr_film", "a_hat_naked", "a_gt_naked", "a_corr_naked"]

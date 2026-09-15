@@ -34,10 +34,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--encoder", choices=["taps", "raw"], required=True)
     ap.add_argument("--ckpt", default=None)
-    ap.add_argument("--ts", default=os.path.join(PROJ, "synth_rrw_v21_0913"))
+    ap.add_argument("--ts", default=os.path.join(PROJ, "data/test_sets/synth_rrw_v21_0913"))
     ap.add_argument("--gpu", type=int, default=0)
     args = ap.parse_args()
-    ckpt = args.ckpt or os.path.join(PROJ, "pilot_ckpt", f"fac_{args.encoder}", "ckpt_final.pth")
+    ckpt = args.ckpt or os.path.join(PROJ, "runs/ckpt", f"fac_{args.encoder}", "ckpt_final.pth")
     device = torch.device(f"cuda:{args.gpu}")
 
     net = FullNet_NLP_ATap_Fac(channels=[64, 128, 256, 512], layers=[2, 2, 4, 2],

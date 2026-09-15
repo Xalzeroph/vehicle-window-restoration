@@ -13,10 +13,10 @@
 taps/raw 两配置同头同监督, 对照即 §2.4 特征源判决。
 
 用法:
-  python3 scripts/eval_iar.py --encoder taps --ckpt pilot_ckpt/fac_taps/ckpt_final.pth --gpu 0
-  python3 scripts/eval_iar.py --encoder raw  --ckpt pilot_ckpt/fac_raw/ckpt_final.pth  --gpu 1
-输出: fac_pred_{encoder}/alpha_{lv:g}/{stem}_a.npy + _m.npy (fp16);
-      eval_iar_{encoder}.csv (逐图行)
+  python3 scripts/eval_iar.py --encoder taps --ckpt runs/ckpt/fac_taps/ckpt_final.pth --gpu 0
+  python3 scripts/eval_iar.py --encoder raw  --ckpt runs/ckpt/fac_raw/ckpt_final.pth  --gpu 1
+输出: runs/pred/fac_pred_{encoder}/alpha_{lv:g}/{stem}_a.npy + _m.npy (fp16);
+      eval/eval_iar_{encoder}.csv (逐图行)
 """
 import argparse, glob, json, os, sys
 import numpy as np
@@ -84,17 +84,17 @@ def build(encoder, ckpt, device):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--encoder", choices=["taps", "raw"], required=True)
-    ap.add_argument("--ckpt", default=None, help="默认 pilot_ckpt/fac_{encoder}/ckpt_final.pth")
-    ap.add_argument("--ts", default=os.path.join(PROJ, "synth_rrw_v21_0913"))
-    ap.add_argument("--out-root", default=None, help="默认 fac_pred_{encoder}")
-    ap.add_argument("--tag", default="", help="CSV 后缀: eval_iar_{encoder}{tag}.csv")
+    ap.add_argument("--ckpt", default=None, help="默认 runs/ckpt/fac_{encoder}/ckpt_final.pth")
+    ap.add_argument("--ts", default=os.path.join(PROJ, "data/test_sets/synth_rrw_v21_0913"))
+    ap.add_argument("--out-root", default=None, help="默认 runs/pred/fac_pred_{encoder}")
+    ap.add_argument("--tag", default="", help="CSV 后缀: eval/eval_iar_{encoder}{tag}.csv")
     ap.add_argument("--gpu", type=int, default=0)
     args = ap.parse_args()
     if args.ckpt is None:
-        args.ckpt = os.path.join(PROJ, "pilot_ckpt", f"fac_{args.encoder}", "ckpt_final.pth")
+        args.ckpt = os.path.join(PROJ, "runs/ckpt", f"fac_{args.encoder}", "ckpt_final.pth")
     elif not os.path.isabs(args.ckpt):
         args.ckpt = os.path.join(PROJ, args.ckpt)
-    out_root = args.out_root or os.path.join(PROJ, f"fac_pred_{args.encoder}")
+    out_root = args.out_root or os.path.join(PROJ, f"runs/pred/fac_pred_{args.encoder}")
     if not os.path.isabs(out_root):
         out_root = os.path.join(PROJ, out_root)
 
@@ -220,7 +220,7 @@ def main():
         conf[r["lv_true"], r["lv_pred"]] += 1
     print("混淆 (行=真档 [1.0,0.6,0.3], 列=预测):\n" + str(conf))
 
-    csv = os.path.join(PROJ, f"eval_iar_{args.encoder}{args.tag}.csv")
+    csv = os.path.join(PROJ, f"eval/eval_iar_{args.encoder}{args.tag}.csv")
     keys = ["encoder", "level", "scene", "iou", "auc", "cov", "bnd_prec", "bnd_rec", "bnd_f1",
             "lv_pred", "lv_true", "p_max", "a_mae"]
     with open(csv, "w") as fp:
@@ -233,7 +233,7 @@ def main():
                    spread=spread, spread_gt=spread_gt,
                    mae_per_lv={f"{lv:g}": per_lv[lv]["mae"] for lv in LEVELS},
                    conf=conf.tolist())
-    js = os.path.join(PROJ, f"eval_iar_{args.encoder}{args.tag}_summary.json")
+    js = os.path.join(PROJ, f"eval/eval_iar_{args.encoder}{args.tag}_summary.json")
     with open(js, "w") as fp:
         json.dump(summary, fp, ensure_ascii=False, indent=1)
     print(f"\n-> {csv}\n-> {js}\n-> {out_root}/alpha_*/{{stem}}_a.npy|_m.npy")

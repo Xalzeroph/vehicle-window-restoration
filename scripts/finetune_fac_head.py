@@ -2,7 +2,7 @@
 """S1 组件① 分解式 α 头训练 (三连图, 只训头)。
 
 协议 (docs/2026.9.13_架构创新线实施方案_可辨识性对齐恢复.md §2.5 + 附录 A):
-  - 数据: train_triplets_0913 (800 场景 × 3 档, 同场景三档共享 m/f/R_eff/噪声)
+  - 数据: data/train_sets/train_triplets_0913 (800 场景 × 3 档, 同场景三档共享 m/f/R_eff/噪声)
   - batch = k 场景 × 3 档 (L_trip/L_rank 必须三连图同 batch); 场景序 = level 序 [1.0,0.6,0.3]
   - 只训头: 单列前向 forward_alpha_only, 不走 subnet/解码器
   - 损失: L_mask + L_g + L_c + L_trip + L_rank + L_α (无 κ_naked)
@@ -11,7 +11,7 @@
 用法:
   python3 scripts/finetune_fac_head.py --encoder taps --gpu 0 --iters 4000 --batch 2
   python3 scripts/finetune_fac_head.py --encoder raw  --gpu 1 --iters 4000 --batch 2
-输出: pilot_ckpt/fac_{encoder}/ckpt_final.pth + train_log.csv (每 500 iter 中间 ckpt)
+输出: runs/ckpt/fac_{encoder}/ckpt_final.pth + train_log.csv (每 500 iter 中间 ckpt)
 """
 import argparse, os, sys, time
 import numpy as np
@@ -146,8 +146,8 @@ def build(encoder, device, init=None, lr=1e-4):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--encoder", choices=["taps", "raw"], required=True)
-    ap.add_argument("--triplets", default=os.path.join(PROJ, "train_triplets_0913"))
-    ap.add_argument("--out", default=None, help="默认 pilot_ckpt/fac_{encoder}")
+    ap.add_argument("--triplets", default=os.path.join(PROJ, "data/train_sets/train_triplets_0913"))
+    ap.add_argument("--out", default=None, help="默认 runs/ckpt/fac_{encoder}")
     ap.add_argument("--iters", type=int, default=4000)
     ap.add_argument("--batch", type=int, default=2, help="场景数; 实际 batch = 3×")
     ap.add_argument("--lr", type=float, default=1e-4)
@@ -165,7 +165,7 @@ def main():
     ap.add_argument("--log-every", type=int, default=50)
     ap.add_argument("--save-every", type=int, default=500)
     args = ap.parse_args()
-    out = args.out or os.path.join(PROJ, "pilot_ckpt", f"fac_{args.encoder}")
+    out = args.out or os.path.join(PROJ, "runs/ckpt", f"fac_{args.encoder}")
     if not os.path.isabs(out):
         out = os.path.join(PROJ, out)
     os.makedirs(out, exist_ok=True)

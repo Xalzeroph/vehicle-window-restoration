@@ -52,7 +52,7 @@ description: >-
 - 新数据源/新池 → 先 `scripts/check_t_src_leak.py`（**内容级**，按文件名排除无效）
 - 评测面板必带**常数/平凡基线**；域相关结论必跑 **v2.1 + indomain 双测试集**
 - 引用历史数字前查 `docs/` 修正框与 memory（有"泄漏作废"标记的不得引用）
-- 命名：`train_triplets_<轮>`、`pilot_ckpt/fac_<配置>`、`eval_iar_<配置>[_<tag>]`
+- 命名：`data/train_sets/train_triplets_<轮>`、`runs/ckpt/fac_<配置>`、`eval/eval_iar_<配置>[_<tag>]`
 
 ## 工具速查
 - 执行链：`Makefile`（help / check-pool / triplets / train / eval-all / report / clean-ckpts）

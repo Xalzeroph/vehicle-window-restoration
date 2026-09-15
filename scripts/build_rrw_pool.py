@@ -30,7 +30,7 @@ s_c，最贴物理、泄漏最低**；env=全包络对齐（过削直流，弃�
 用法：
   python3 scripts/build_rrw_pool.py \
       --src /DataDisk/zmy_code/datasets/RRWDataset \
-      --out /DataDisk/zmy_code/TintedGlass_Enhance/r_rrw_strong
+      --out /DataDisk/zmy_code/TintedGlass_Enhance/data/pools/r_rrw_strong
 """
 import argparse, csv, glob, os, re, sys
 import numpy as np
@@ -357,7 +357,7 @@ def make_strength_figure(recs, out_dir, args):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default="/DataDisk/zmy_code/datasets/RRWDataset")
-    ap.add_argument("--out", default="/DataDisk/zmy_code/TintedGlass_Enhance/r_rrw_strong")
+    ap.add_argument("--out", default="/DataDisk/zmy_code/TintedGlass_Enhance/data/pools/r_rrw_strong")
     ap.add_argument("--max-frames", type=int, default=24, help="每场景时域采样帧数(中值)")
     ap.add_argument("--max-side", type=int, default=1280)
     ap.add_argument("--r-mean", type=float, default=0.06, help="中位场景目标 R 均值(base)")

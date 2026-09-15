@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """基准 v2.1 验证集: RRW 强反射池 + 覆盖突变边界/弧度渐变 α 场 + R 非均匀叠加。
 
-与 v2 (/synth_rrw_v2_0913) 的区别(2026-09-13 实拍修正落地, 见 9.9 补记 §5):
+与 v2 (/data/test_sets/synth_rrw_v2_0913) 的区别(2026-09-13 实拍修正落地, 见 9.9 补记 §5):
   - α 场: 废小尺度斑块场, 改为「黑膜覆盖不完全的突变边界(2-4.5px 过渡) +
     膜内玻璃弧度/光照缓变(大尺度低频)」; 膜外 α=1.0(裸玻璃)
   - R: 非均匀叠加(大尺度渐变衰减 × [0,2.2] + 金属高光高斯热点), 不再全局均匀
@@ -222,7 +222,7 @@ def render_p_sweep(args):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--e1", default="/home/zmy/vehicle_ssd/e1_testset")
-    ap.add_argument("--r-pool", default="/DataDisk/zmy_code/TintedGlass_Enhance/r_rrw_strong/pool")
+    ap.add_argument("--r-pool", default="/DataDisk/zmy_code/TintedGlass_Enhance/data/pools/r_rrw_strong/pool")
     ap.add_argument("--out", default=None)
     ap.add_argument("--spatial", type=float, default=0.3)
     ap.add_argument("--noise", type=float, default=1.5)

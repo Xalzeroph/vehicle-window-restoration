@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""汇总 eval_iar_*_summary.json → Markdown 对照表（G1 指标 + 基线对照）。
+"""汇总 eval/eval_iar_*_summary.json → Markdown 对照表（G1 指标 + 基线对照）。
 
 用法:
   python3 scripts/summarize_evals.py                      # 全部 summary
@@ -12,7 +12,7 @@ import argparse, glob, json, os
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--glob", default="eval_iar_*_summary.json")
+    ap.add_argument("--glob", default="eval/eval_iar_*_summary.json")
     ap.add_argument("--out", default="", help="写到文件；默认 stdout")
     args = ap.parse_args()
 
@@ -23,7 +23,7 @@ def main():
     rows = []
     for f in files:
         d = json.load(open(f))
-        stem = os.path.basename(f)[len("eval_iar_"):-len("_summary.json")]
+        stem = os.path.basename(f)[len("eval/eval_iar_"):-len("_summary.json")]
         rows.append((stem, d))
 
     lines = ["| 配置(encoder_tag) | 测试集 | n | mask AUC | 档位 acc | naked(模型/常数) | film spread(GT) | αMAE |",

@@ -9,11 +9,11 @@
 
 用法:
   python3 scripts/build_matched_pool.py                 # 全量构建
-  python3 scripts/build_matched_pool.py --max-per-src 300 --out matched_pool_0915_small
+  python3 scripts/build_matched_pool.py --max-per-src 300 --out data/pools/matched_pool_0915_small
 完成后验证:
-  python3 scripts/domain_stats.py --mode native --src matched=matched_pool_0915/*.jpg
-  python3 scripts/check_t_src_leak.py --t-src m=matched_pool_0915 --t-glob '*.jpg' \
-      --ts-dir synth_rrw_v21_0913/gt --skip-crop
+  python3 scripts/domain_stats.py --mode native --src matched=data/pools/matched_pool_0915/*.jpg
+  python3 scripts/check_t_src_leak.py --t-src m=data/pools/matched_pool_0915 --t-glob '*.jpg' \
+      --ts-dir data/test_sets/synth_rrw_v21_0913/gt --skip-crop
 """
 import argparse, glob, json, os, sys
 import numpy as np
@@ -26,7 +26,7 @@ from domain_stats import radial_spectrum  # noqa: E402  (与域表征同一测�
 CROP = 224          # 谱测量窗（与 domain_stats 一致）
 NB = 112            # 径向分箱数
 SHORT = 384         # 目标短边（测试 T=386）
-TS_DIR = "synth_rrw_v21_0913"
+TS_DIR = "data/test_sets/synth_rrw_v21_0913"
 
 SOURCES = [
     ("sir2", "/home/zmy/mycode/datasets/SIR2/SIR/transmission_layer/*"),
@@ -127,7 +127,7 @@ def exclude_rrw_testscenes(files):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default="matched_pool_0915")
+    ap.add_argument("--out", default="data/pools/matched_pool_0915")
     ap.add_argument("--max-per-src", type=int, default=600)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--floor", type=float, default=0.02, help="滤波增益下限")

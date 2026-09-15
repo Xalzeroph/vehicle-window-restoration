@@ -3,7 +3,7 @@
 
 协议 (docs/2026.9.9_模型分析与训练入口落地 + 9.13 评审修正):
   - 初始化: 官方 rdnet.pth; 冻结 FocalNet backbone (A/B 同待遇, 12GB 可行性)
-  - 数据: train_pairs_pilot (I/T/R uint8 + alpha float16), 224², amp
+  - 数据: data/train_sets/train_pairs_pilot (I/T/R uint8 + alpha float16), 224², amp
   - 阶段 1: 只训 α 头 (L_α); 阶段 2: β 线性 ramp 0→1, 全可训练参数, L_T+L_R+L_α
   - 方案 A: inject=True  → prompt 拼接 α̂ 统计 / P3 硬减法 T0=I−R̂+Δ̂ / 除法出口
   - 方案 B: inject=False → 官方参数化; L_T 用显式 w=clamp((0.3/α_GT)²,1,10) 加权;
@@ -17,7 +17,7 @@
   python3 scripts/finetune_alpha_tap.py --arm B --gpu 1 --iters 1000 --batch 4
   # α 头饱和测试 (只训 α 头, 可用 --init 从 pilot ckpt 热启动):
   python3 scripts/finetune_alpha_tap.py --arm A --alpha-only --iters 8000 \
-      --out pilot_ckpt/A_sat --init pilot_ckpt/A_r3/ckpt_final.pth --gpu 0
+      --out runs/ckpt/A_sat --init runs/ckpt/A_r3/ckpt_final.pth --gpu 0
 """
 import argparse, json, os, sys, time
 import numpy as np
@@ -118,8 +118,8 @@ def alpha_params(net):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--arm", choices=["A", "B"], required=True)
-    ap.add_argument("--pairs", default=os.path.join(PROJ, "train_pairs_pilot"))
-    ap.add_argument("--out", default=None, help="默认 {PROJ}/pilot_ckpt/{arm}")
+    ap.add_argument("--pairs", default=os.path.join(PROJ, "data/train_sets/train_pairs_pilot"))
+    ap.add_argument("--out", default=None, help="默认 {PROJ}/runs/ckpt/{arm}")
     ap.add_argument("--iters", type=int, default=1000)
     ap.add_argument("--batch", type=int, default=4)
     ap.add_argument("--lr", type=float, default=1e-4)
@@ -137,7 +137,7 @@ def main():
     ap.add_argument("--seed", type=int, default=20260913)
     ap.add_argument("--log-every", type=int, default=50)
     args = ap.parse_args()
-    out = args.out or os.path.join(PROJ, "pilot_ckpt", args.arm)
+    out = args.out or os.path.join(PROJ, "runs/ckpt", args.arm)
     if not os.path.isabs(out):      # 脚本 chdir 到 RDNet, 相对路径锚定项目根
         out = os.path.join(PROJ, out)
     os.makedirs(out, exist_ok=True)
