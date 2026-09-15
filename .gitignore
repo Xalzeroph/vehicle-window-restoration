@@ -14,6 +14,7 @@ nohup.out
 # 工具生成目录
 .claude/*
 !.claude/skills/
+**/.claude/settings.local.json
 .codegraph/
 
 # 实验数据产物(体积大, 可由 scripts/ 下生成器重建)
