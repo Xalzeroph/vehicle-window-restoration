@@ -27,6 +27,7 @@ TRIPLETS ?= data/train_sets/train_triplets_0915
 ITERS    ?= 24000
 GPU      ?= 1
 TRIPLET_ARGS ?=
+LEVEL_ARGS ?=          # 新档位头: --region-level [--level-reg]
 # tag: NAME 去掉编码器前缀（NAME=raw_match ENCODER=raw → _match）；无前缀则整名做 tag
 TAG := _$(patsubst $(ENCODER)_%,%,$(NAME))
 
@@ -51,19 +52,19 @@ triplets:
 train:
 	CUDA_VISIBLE_DEVICES=$(GPU) $(PY) scripts/finetune_fac_head.py \
 	    --encoder $(ENCODER) --triplets $(TRIPLETS) \
-	    --out runs/ckpt/fac_$(NAME) --iters $(ITERS) --gpu 0
+	    --out runs/ckpt/fac_$(NAME) --iters $(ITERS) --gpu 0 $(LEVEL_ARGS)
 
 ## 评测单个测试集: 产物 eval/eval_iar_$(ENCODER)_$(NAME){,_summary}.csv/json + runs/pred/fac_pred_$(NAME)/
 eval:
 	$(PY) scripts/eval_iar.py --encoder $(ENCODER) --ckpt runs/ckpt/fac_$(NAME)/ckpt_final.pth \
-	    --ts $(TS) --out-root runs/pred/fac_pred_$(NAME) --tag $(TAG) --gpu $(GPU)
+	    --ts $(TS) --out-root runs/pred/fac_pred_$(NAME) --tag $(TAG) --gpu $(GPU) $(LEVEL_ARGS)
 
 ## 双测试集评测（v2.1 + indomain）—— 标配, 防"退化过拟合"
 eval-all:
 	$(PY) scripts/eval_iar.py --encoder $(ENCODER) --ckpt runs/ckpt/fac_$(NAME)/ckpt_final.pth \
-	    --ts $(TS) --out-root runs/pred/fac_pred_$(NAME) --tag $(TAG) --gpu $(GPU)
+	    --ts $(TS) --out-root runs/pred/fac_pred_$(NAME) --tag $(TAG) --gpu $(GPU) $(LEVEL_ARGS)
 	$(PY) scripts/eval_iar.py --encoder $(ENCODER) --ckpt runs/ckpt/fac_$(NAME)/ckpt_final.pth \
-	    --ts $(TS_IND) --out-root runs/pred/fac_pred_indomain_$(NAME) --tag $(TAG)_indomain --gpu $(GPU)
+	    --ts $(TS_IND) --out-root runs/pred/fac_pred_indomain_$(NAME) --tag $(TAG)_indomain --gpu $(GPU) $(LEVEL_ARGS)
 
 ## 汇总所有评测 summary → Markdown 对照表
 report:

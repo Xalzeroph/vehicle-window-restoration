@@ -71,13 +71,18 @@ def boundary_f1(gt_b, pr_b, tol=BND_TOL):
     return float(prec), float(rec), float(f1)
 
 
-def build(encoder, ckpt, device):
+def build(encoder, ckpt, device, region_level=False, level_reg=False):
+    ck = torch.load(ckpt, map_location="cpu")
+    ck_args = ck.get("args", {}) or {}          # ckpt 自带训练配置: 头结构自动识别
+    region_level = bool(ck_args.get("region_level", region_level))
+    level_reg = bool(ck_args.get("level_reg", level_reg))
     net = FullNet_NLP_ATap_Fac(channels=[64, 128, 256, 512], layers=[2, 2, 4, 2],
                                num_subnet=4, loss_col=4, inject=True,
-                               raw_encoder=(encoder == "raw"))
-    sd = torch.load(ckpt, map_location="cpu")["icnn"]
-    miss, unex = net.load_state_dict(sd, strict=False)
-    print(f"[fac-{encoder}] load {ckpt}: missing={len(miss)} unexpected={len(unex)}")
+                               raw_encoder=(encoder == "raw"),
+                               region_level=region_level, level_reg=level_reg)
+    miss, unex = net.load_state_dict(ck["icnn"], strict=False)
+    print(f"[fac-{encoder}] load {ckpt}: missing={len(miss)} unexpected={len(unex)} "
+          f"region_level={region_level} level_reg={level_reg}")
     return net.eval().to(device)
 
 
@@ -89,6 +94,8 @@ def main():
     ap.add_argument("--out-root", default=None, help="默认 runs/pred/fac_pred_{encoder}")
     ap.add_argument("--tag", default="", help="CSV 后缀: eval/eval_iar_{encoder}{tag}.csv")
     ap.add_argument("--gpu", type=int, default=0)
+    ap.add_argument("--region-level", action="store_true", help="档位头为区域池化版（须与训练一致）")
+    ap.add_argument("--level-reg", action="store_true", help="档位头含序数回归支（须与训练一致）")
     args = ap.parse_args()
     if args.ckpt is None:
         args.ckpt = os.path.join(PROJ, "runs/ckpt", f"fac_{args.encoder}", "ckpt_final.pth")
@@ -99,7 +106,8 @@ def main():
         out_root = os.path.join(PROJ, out_root)
 
     device = torch.device(f"cuda:{args.gpu}")
-    net = build(args.encoder, args.ckpt, device)
+    net = build(args.encoder, args.ckpt, device,
+                region_level=args.region_level, level_reg=args.level_reg)
     stems = sorted(os.path.splitext(os.path.basename(f))[0]
                    for f in glob.glob(os.path.join(args.ts, "gt", "*.png")))
 

@@ -88,6 +88,8 @@ def fac_losses(net, I, T, A, g_gt, m_gt, lvl_idx, args):
     L_g = ((g - g_gt).abs() * m_lab).sum() / m_lab.sum().clamp(min=1.0)
 
     c_hat = (p * net.alpha_levels).sum(1)
+    c_mag = (net.alpha_fac.last_c.flatten(1).squeeze(1)
+             if getattr(net, "level_reg", False) else c_hat)
     a_lvl = net.alpha_levels[lvl_idx]
     L_c = (-torch.log(p.gather(1, lvl_idx[:, None]) + 1e-8)).mean() \
         + 0.5 * ((c_hat - a_lvl).abs() / a_lvl).mean()
@@ -100,7 +102,6 @@ def fac_losses(net, I, T, A, g_gt, m_gt, lvl_idx, args):
     # --- 三连图项: reshape 成 (k,3,...) 后按档位配对 ---
     M = m.view(k, 3, 1, *m.shape[-2:])
     G = g.view(k, 3, 1, *g.shape[-2:])
-    C = c_hat.view(k, 3)
     obs_ok = A.view(k, 3, 1, *A.shape[-2:]) < OBS_TAU                 # 双侧可观测
     L_trip = torch.zeros((), device=I.device)
     for lo, hi in ((0, 1), (1, 2), (0, 2)):
@@ -109,27 +110,40 @@ def fac_losses(net, I, T, A, g_gt, m_gt, lvl_idx, args):
         L_trip = L_trip + (((M[:, lo] - M[:, hi]).abs() + (G[:, lo] - G[:, hi]).abs()) * o).sum() / den
     L_trip = L_trip / 3.0
 
+    C_mag = c_mag.view(k, 3)
     L_rank = torch.zeros((), device=I.device)
     for lo, hi in ((0, 1), (1, 2), (0, 2)):
         margin = 0.1 * (net.alpha_levels[lo] - net.alpha_levels[hi])
-        L_rank = L_rank + F.relu(margin - (C[:, lo] - C[:, hi])).mean()
+        L_rank = L_rank + F.relu(margin - (C_mag[:, lo] - C_mag[:, hi])).mean()
     L_rank = L_rank / 3.0
 
+    L_lreg = torch.zeros((), device=I.device)
+    if getattr(net, "level_reg", False):
+        n_film = m_lab.sum(dim=(-2, -1))                                          # (B,1) 膜像素数
+        ok = (n_film > 0).reshape(-1).float()
+        film_mean = ((A * m_lab).sum(dim=(-2, -1))
+                     / n_film.clamp(min=1.0)).reshape(-1)                         # (B,)
+        L_lreg = ((c_mag - film_mean).abs() * ok).sum() / ok.sum().clamp(min=1.0)
+
     total = (args.lam_mask * L_mask + args.lam_g * L_g + args.lam_c * L_c
-             + args.lam_trip * L_trip + args.lam_rank * L_rank + args.lam_alpha * L_alpha)
+             + args.lam_trip * L_trip + args.lam_rank * L_rank + args.lam_alpha * L_alpha
+             + getattr(args, "lam_lreg", 0.0) * L_lreg)
     with torch.no_grad():
         stats = dict(L_mask=float(L_mask), L_g=float(L_g), L_c=float(L_c),
                      L_trip=float(L_trip), L_rank=float(L_rank), L_alpha=float(L_alpha),
+                     L_lreg=float(L_lreg),
                      m_hat_mean=float(m.mean()), c_hat_mean=float(c_hat.mean()),
+                     c_mag_mean=float(c_mag.mean()),
                      alpha_hat_mean=float(alpha.float().mean()),
                      alpha_mae=float((alpha.float() - A).abs().mean()))
     return total, stats
 
 
-def build(encoder, device, init=None, lr=1e-4):
+def build(encoder, device, init=None, lr=1e-4, region_level=False, level_reg=False):
     net = FullNet_NLP_ATap_Fac(channels=[64, 128, 256, 512], layers=[2, 2, 4, 2],
                                num_subnet=4, loss_col=4, inject=True,
-                               raw_encoder=(encoder == "raw"))
+                               raw_encoder=(encoder == "raw"),
+                               region_level=region_level, level_reg=level_reg)
     load_official_atap(net, RDNET_CKPT, verbose=False)
     if init:
         load_ckpt_into(net, init)
@@ -157,6 +171,13 @@ def main():
     ap.add_argument("--lam-trip", type=float, default=0.5)
     ap.add_argument("--lam-rank", type=float, default=0.3)
     ap.add_argument("--lam-alpha", type=float, default=1.0)
+    ap.add_argument("--region-level", action="store_true",
+                    help="档位头改 m̂ 条件化双区域池化（膜内/膜外差分+比值+物理量）")
+    ap.add_argument("--level-reg", action="store_true",
+                    help="另加序数回归支: 标量 ĉ 直接回归逐图真实膜内 ᾱ（须配 --region-level）")
+    ap.add_argument("--lam-lreg", type=float, default=1.0, help="序数回归损失权重")
+    ap.add_argument("--lr-schedule", choices=["const", "cosine"], default="const",
+                    help="cosine: lr→lr/10 余弦衰减（治尾部抖动）")
     ap.add_argument("--ignore-clipped", action="store_true",
                     help="掩膜损失忽略'膜区但 α 被 clip≥0.95'的不可观测像素(消伪标签矛盾)")
     ap.add_argument("--init", default=None, help="初始 ckpt (默认官方 rdnet.pth)")
@@ -165,6 +186,7 @@ def main():
     ap.add_argument("--log-every", type=int, default=50)
     ap.add_argument("--save-every", type=int, default=500)
     args = ap.parse_args()
+    assert not (args.level_reg and not args.region_level),         "--level-reg 必须配合 --region-level（否则会静默跑成纯架构臂）"
     out = args.out or os.path.join(PROJ, "runs/ckpt", f"fac_{args.encoder}")
     if not os.path.isabs(out):
         out = os.path.join(PROJ, out)
@@ -184,12 +206,18 @@ def main():
     print(f"[fac-{args.encoder}] 场景 {len(ds)} × 3 档, iters={args.iters} "
           f"batch={args.batch}×3={args.batch*3} -> {out}")
 
-    net = build(args.encoder, device, args.init)
+    net = build(args.encoder, device, args.init,
+                region_level=args.region_level, level_reg=args.level_reg)
     opt = torch.optim.Adam([p for p in net.parameters() if p.requires_grad], lr=args.lr)
+    sched = None
+    if args.lr_schedule == "cosine":
+        import math
+        sched = torch.optim.lr_scheduler.LambdaLR(
+            opt, lambda i: 0.1 + 0.45 * (1 + math.cos(math.pi * min(i, args.iters) / args.iters)))
     scaler = torch.cuda.amp.GradScaler()
 
     logf = open(os.path.join(out, "train_log.csv"), "w")
-    logf.write("iter,L_mask,L_g,L_c,L_trip,L_rank,L_alpha,total,m_hat,c_hat,alpha_hat,alpha_mae,sec\n")
+    logf.write("iter,L_mask,L_g,L_c,L_trip,L_rank,L_alpha,L_lreg,total,m_hat,c_hat,c_mag,alpha_hat,alpha_mae,sec\n")
     t0 = time.time()
     it = 0
     run = {}
@@ -212,18 +240,23 @@ def main():
             scaler.scale(loss).backward()
             scaler.step(opt)
             scaler.update()
+            if sched is not None:
+                sched.step()
 
             it += 1
             if it % args.log_every == 0 or it == 1:
                 sec = time.time() - t0
                 print(f"[fac-{args.encoder}] it {it:4d} L_mask={run['L_mask']:.4f} L_g={run['L_g']:.4f} "
                       f"L_c={run['L_c']:.4f} L_trip={run['L_trip']:.4f} L_rank={run['L_rank']:.4f} "
-                      f"L_a={run['L_alpha']:.4f} | m̂={run['m_hat_mean']:.3f} ĉ={run['c_hat_mean']:.3f} "
+                      f"L_a={run['L_alpha']:.4f} L_lreg={run['L_lreg']:.4f} | "
+                      f"m̂={run['m_hat_mean']:.3f} ĉ={run['c_hat_mean']:.3f} "
+                      f"cₘ={run['c_mag_mean']:.3f} "
                       f"α̂={run['alpha_hat_mean']:.3f} MAE={run['alpha_mae']:.3f} {sec:.0f}s")
                 logf.write(",".join([str(it)] + [f"{run[k]:.5f}" for k in
                                                  ("L_mask", "L_g", "L_c", "L_trip", "L_rank",
-                                                  "L_alpha")] + [f"{float(loss):.5f}",
+                                                  "L_alpha", "L_lreg")] + [f"{float(loss):.5f}",
                                                  f"{run['m_hat_mean']:.4f}", f"{run['c_hat_mean']:.4f}",
+                                                 f"{run['c_mag_mean']:.4f}",
                                                  f"{run['alpha_hat_mean']:.4f}",
                                                  f"{run['alpha_mae']:.4f}", f"{sec:.1f}"]) + "\n")
                 logf.flush()

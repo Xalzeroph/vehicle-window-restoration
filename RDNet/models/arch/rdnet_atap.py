@@ -206,16 +206,28 @@ class FullNet_NLP_ATap_Fac(FullNet_NLP_ATap):
 
     # g_scale=1.0: 生成器 g = 1 + 0.3·f 中 f 是逐图单位方差场, 故 ±0.3 只是 ±1σ 带,
     # 实测支撑 [0.06, 1.96] (36% 像素出带); 软界取 ±1.0 才覆盖得住。
-    def __init__(self, *args, g_scale=1.0, m_bias_init=1.8, raw_encoder=False, **kw):
+    def __init__(self, *args, g_scale=1.0, m_bias_init=1.8, raw_encoder=False,
+                 region_level=False, level_reg=False, **kw):
         super().__init__(*args, **kw)
+        self.region_level = region_level
+        self.level_reg = level_reg and region_level   # 序数回归仅在区域池化头下启用
         fuse_ch = self.alpha_head[0].in_channels          # x_stem(64) + proj(c3)(64)
         self.alpha_fac = nn.Module()                      # 参数前缀统一 alpha_fac.*
         self.alpha_fac.m = nn.Sequential(
             nn.Conv2d(fuse_ch, 64, 3, padding=1), nn.GELU(), nn.Conv2d(64, 1, 1))
         self.alpha_fac.g = nn.Sequential(
             nn.Conv2d(fuse_ch, 64, 3, padding=1), nn.GELU(), nn.Conv2d(64, 1, 1))
-        self.alpha_fac.level = nn.Sequential(
-            nn.Linear(fuse_ch * 2 + 21, 64), nn.GELU(), nn.Linear(64, len(self.LEVELS)))
+        if self.region_level:
+            # 档位头输入 = 标准化[stats21 ⊕ Δ(f_in−f_out) ⊕ 比值 ⊕ 物理低维(13)]
+            # 用 BatchNorm1d(运行统计) 对齐探针的 per-feature StandardScaler 口径
+            in_dim_rl = 21 + 2 * fuse_ch + 13
+            self.alpha_fac.input_norm = nn.BatchNorm1d(in_dim_rl)
+            out_dim = len(self.LEVELS) + (1 if self.level_reg else 0)
+            self.alpha_fac.level = nn.Sequential(
+                nn.Linear(in_dim_rl, 96), nn.GELU(), nn.Linear(96, out_dim))
+        else:
+            self.alpha_fac.level = nn.Sequential(
+                nn.Linear(fuse_ch * 2 + 21, 64), nn.GELU(), nn.Linear(64, len(self.LEVELS)))
         self.alpha_raw_enc = AlphaRawEncoder() if raw_encoder else None
         self.g_scale = g_scale
         with torch.no_grad():       # 起点: m̂≈σ(1.8)=0.86, ĝ≡1, p 均匀 (ĉ=0.633)
@@ -225,6 +237,9 @@ class FullNet_NLP_ATap_Fac(FullNet_NLP_ATap):
             nn.init.zeros_(self.alpha_fac.g[-1].bias)
             nn.init.zeros_(self.alpha_fac.level[-1].weight)
             nn.init.zeros_(self.alpha_fac.level[-1].bias)
+            if getattr(self, "level_reg", False):
+                # 回归支起点 σ(z)=0.6（典型膜内 ᾱ）；softmax 支保持均匀 (ĉ=0.633)
+                self.alpha_fac.level[-1].bias[len(self.LEVELS)] = 0.405
         self.register_buffer("alpha_levels", torch.tensor(self.LEVELS))
 
     @staticmethod
@@ -255,11 +270,40 @@ class FullNet_NLP_ATap_Fac(FullNet_NLP_ATap):
         g = 1.0 + self.g_scale * torch.tanh(F.interpolate(
             self.alpha_fac.g(feat), size=x_in.shape[-2:], mode="bilinear",
             align_corners=False))
-        gap = F.adaptive_avg_pool2d(feat, 1).flatten(1)
-        gmp = F.adaptive_max_pool2d(feat, 1).flatten(1)
-        p = torch.softmax(self.alpha_fac.level(
-            torch.cat([gap, gmp, self._global_stats(x_in)], dim=1)), dim=1)
-        c = (p * self.alpha_levels).sum(1).view(-1, 1, 1, 1)
+        stats = self._global_stats(x_in)
+        if not self.region_level:
+            gap = F.adaptive_avg_pool2d(feat, 1).flatten(1)
+            gmp = F.adaptive_max_pool2d(feat, 1).flatten(1)
+            out = self.alpha_fac.level(torch.cat([gap, gmp, stats], dim=1))
+            p = torch.softmax(out, dim=1)
+            c = (p * self.alpha_levels).sum(1).view(-1, 1, 1, 1)
+        else:
+            # m̂ 条件化双区域池化: 用 (detach 的) refine 后软掩膜把特征切成膜内/膜外两堆,
+            # 显式给出相对量 (差/比值) + 亮度相对量与覆盖率 —— 档位的可迁移线索。
+            with torch.no_grad():
+                wm = F.adaptive_avg_pool2d(m, feat.shape[-2:])           # h/2 软权重(精修后 m̂)
+            s_in = wm.sum(dim=(2, 3), keepdim=True) + 1e-6
+            s_out = (1.0 - wm).sum(dim=(2, 3), keepdim=True) + 1e-6
+            f_in = (feat * wm).sum(dim=(2, 3)) / s_in.flatten(1)
+            f_out = (feat * (1.0 - wm)).sum(dim=(2, 3)) / s_out.flatten(1)
+            delta = f_in - f_out
+            ratio = torch.clamp(f_in / (f_out.abs() + 0.1), -8.0, 8.0)
+            xh = F.adaptive_avg_pool2d(x_in, feat.shape[-2:])           # B×3×h/2×w/2
+            b_in = (xh * wm).sum(dim=(2, 3)) / s_in.flatten(1)
+            b_out = (xh * (1.0 - wm)).sum(dim=(2, 3)) / s_out.flatten(1)
+            b_dif = b_in - b_out
+            b_rat = torch.clamp(b_in / (b_out.abs() + 0.05), 0.0, 10.0)
+            cov = wm.mean(dim=(2, 3))                                    # B×1 膜覆盖率
+            phys = torch.cat([b_in, b_out, b_dif, b_rat, cov], dim=1)    # B×13
+            out = self.alpha_fac.level(self.alpha_fac.input_norm(
+                torch.cat([stats, delta, ratio, phys], dim=1)))
+            if self.level_reg:
+                p = torch.softmax(out[:, :len(self.LEVELS)], dim=1)
+                c = torch.sigmoid(out[:, len(self.LEVELS):]).view(-1, 1, 1, 1)
+            else:
+                p = torch.softmax(out, dim=1)
+                c = (p * self.alpha_levels).sum(1).view(-1, 1, 1, 1)
+        self.alpha_fac.last_c = c        # 供训练损失读取实际使用的幅度标量
         alpha = (1.0 - m * (1.0 - c * g)).clamp(self.alpha_min, 1.0)
         return alpha, m, g, p
 
