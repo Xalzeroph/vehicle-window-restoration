@@ -1,0 +1,52 @@
+{
+ "tag": "exit_E_s20260915",
+ "ckpt": "runs/ckpt/rdt_plain/ckpt_final.pth",
+ "set": "synth_rrw_v21_indomain",
+ "per_level": [
+  {
+   "level": "alpha_0.3",
+   "n": 12,
+   "raw": 17.038,
+   "gm": 17.648,
+   "raw_ssim": 0.6584,
+   "gm_ssim": 0.6506,
+   "in_raw": 11.372,
+   "in_gm": 11.975,
+   "r_raw": 25.015,
+   "r_gm": 25.736,
+   "gm_minus_in_gm": 5.673,
+   "exit_main": 0.4311,
+   "exit_beta": 0.4894
+  },
+  {
+   "level": "alpha_0.6",
+   "n": 12,
+   "raw": 19.198,
+   "gm": 20.02,
+   "raw_ssim": 0.7427,
+   "gm_ssim": 0.7457,
+   "in_raw": 13.964,
+   "in_gm": 14.491,
+   "r_raw": 24.025,
+   "r_gm": 24.756,
+   "gm_minus_in_gm": 5.529,
+   "exit_main": 0.6181,
+   "exit_beta": 0.5075
+  },
+  {
+   "level": "alpha_1",
+   "n": 12,
+   "raw": 19.876,
+   "gm": 21.08,
+   "raw_ssim": 0.7736,
+   "gm_ssim": 0.7843,
+   "in_raw": 15.223,
+   "in_gm": 16.984,
+   "r_raw": 22.953,
+   "r_gm": 23.586,
+   "gm_minus_in_gm": 4.096,
+   "exit_main": 0.7647,
+   "exit_beta": 0.3704
+  }
+ ]
+}

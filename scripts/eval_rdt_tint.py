@@ -49,7 +49,7 @@ def gain_match(q, g):
     return np.clip(q * s, 0, 255)
 
 
-def build(ckpt_path, save_memory=True):
+def build(ckpt_path, exit_ckpt=None, save_memory=True):
     net = FullNet_NLP(channels=[64, 128, 256, 512], layers=[2, 2, 4, 2], num_subnet=4,
                       loss_col=4, num_classes=1000, drop_path=0, save_memory=save_memory,
                       inter_supv=True, head_init_scale=None, kernel_size=3)
@@ -63,12 +63,23 @@ def build(ckpt_path, save_memory=True):
     sd2 = ck2.get("icnn", ck2.get("model", ck2))
     net_c.load_state_dict(sd2, strict=False)
     net_c.eval().requires_grad_(False)
-    return net, net_c
+    head = None
+    if exit_ckpt:
+        from finetune_rdnet_exit import ExitHead
+        hk = torch.load(exit_ckpt, map_location="cpu")
+        head = ExitHead(hk["args"]["arm"])
+        head.load_state_dict(hk["head"], strict=True)     # strict：头没加载成功必须报错
+        head.eval().requires_grad_(False)
+        print(f"[eval-rdt] exit head={exit_ckpt} arm={hk['args']['arm']} 加载 strict=OK")
+    return net, net_c, head
 
 
 @torch.no_grad()
-def predict(net, net_c, img, dev):
-    """img: (H,W,3) float32 0..255 → (T̂, R̂) 同形状（通道序已核: [:, :3]=R̂, [:, 3:]=T̂）。"""
+def predict(net, net_c, head, img, dev):
+    """img: (H,W,3) float32 0..255 → (T̂, R̂) 同形状（通道序已核: [:, :3]=R̂, [:, 3:]=T̂）。
+
+    head 非空时应用出口: T̂ = (1−β)·T̂_head + β·T̂_phys。返回 (t, r, stats)。
+    """
     x = torch.from_numpy(img.transpose(2, 0, 1) / 255.0)[None].to(dev)
     pad = tuple([0, (-x.shape[-1]) % 32, 0, (-x.shape[-2]) % 32])
     xp = F.pad(x, pad, mode="reflect") if any(pad) else x
@@ -77,13 +88,18 @@ def predict(net, net_c, img, dev):
         _, out = net(xp, code, prompt=True)
     t = out[-1][0, 3:].float().clamp(0, 1)
     r = out[-1][0, :3].float().clamp(0, 1)
+    stats = {}
+    if head is not None:
+        beta, main, phys = head(xp.clamp(0, 1), r[None], t[None])
+        t = ((1 - beta[0]) * t + beta[0] * phys[0]).clamp(0, 1)
+        stats = dict(exit_main=float(main.mean()), exit_beta=float(beta.mean()))
     H, W = img.shape[:2]
     t = t[:, :H, :W].permute(1, 2, 0).cpu().numpy() * 255.0
     r = r[:, :H, :W].permute(1, 2, 0).cpu().numpy() * 255.0
-    return t, r
+    return t, r, stats
 
 
-def eval_set(net, net_c, set_name, root, dev, pred_root, save_pred):
+def eval_set(net, net_c, head, set_name, root, dev, pred_root, save_pred):
     gt_dir = os.path.join(root, "gt")
     lv_dir = os.path.join(root, "levels")
     levels = sorted(os.listdir(lv_dir), key=lambda s: float(s.split("_")[-1]))
@@ -92,12 +108,15 @@ def eval_set(net, net_c, set_name, root, dev, pred_root, save_pred):
     print(f"[eval-rdt] {set_name}: {len(scenes)} 场景 × {len(levels)} 档")
     for lv in levels:
         acc = {k: [] for k in ("raw", "gm", "in_raw", "in_gm", "raw_s", "gm_s",
-                               "r_raw", "r_gm")}
+                               "r_raw", "r_gm", "exit_main", "exit_beta")}
         for sc in scenes:
             gt = load_img(os.path.join(gt_dir, sc))
             r_gt = load_img(os.path.join(root, "r", sc))
             inp = load_img(os.path.join(lv_dir, lv, sc))
-            t_hat, r_hat = predict(net, net_c, inp, dev)
+            t_hat, r_hat, stats = predict(net, net_c, head, inp, dev)
+            for k in ("exit_main", "exit_beta"):
+                if k in stats:
+                    acc[k].append(stats[k])
             for tag, im, ref in (("raw", t_hat, gt), ("gm", gain_match(t_hat, gt), gt),
                                  ("in_raw", inp, gt), ("in_gm", gain_match(inp, gt), gt),
                                  ("r_raw", r_hat, r_gt), ("r_gm", gain_match(r_hat, r_gt), r_gt)):
@@ -127,11 +146,16 @@ def eval_set(net, net_c, set_name, root, dev, pred_root, save_pred):
                    r_raw=round(float(np.mean(acc["r_raw"])), 3),
                    r_gm=round(float(np.mean(acc["r_gm"])), 3))
         rec["gm_minus_in_gm"] = round(rec["gm"] - rec["in_gm"], 3)
+        if acc["exit_main"]:
+            rec["exit_main"] = round(float(np.mean(acc["exit_main"])), 4)
+            rec["exit_beta"] = round(float(np.mean(acc["exit_beta"])), 4)
         per_level.append(rec)
+        exit_txt = (f"  exit main/β {rec['exit_main']:.3f}/{rec['exit_beta']:.3f}"
+                    if "exit_main" in rec else "")
         print(f"  {lv:>12} n={rec['n']:2d}  raw {rec['raw']:6.2f}  gm {rec['gm']:6.2f}"
               f"  in_raw {rec['in_raw']:6.2f}  in_gm {rec['in_gm']:6.2f}"
               f"  gm−ingm {rec['gm_minus_in_gm']:+.2f}  ssim(raw/gm) {rec['raw_ssim']:.3f}/{rec['gm_ssim']:.3f}"
-              f"  R̂ {rec['r_raw']:6.2f}/{rec['r_gm']:6.2f}")
+              f"  R̂ {rec['r_raw']:6.2f}/{rec['r_gm']:6.2f}{exit_txt}")
     return rows, per_level
 
 
@@ -141,21 +165,25 @@ def main():
     ap.add_argument("--tag", required=True)
     ap.add_argument("--sets", default="synth_rrw_v21_0913,synth_rrw_v21_indomain,synth_rrw_v22_scan")
     ap.add_argument("--gpu", type=int, default=0)
+    ap.add_argument("--exit-ckpt", default="", help="S2 出口头 ckpt（应用 T̂=(1−β)T̂_head+β·T̂_phys）")
     ap.add_argument("--no-save-pred", action="store_true")
     ap.add_argument("--out-dir", default=os.path.join(PROJ, "eval"))
     args = ap.parse_args()
 
     ckpt = args.ckpt if os.path.isabs(args.ckpt) else os.path.join(PROJ, args.ckpt)
+    ex = args.exit_ckpt if os.path.isabs(args.exit_ckpt) else os.path.join(PROJ, args.exit_ckpt)
     pred_root = os.path.join(PROJ, "runs/pred", f"rdt_{args.tag}")
     dev = torch.device(f"cuda:{args.gpu}")
-    net, net_c = build(ckpt)
+    net, net_c, head = build(ckpt, ex or None)
     net.to(dev).eval()
     net_c.to(dev)
+    if head is not None:
+        head.to(dev)
     os.makedirs(args.out_dir, exist_ok=True)
     t0 = time.time()
     for s in args.sets.split(","):
         s = s.strip()
-        rows, per_level = eval_set(net, net_c, s, os.path.join(PROJ, SETS[s]), dev,
+        rows, per_level = eval_set(net, net_c, head, s, os.path.join(PROJ, SETS[s]), dev,
                                    pred_root, not args.no_save_pred)
         csvp = os.path.join(args.out_dir, f"eval_rdt_{args.tag}_{s}.csv")
         with open(csvp, "w", newline="") as fp:

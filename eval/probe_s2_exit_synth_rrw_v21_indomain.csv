@@ -1,0 +1,4 @@
+set,level,n,head,head_gm,T0,div_true,div_eff,div_nom,clip_true,div_eps-0.2,div_eps-0.1,div_eps+0.1,div_eps+0.2
+synth_rrw_v21_indomain,alpha_1,12,20.381,21.054,18.927,21.611,18.889,18.927,0.004,16.48,19.594,20.684,19.093
+synth_rrw_v21_indomain,alpha_0.6,12,19.001,19.811,14.464,19.764,15.579,14.941,0.018,15.037,17.674,19.763,18.688
+synth_rrw_v21_indomain,alpha_0.3,12,16.287,17.27,10.794,16.234,12.899,11.995,0.042,12.997,14.819,16.823,16.644
