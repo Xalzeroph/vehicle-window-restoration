@@ -287,9 +287,9 @@ def main():
             rec["clip_frac"][f"{a:g}"] = float((out > 1.0).mean())
             rec["r_obs"][f"{a:g}"] = float(r_eff.mean() / max(ae * t32.mean(), 1e-6))
         meta["scenes"].append(rec)
+        k0 = f"{ALPHAS[0]:g}"          # 不硬编码档位（此前写死 '0.3'/'1'，非三档网格会 KeyError）
         print(f"{sid}: cov={rec['frac_cov']:.2f} R̄={rec['r_mean_raw']*255:.1f}->{rec['r_mean_eff']*255:.1f} "
-              f"αeff(0.3)={rec['alpha_eff']['0.3']:.3f} r_obs(1)={rec['r_obs']['1']:.3f} "
-              f"clip(1)={rec['clip_frac']['1']*100:.1f}%")
+              f"αeff({k0})={rec['alpha_eff'][k0]:.3f} clip({k0})={rec['clip_frac'][k0]*100:.1f}%")
     with open(os.path.join(args.out, "meta.json"), "w") as fp:
         json.dump(meta, fp, indent=1, ensure_ascii=False)
     print("done ->", args.out)

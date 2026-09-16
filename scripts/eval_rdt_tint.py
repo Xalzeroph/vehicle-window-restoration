@@ -29,6 +29,7 @@ SETS = {
     "synth_rrw_v21_0913": "data/test_sets/synth_rrw_v21_0913",
     "synth_rrw_v21_indomain": "data/test_sets/synth_rrw_v21_indomain",
     "synth_rrw_v22_scan": "data/test_sets/synth_rrw_v22_scan",
+    "synth_rrw_v23_lowscan": "data/test_sets/synth_rrw_v23_lowscan",
 }
 
 
@@ -171,7 +172,8 @@ def main():
     args = ap.parse_args()
 
     ckpt = args.ckpt if os.path.isabs(args.ckpt) else os.path.join(PROJ, args.ckpt)
-    ex = args.exit_ckpt if os.path.isabs(args.exit_ckpt) else os.path.join(PROJ, args.exit_ckpt)
+    ex = "" if not args.exit_ckpt else (
+        args.exit_ckpt if os.path.isabs(args.exit_ckpt) else os.path.join(PROJ, args.exit_ckpt))
     pred_root = os.path.join(PROJ, "runs/pred", f"rdt_{args.tag}")
     dev = torch.device(f"cuda:{args.gpu}")
     net, net_c, head = build(ckpt, ex or None)
