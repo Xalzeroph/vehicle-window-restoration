@@ -1,0 +1,46 @@
+{
+ "tag": "plain_s101",
+ "ckpt": "runs/ckpt/rdt_plain_s101/ckpt_final.pth",
+ "set": "synth_rrw_v21_indomain",
+ "per_level": [
+  {
+   "level": "alpha_0.3",
+   "n": 12,
+   "raw": 16.406,
+   "gm": 17.384,
+   "raw_ssim": 0.6724,
+   "gm_ssim": 0.6579,
+   "in_raw": 11.372,
+   "in_gm": 11.975,
+   "r_raw": 25.215,
+   "r_gm": 26.057,
+   "gm_minus_in_gm": 5.409
+  },
+  {
+   "level": "alpha_0.6",
+   "n": 12,
+   "raw": 19.035,
+   "gm": 19.753,
+   "raw_ssim": 0.7487,
+   "gm_ssim": 0.7437,
+   "in_raw": 13.964,
+   "in_gm": 14.491,
+   "r_raw": 24.429,
+   "r_gm": 25.085,
+   "gm_minus_in_gm": 5.262
+  },
+  {
+   "level": "alpha_1",
+   "n": 12,
+   "raw": 20.304,
+   "gm": 21.135,
+   "raw_ssim": 0.7832,
+   "gm_ssim": 0.7862,
+   "in_raw": 15.223,
+   "in_gm": 16.984,
+   "r_raw": 23.345,
+   "r_gm": 23.934,
+   "gm_minus_in_gm": 4.151
+  }
+ ]
+}

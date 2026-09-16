@@ -1,0 +1,46 @@
+{
+ "tag": "freeze_s101",
+ "ckpt": "runs/ckpt/rdt_freeze_s101/ckpt_final.pth",
+ "set": "synth_rrw_v21_0913",
+ "per_level": [
+  {
+   "level": "alpha_0.3",
+   "n": 12,
+   "raw": 18.669,
+   "gm": 19.734,
+   "raw_ssim": 0.6972,
+   "gm_ssim": 0.7247,
+   "in_raw": 13.016,
+   "in_gm": 13.267,
+   "r_raw": 23.128,
+   "r_gm": 24.236,
+   "gm_minus_in_gm": 6.467
+  },
+  {
+   "level": "alpha_0.6",
+   "n": 12,
+   "raw": 17.856,
+   "gm": 19.893,
+   "raw_ssim": 0.7321,
+   "gm_ssim": 0.7764,
+   "in_raw": 15.02,
+   "in_gm": 15.708,
+   "r_raw": 22.967,
+   "r_gm": 24.13,
+   "gm_minus_in_gm": 4.185
+  },
+  {
+   "level": "alpha_1",
+   "n": 12,
+   "raw": 18.394,
+   "gm": 20.645,
+   "raw_ssim": 0.7622,
+   "gm_ssim": 0.8051,
+   "in_raw": 15.471,
+   "in_gm": 18.036,
+   "r_raw": 22.422,
+   "r_gm": 23.547,
+   "gm_minus_in_gm": 2.609
+  }
+ ]
+}

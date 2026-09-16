@@ -1,0 +1,111 @@
+{
+ "tag": "pilotB_r2",
+ "ckpt": "runs/ckpt/B_r2/ckpt_final.pth",
+ "set": "synth_rrw_v22_scan",
+ "per_level": [
+  {
+   "level": "alpha_0.05",
+   "n": 12,
+   "raw": 12.369,
+   "gm": 12.983,
+   "raw_ssim": 0.4877,
+   "gm_ssim": 0.5189,
+   "in_raw": 11.473,
+   "in_gm": 11.666,
+   "r_raw": 23.357,
+   "r_gm": 24.282,
+   "gm_minus_in_gm": 1.317
+  },
+  {
+   "level": "alpha_0.1",
+   "n": 12,
+   "raw": 13.194,
+   "gm": 14.273,
+   "raw_ssim": 0.5512,
+   "gm_ssim": 0.5973,
+   "in_raw": 11.979,
+   "in_gm": 12.24,
+   "r_raw": 24.02,
+   "r_gm": 25.051,
+   "gm_minus_in_gm": 2.033
+  },
+  {
+   "level": "alpha_0.2",
+   "n": 12,
+   "raw": 15.713,
+   "gm": 16.948,
+   "raw_ssim": 0.6881,
+   "gm_ssim": 0.7129,
+   "in_raw": 13.049,
+   "in_gm": 13.453,
+   "r_raw": 24.103,
+   "r_gm": 25.519,
+   "gm_minus_in_gm": 3.495
+  },
+  {
+   "level": "alpha_0.3",
+   "n": 12,
+   "raw": 16.784,
+   "gm": 18.003,
+   "raw_ssim": 0.7489,
+   "gm_ssim": 0.7658,
+   "in_raw": 14.18,
+   "in_gm": 14.691,
+   "r_raw": 24.103,
+   "r_gm": 25.873,
+   "gm_minus_in_gm": 3.312
+  },
+  {
+   "level": "alpha_0.45",
+   "n": 12,
+   "raw": 17.949,
+   "gm": 19.078,
+   "raw_ssim": 0.7983,
+   "gm_ssim": 0.8095,
+   "in_raw": 15.889,
+   "in_gm": 16.455,
+   "r_raw": 23.988,
+   "r_gm": 26.126,
+   "gm_minus_in_gm": 2.623
+  },
+  {
+   "level": "alpha_0.6",
+   "n": 12,
+   "raw": 19.234,
+   "gm": 20.02,
+   "raw_ssim": 0.8357,
+   "gm_ssim": 0.8408,
+   "in_raw": 17.334,
+   "in_gm": 17.946,
+   "r_raw": 23.818,
+   "r_gm": 26.195,
+   "gm_minus_in_gm": 2.074
+  },
+  {
+   "level": "alpha_0.75",
+   "n": 12,
+   "raw": 20.276,
+   "gm": 20.778,
+   "raw_ssim": 0.8598,
+   "gm_ssim": 0.8639,
+   "in_raw": 18.241,
+   "in_gm": 19.198,
+   "r_raw": 23.403,
+   "r_gm": 26.061,
+   "gm_minus_in_gm": 1.58
+  },
+  {
+   "level": "alpha_1",
+   "n": 12,
+   "raw": 21.273,
+   "gm": 22.042,
+   "raw_ssim": 0.8781,
+   "gm_ssim": 0.8873,
+   "in_raw": 18.846,
+   "in_gm": 21.083,
+   "r_raw": 23.057,
+   "r_gm": 25.817,
+   "gm_minus_in_gm": 0.959
+  }
+ ]
+}

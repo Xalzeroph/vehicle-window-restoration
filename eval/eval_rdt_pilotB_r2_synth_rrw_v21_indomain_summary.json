@@ -1,0 +1,46 @@
+{
+ "tag": "pilotB_r2",
+ "ckpt": "runs/ckpt/B_r2/ckpt_final.pth",
+ "set": "synth_rrw_v21_indomain",
+ "per_level": [
+  {
+   "level": "alpha_0.3",
+   "n": 12,
+   "raw": 16.589,
+   "gm": 17.261,
+   "raw_ssim": 0.63,
+   "gm_ssim": 0.6187,
+   "in_raw": 11.372,
+   "in_gm": 11.975,
+   "r_raw": 26.267,
+   "r_gm": 26.793,
+   "gm_minus_in_gm": 5.286
+  },
+  {
+   "level": "alpha_0.6",
+   "n": 12,
+   "raw": 17.92,
+   "gm": 19.084,
+   "raw_ssim": 0.7066,
+   "gm_ssim": 0.6974,
+   "in_raw": 13.964,
+   "in_gm": 14.491,
+   "r_raw": 24.25,
+   "r_gm": 24.832,
+   "gm_minus_in_gm": 4.593
+  },
+  {
+   "level": "alpha_1",
+   "n": 12,
+   "raw": 20.191,
+   "gm": 20.811,
+   "raw_ssim": 0.7444,
+   "gm_ssim": 0.7477,
+   "in_raw": 15.223,
+   "in_gm": 16.984,
+   "r_raw": 22.398,
+   "r_gm": 23.348,
+   "gm_minus_in_gm": 3.827
+  }
+ ]
+}

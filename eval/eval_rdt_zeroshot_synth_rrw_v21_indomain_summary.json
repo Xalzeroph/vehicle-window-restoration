@@ -1,0 +1,46 @@
+{
+ "tag": "zeroshot",
+ "ckpt": "pretrained/rdnet.pth",
+ "set": "synth_rrw_v21_indomain",
+ "per_level": [
+  {
+   "level": "alpha_0.3",
+   "n": 12,
+   "raw": 9.823,
+   "gm": 10.509,
+   "raw_ssim": 0.346,
+   "gm_ssim": 0.3815,
+   "in_raw": 11.372,
+   "in_gm": 11.975,
+   "r_raw": 14.912,
+   "r_gm": 15.593,
+   "gm_minus_in_gm": -1.466
+  },
+  {
+   "level": "alpha_0.6",
+   "n": 12,
+   "raw": 12.025,
+   "gm": 12.594,
+   "raw_ssim": 0.4934,
+   "gm_ssim": 0.5116,
+   "in_raw": 13.964,
+   "in_gm": 14.491,
+   "r_raw": 14.719,
+   "r_gm": 15.858,
+   "gm_minus_in_gm": -1.897
+  },
+  {
+   "level": "alpha_1",
+   "n": 12,
+   "raw": 14.281,
+   "gm": 15.04,
+   "raw_ssim": 0.5917,
+   "gm_ssim": 0.6052,
+   "in_raw": 15.223,
+   "in_gm": 16.984,
+   "r_raw": 14.185,
+   "r_gm": 15.697,
+   "gm_minus_in_gm": -1.944
+  }
+ ]
+}
