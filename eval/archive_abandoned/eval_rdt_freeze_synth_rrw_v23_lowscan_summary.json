@@ -1,0 +1,72 @@
+{
+ "tag": "freeze",
+ "ckpt": "runs/ckpt/rdt_freeze/ckpt_final.pth",
+ "set": "synth_rrw_v23_lowscan",
+ "per_level": [
+  {
+   "level": "alpha_0.05",
+   "n": 48,
+   "raw": 13.181,
+   "gm": 13.864,
+   "raw_ssim": 0.462,
+   "gm_ssim": 0.4652,
+   "in_raw": 9.102,
+   "in_gm": 9.613,
+   "r_raw": 23.818,
+   "r_gm": 26.947,
+   "gm_minus_in_gm": 4.251
+  },
+  {
+   "level": "alpha_0.1",
+   "n": 48,
+   "raw": 16.697,
+   "gm": 17.487,
+   "raw_ssim": 0.5799,
+   "gm_ssim": 0.5854,
+   "in_raw": 9.638,
+   "in_gm": 10.348,
+   "r_raw": 25.503,
+   "r_gm": 28.489,
+   "gm_minus_in_gm": 7.139
+  },
+  {
+   "level": "alpha_0.2",
+   "n": 48,
+   "raw": 20.268,
+   "gm": 21.391,
+   "raw_ssim": 0.7015,
+   "gm_ssim": 0.7085,
+   "in_raw": 10.788,
+   "in_gm": 11.828,
+   "r_raw": 28.19,
+   "r_gm": 29.629,
+   "gm_minus_in_gm": 9.563
+  },
+  {
+   "level": "alpha_0.3",
+   "n": 48,
+   "raw": 21.943,
+   "gm": 23.111,
+   "raw_ssim": 0.7685,
+   "gm_ssim": 0.7741,
+   "in_raw": 12.046,
+   "in_gm": 13.223,
+   "r_raw": 28.665,
+   "r_gm": 29.474,
+   "gm_minus_in_gm": 9.888
+  },
+  {
+   "level": "alpha_1",
+   "n": 48,
+   "raw": 25.385,
+   "gm": 26.587,
+   "raw_ssim": 0.8981,
+   "gm_ssim": 0.8993,
+   "in_raw": 17.52,
+   "in_gm": 19.63,
+   "r_raw": 26.201,
+   "r_gm": 27.158,
+   "gm_minus_in_gm": 6.957
+  }
+ ]
+}
