@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial, sans-serif" data-pptx-page-role="content">
+  <rect id="page-bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <g id="page-title" data-pptx-bounds="64 48 1152 80">
+    <text x="64" y="96" font-size="42" fill="#123A5C">域匹配训练池 516 个文件，只有 12 张内容</text>
+    <line x1="64" y1="124" x2="1216" y2="124" stroke="#D5DCE2" stroke-width="1"/>
+  </g>
+
+  <g id="p06-story" data-pptx-bounds="64 150 696 450">
+    <use data-icon="tabler-outline/alert-triangle" x="64" y="156" width="32" height="32" fill="#C2410C" stroke-width="2"/>
+    <text x="108" y="184" font-size="24" font-weight="bold" fill="#123A5C">发现</text>
+    <text x="64" y="220" font-size="18" fill="#17202A">augmented 池 516 个文件，只有 12 张内容<tspan x="64" dy="26">而且这 12 张全部就是测试集的 T</tspan></text>
+
+    <text x="64" y="292" font-size="24" font-weight="bold" fill="#123A5C">影响</text>
+    <text x="64" y="326" font-size="18" fill="#17202A">域匹配训练集整体泄漏，相关结果全部作废<tspan x="64" dy="26">按文件名与统计口径都查不出来，必须按内容核查</tspan></text>
+
+    <text x="64" y="398" font-size="24" font-weight="bold" fill="#123A5C">处置</text>
+    <text x="64" y="432" font-size="18" fill="#17202A">内容级泄漏核查（md5 + 感知哈希）固化为流程护栏<tspan x="64" dy="26">训练池按「谱匹配 + 对比度 + JPEG 重编」配方重建</tspan><tspan x="64" dy="26">新源 rrw_gt / real_tl 均已通过内容级核查</tspan></text>
+
+    <text x="64" y="530" font-size="24" font-weight="bold" fill="#123A5C">教训</text>
+    <text x="64" y="564" font-size="18" fill="#17202A">泄漏核查必须按内容，不能按文件名或统计口径<tspan x="64" dy="26">这条护栏已写进每一轮实验的准入检查</tspan></text>
+  </g>
+
+  <g id="p06-leak-chart" data-pptx-bounds="790 150 426 406">
+    <image href="../images/cluster_leak_check_0915.png" x="790" y="150" width="426" height="405.7" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <g id="page-footer" data-pptx-bounds="64 652 1152 28" fill="#5A6672" font-size="16">
+    <text x="64" y="670">来源 docs/2026.9.15 训练池重建记录 · 右为孪生簇内容核查结果</text>
+    <text x="1216" y="670" text-anchor="end">07 / 17</text>
+  </g>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial, sans-serif" data-pptx-page-role="cover">
+  <rect id="page-bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <g id="cover-headline" data-pptx-bounds="64 48 816 304">
+    <text x="64" y="96" font-size="18" fill="#5A6672" letter-spacing="1.2">组会汇报 · 2026-09-17</text>
+    <text x="64" y="176" font-size="64" fill="#123A5C">深色贴膜玻璃透射成像增强<tspan x="64" dy="80">9 月进展</tspan></text>
+    <text x="64" y="318" font-size="32" fill="#5A6672">域适配、可辨识性边界、与下一步</text>
+    <rect x="64" y="338" width="120" height="4" fill="#0E7C86"/>
+  </g>
+
+  <g id="cover-hook" data-pptx-bounds="906 145 310 190" text-anchor="end">
+    <text x="1216" y="166" font-size="18" fill="#5A6672">α = 0.3 档 raw PSNR (dB)</text>
+    <text x="1216" y="232" font-size="64" fill="#8A9099">12.05</text>
+    <text x="1216" y="302" font-size="64" font-weight="bold" fill="#0E7C86">→ 18.5</text>
+  </g>
+
+  <g id="cover-evidence" data-pptx-bounds="76.5 360 1127 360">
+    <image href="../images/rdt_s1_v21_t_alpha03.png" x="76.5" y="360" width="1127" height="360" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+</svg>

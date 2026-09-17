@@ -1,0 +1,280 @@
+{
+  "schema": "ppt-master.pptx-postflight-report.v1",
+  "status": "passed-with-warnings",
+  "output": {
+    "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/exports/tintedglass_sept_review_20260917_074341.pptx",
+    "bytes": 6137869
+  },
+  "source": {
+    "svg_slide_count": 17,
+    "layout_definition_count": 0,
+    "fingerprint": {
+      "algorithm": "sha256",
+      "digest": "4b1e554322cdfa7ea6e0a7791cd9852acc5da2a52d913e62766240d2d653f922",
+      "file_count": 17,
+      "files": [
+        {
+          "file": "01_cover.svg",
+          "sha256": "22c3cdd147145f25235320890b66e12f6d5d89db6231010d424dbb6c3bd32eac"
+        },
+        {
+          "file": "02_task_and_benchmark.svg",
+          "sha256": "01eb58b22991b9163043ad94606fe5377992352bf7a9d35f11bca6f7c88fab27"
+        },
+        {
+          "file": "03_network_architecture.svg",
+          "sha256": "826e9cfbcaa5e829f52d8425a11667ca6522878922be3363dff279621358a6dc"
+        },
+        {
+          "file": "04_zero_shot_collapse.svg",
+          "sha256": "79866993312dba211f94249c4cf4494693f742ff02431f82e0bed100285cde89"
+        },
+        {
+          "file": "05_september_timeline.svg",
+          "sha256": "889ef8b578bcda7ac331113cd2b7e2013ca74d9b1a7202a8e9df207b1a35c9e8"
+        },
+        {
+          "file": "06_alpha_plateau.svg",
+          "sha256": "2bb037d2ff18c65588a0ed8fd86abb1e95771e04f9beb818bcd71b4fac040a08"
+        },
+        {
+          "file": "07_leak_incident.svg",
+          "sha256": "cb24d0045eb5f168811ee4c8df5cb2c260360680a76fff92581b06f52841ce53"
+        },
+        {
+          "file": "08_three_traps.svg",
+          "sha256": "765349d50f697b3a91952c5b98a4cc643ee7eb3aeee882bcf87d3b45b2d0654e"
+        },
+        {
+          "file": "09_domain_adaptation.svg",
+          "sha256": "a554dc0aea346aa67b29ce486f8657d0facd85114f02c1f3f8d19f27217ce699"
+        },
+        {
+          "file": "10_low_alpha_specialist.svg",
+          "sha256": "1276d2c2b29a29d62bb08b776bbb11b644bc36e6fd8bb3d738d518ba8a885e0f"
+        },
+        {
+          "file": "11_identifiability_map.svg",
+          "sha256": "a308c4c000c398769d260632611f67e45663ceb3a8da0f2dcb460a1a8637d470"
+        },
+        {
+          "file": "12_physical_exit.svg",
+          "sha256": "755c991990599aaad06e769e16f8d5e4ff70c0162e226f5019c3cb5d3123594a"
+        },
+        {
+          "file": "13_rhat_bottleneck.svg",
+          "sha256": "cc8ce419cef5e7549cdbc039136aa2464222b8a99cb8a5b91ecbe6c1501bef2f"
+        },
+        {
+          "file": "14_mona_peft.svg",
+          "sha256": "78df6faa73b445bf298fd3c15eb9d47f2eb2d53be1396caee43051d708789d87"
+        },
+        {
+          "file": "15_rrw_expansion.svg",
+          "sha256": "25cbe0e055ddca8ead0b6bc5b01b2625c156d793e57337517a96c72989d56826"
+        },
+        {
+          "file": "16_structure_anchor.svg",
+          "sha256": "0e9cf516c9c2e81c18499416cad1e1b5af9843f5bf3c8dfa0c0826abe9c274f8"
+        },
+        {
+          "file": "17_judgment_and_plan.svg",
+          "sha256": "744311e6a10038a4e049e9541957d1c205cba2d9ef85e800d5e31d3ba11a97a7"
+        }
+      ]
+    },
+    "authoring_roundtrip": null
+  },
+  "package": {
+    "zip_integrity": "passed",
+    "corrupt_member": null,
+    "slides": 17,
+    "notes": 17,
+    "masters": 1,
+    "layouts": 1
+  },
+  "checks": {
+    "zip_integrity": "passed",
+    "slide_count": "passed",
+    "internal_relationships": "enforced-at-build",
+    "structured_package": "not-applicable",
+    "transitions": "enforced-at-build",
+    "animations": "enforced-at-build",
+    "project_svg_contract": "enforced-at-build",
+    "compatibility_normalization": "not-applicable",
+    "authoring_roundtrip": "not-applicable",
+    "quality_gate": "passed",
+    "quality_warnings": "warning",
+    "template_tokens": "passed",
+    "external_images": "passed",
+    "font_portability": "passed"
+  },
+  "quality": {
+    "status": "loaded",
+    "path": "validation/svg_quality_report.json",
+    "schema": "ppt-master.svg-quality-report.v1",
+    "stage": "final",
+    "source_match": "passed",
+    "source_fingerprint": {
+      "algorithm": "sha256",
+      "digest": "4b1e554322cdfa7ea6e0a7791cd9852acc5da2a52d913e62766240d2d653f922",
+      "file_count": 17,
+      "files": [
+        {
+          "file": "01_cover.svg",
+          "sha256": "22c3cdd147145f25235320890b66e12f6d5d89db6231010d424dbb6c3bd32eac"
+        },
+        {
+          "file": "02_task_and_benchmark.svg",
+          "sha256": "01eb58b22991b9163043ad94606fe5377992352bf7a9d35f11bca6f7c88fab27"
+        },
+        {
+          "file": "03_network_architecture.svg",
+          "sha256": "826e9cfbcaa5e829f52d8425a11667ca6522878922be3363dff279621358a6dc"
+        },
+        {
+          "file": "04_zero_shot_collapse.svg",
+          "sha256": "79866993312dba211f94249c4cf4494693f742ff02431f82e0bed100285cde89"
+        },
+        {
+          "file": "05_september_timeline.svg",
+          "sha256": "889ef8b578bcda7ac331113cd2b7e2013ca74d9b1a7202a8e9df207b1a35c9e8"
+        },
+        {
+          "file": "06_alpha_plateau.svg",
+          "sha256": "2bb037d2ff18c65588a0ed8fd86abb1e95771e04f9beb818bcd71b4fac040a08"
+        },
+        {
+          "file": "07_leak_incident.svg",
+          "sha256": "cb24d0045eb5f168811ee4c8df5cb2c260360680a76fff92581b06f52841ce53"
+        },
+        {
+          "file": "08_three_traps.svg",
+          "sha256": "765349d50f697b3a91952c5b98a4cc643ee7eb3aeee882bcf87d3b45b2d0654e"
+        },
+        {
+          "file": "09_domain_adaptation.svg",
+          "sha256": "a554dc0aea346aa67b29ce486f8657d0facd85114f02c1f3f8d19f27217ce699"
+        },
+        {
+          "file": "10_low_alpha_specialist.svg",
+          "sha256": "1276d2c2b29a29d62bb08b776bbb11b644bc36e6fd8bb3d738d518ba8a885e0f"
+        },
+        {
+          "file": "11_identifiability_map.svg",
+          "sha256": "a308c4c000c398769d260632611f67e45663ceb3a8da0f2dcb460a1a8637d470"
+        },
+        {
+          "file": "12_physical_exit.svg",
+          "sha256": "755c991990599aaad06e769e16f8d5e4ff70c0162e226f5019c3cb5d3123594a"
+        },
+        {
+          "file": "13_rhat_bottleneck.svg",
+          "sha256": "cc8ce419cef5e7549cdbc039136aa2464222b8a99cb8a5b91ecbe6c1501bef2f"
+        },
+        {
+          "file": "14_mona_peft.svg",
+          "sha256": "78df6faa73b445bf298fd3c15eb9d47f2eb2d53be1396caee43051d708789d87"
+        },
+        {
+          "file": "15_rrw_expansion.svg",
+          "sha256": "25cbe0e055ddca8ead0b6bc5b01b2625c156d793e57337517a96c72989d56826"
+        },
+        {
+          "file": "16_structure_anchor.svg",
+          "sha256": "0e9cf516c9c2e81c18499416cad1e1b5af9843f5bf3c8dfa0c0826abe9c274f8"
+        },
+        {
+          "file": "17_judgment_and_plan.svg",
+          "sha256": "744311e6a10038a4e049e9541957d1c205cba2d9ef85e800d5e31d3ba11a97a7"
+        }
+      ]
+    },
+    "summary": {
+      "total": 17,
+      "passed": 15,
+      "warnings": 2,
+      "errors": 0
+    },
+    "categories": {
+      "blocking": {
+        "count": 0,
+        "issues": []
+      },
+      "introduced": {
+        "count": 2,
+        "issues": [
+          {
+            "file": "04_zero_shot_collapse.svg",
+            "message": "Image ../images/testset_v21_sheet_0915.png is 1280x1988 and renders at 0.17x scale in a 217x340 meet frame; the source is 2.8 MiB — file-size advisory only, not an aspect-ratio warning; consider a smaller source asset, or export with svg_to_pptx.py --image-sizing display to downsize at export time"
+          },
+          {
+            "file": "06_alpha_plateau.svg",
+            "message": "Image ../images/alpha_sat_maps.png is 2200x660 and renders at 0.23x scale in a 500x150 meet frame; the source is 1.2 MiB — file-size advisory only, not an aspect-ratio warning; consider a smaller source asset, or export with svg_to_pptx.py --image-sizing display to downsize at export time"
+          }
+        ]
+      },
+      "inherited": {
+        "count": 0,
+        "issues": []
+      },
+      "source-import": {
+        "count": 0,
+        "summary": {
+          "warning_count": 0,
+          "by_code": {}
+        }
+      }
+    }
+  },
+  "resources": {
+    "unresolved_template_tokens": [],
+    "fonts": {
+      "stacks": [
+        "Consolas, Microsoft YaHei, monospace",
+        "Microsoft YaHei, Arial, sans-serif"
+      ],
+      "generic_only_stacks": [],
+      "unsafe_exported_faces": []
+    },
+    "images": {
+      "data_uri": 0,
+      "local": 14,
+      "external": 0,
+      "external_references": []
+    }
+  },
+  "export_policy": {
+    "project_svg_contract": "strict",
+    "dangerous_normalization_count": 0
+  },
+  "deck_motion": {
+    "transition": {
+      "effect": "fade",
+      "effect_options": {},
+      "duration": 0.4,
+      "auto_advance": null,
+      "sound": null
+    },
+    "animation": {
+      "effect": "none",
+      "effect_request": null,
+      "duration": 0.4,
+      "stagger": 0.5,
+      "trigger": "after-previous"
+    },
+    "cli_overrides": {
+      "transition": false,
+      "transition_duration": false,
+      "auto_advance": false,
+      "transition_sound": false,
+      "animation": false,
+      "animation_duration": false,
+      "animation_stagger": false,
+      "animation_trigger": false
+    },
+    "narration_timings": false
+  },
+  "backup_path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/backup/20260917_074341/svg_output",
+  "conversion_trace_path": null
+}

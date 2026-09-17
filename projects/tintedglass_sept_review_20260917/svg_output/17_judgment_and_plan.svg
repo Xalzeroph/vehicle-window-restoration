@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial, sans-serif" data-pptx-page-role="ending">
+  <rect id="page-bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <g id="page-title" data-pptx-bounds="64 48 1152 80">
+    <text x="64" y="96" font-size="42" fill="#123A5C">三条判断与推进节奏</text>
+    <line x1="64" y1="124" x2="1216" y2="124" stroke="#D5DCE2" stroke-width="1"/>
+  </g>
+
+  <g id="judgment-mainline" data-pptx-bounds="64 150 368 208">
+    <rect x="64" y="154" width="48" height="3" fill="#0E7C86"/>
+    <text x="64" y="192" font-size="24" font-weight="bold" fill="#123A5C">判断一 · 主线</text>
+    <line x1="64" y1="212" x2="432" y2="212" stroke="#D5DCE2" stroke-width="1"/>
+    <text x="64" y="244" font-size="18" fill="#17202A">论文押「域适配 + 可辨识性地图」<tspan x="64" dy="26">主结果 12 → 18.5 dB</tspan><tspan x="64" dy="26">把边界量化成图</tspan><tspan x="64" dy="26">方法增量是上行空间，不是前提</tspan></text>
+    <text x="64" y="348" font-size="18" font-weight="bold" fill="#0E7C86">主线不动</text>
+  </g>
+
+  <g id="judgment-stoploss" data-pptx-bounds="456 150 368 208">
+    <rect x="456" y="154" width="48" height="3" fill="#C2410C"/>
+    <text x="456" y="192" font-size="24" font-weight="bold" fill="#123A5C">判断二 · 止损</text>
+    <line x1="456" y1="212" x2="824" y2="212" stroke="#D5DCE2" stroke-width="1"/>
+    <text x="456" y="244" font-size="18" fill="#17202A">出口在低 α 档判死<tspan x="456" dy="26">判死的原因是 α，不是机制</tspan><tspan x="456" dy="26">重启条件 = α 跨域误差足够小</tspan><tspan x="456" dy="26">不再投入算力</tspan></text>
+    <text x="456" y="348" font-size="18" font-weight="bold" fill="#C2410C">该止损就止损</text>
+  </g>
+
+  <g id="judgment-newdirection" data-pptx-bounds="848 150 368 208">
+    <rect x="848" y="154" width="48" height="3" fill="#0E7C86"/>
+    <text x="848" y="192" font-size="24" font-weight="bold" fill="#123A5C">判断三 · 新方向</text>
+    <line x1="848" y1="212" x2="1216" y2="212" stroke="#D5DCE2" stroke-width="1"/>
+    <text x="848" y="244" font-size="18" fill="#17202A">特征侧 Mona PEFT<tspan x="848" dy="26">数据侧 RRW 扩池 131 → 287</tspan><tspan x="848" dy="26">两条腿并行验证</tspan><tspan x="848" dy="26">本周内出判决</tspan></text>
+    <text x="848" y="348" font-size="18" font-weight="bold" fill="#0E7C86">本周出判决</text>
+  </g>
+
+  <g id="p16-plan" data-pptx-bounds="64 386 1152 152">
+    <line x1="64" y1="464" x2="1216" y2="464" stroke="#D5DCE2" stroke-width="2"/>
+
+    <text x="256" y="424" font-size="24" font-weight="bold" fill="#123A5C" text-anchor="middle">本周</text>
+    <line x1="256" y1="438" x2="256" y2="454" stroke="#0E7C86" stroke-width="2"/>
+    <circle cx="256" cy="464" r="9" fill="#0E7C86"/>
+    <text x="256" y="504" font-size="18" fill="#17202A" text-anchor="middle">PEFT / 扩池两条腿并行<tspan x="256" dy="26">冒烟与判决</tspan></text>
+
+    <text x="640" y="424" font-size="24" font-weight="bold" fill="#123A5C" text-anchor="middle">下周</text>
+    <line x1="640" y1="438" x2="640" y2="454" stroke="#0E7C86" stroke-width="2"/>
+    <circle cx="640" cy="464" r="9" fill="#0E7C86"/>
+    <text x="640" y="504" font-size="18" fill="#17202A" text-anchor="middle">结构锚进训练<tspan x="640" dy="26">做一致性损失</tspan></text>
+
+    <text x="1024" y="424" font-size="24" font-weight="bold" fill="#123A5C" text-anchor="middle">数据到位即排</text>
+    <line x1="1024" y1="438" x2="1024" y2="454" stroke="#0E7C86" stroke-width="2"/>
+    <circle cx="1024" cy="464" r="9" fill="#0E7C86"/>
+    <text x="1024" y="504" font-size="18" fill="#17202A" text-anchor="middle">实拍 sanity 验证<tspan x="1024" dy="26">补定量缺口</tspan></text>
+  </g>
+
+  <g id="page-footer" data-pptx-bounds="64 652 1152 28" fill="#5A6672" font-size="16">
+    <text x="64" y="670">风险如实说：主结论均为合成域结论，实拍定量待补</text>
+    <text x="1216" y="670" text-anchor="end">17 / 17</text>
+  </g>
+</svg>

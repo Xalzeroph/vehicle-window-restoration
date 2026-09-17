@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial, sans-serif" data-pptx-page-role="content">
+  <rect id="page-bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <g id="page-title" data-pptx-bounds="64 48 1152 80">
+    <text x="64" y="96" font-size="42" fill="#123A5C">用结构钉住 α，无参照场景交给一次标定</text>
+    <line x1="64" y1="124" x2="1216" y2="124" stroke="#D5DCE2" stroke-width="1"/>
+  </g>
+
+  <g id="p15-step-anchor" data-pptx-bounds="64 170 556 230">
+    <use data-icon="tabler-outline/scale" x="64" y="176" width="32" height="32" fill="#0E7C86" stroke-width="2"/>
+    <text x="108" y="204" font-size="24" font-weight="bold" fill="#123A5C">边界台阶锚</text>
+    <text x="64" y="252" font-size="30" font-family="Consolas, Microsoft YaHei, monospace" font-weight="bold" fill="#0E7C86">MAE 0.080</text>
+    <text x="64" y="292" font-size="18" fill="#17202A">聚类 95% CI [0.059, 0.101]，R 真值下界 0.023<tspan x="64" dy="26">零训练可得，只读图像的硬边界结构</tspan><tspan x="64" dy="26">下一步：进训练做一致性损失</tspan></text>
+  </g>
+
+  <g id="p15-invariant" data-pptx-bounds="660 170 556 230">
+    <use data-icon="tabler-outline/chart-line" x="660" y="176" width="32" height="32" fill="#0E7C86" stroke-width="2"/>
+    <text x="704" y="204" font-size="24" font-weight="bold" fill="#123A5C">多档配对不变量</text>
+    <text x="660" y="252" font-size="30" font-family="Consolas, Microsoft YaHei, monospace" font-weight="bold" fill="#0E7C86">误差 0.065%</text>
+    <text x="660" y="292" font-size="18" fill="#17202A">无掩膜口径；GT 掩膜口径为 0.31% / 0.25%<tspan x="660" dy="26">同一物理量在两档之间的比值关系恒定</tspan><tspan x="660" dy="26">同样是零训练可得的结构约束</tspan></text>
+  </g>
+
+  <g id="p15-fullfilm" data-pptx-bounds="64 440 1152 172">
+    <line x1="64" y1="444" x2="1216" y2="444" stroke="#D5DCE2" stroke-width="1"/>
+    <text x="64" y="484" font-size="24" font-weight="bold" fill="#123A5C">全膜（无参照）：候选族 + 一次标定</text>
+    <text x="64" y="520" font-size="18" fill="#17202A">单帧不可辨 → 解不出唯一 α；给候选族（同一图若干亮度档），由一次外部标定选定<tspan x="64" dy="28">oracle@k 扩档 k=7 为 20.90 dB；标定后选择悔值 +3.20 dB、top2 命中 86%</tspan><tspan x="64" dy="28">按采纳门仍需改进 —— 诚实标注为「储备」而非「已解决」</tspan><tspan x="64" dy="28">新颖性：文献调研确认「单帧 + 硬边界 + 离散档 + 深衰减」无人占位</tspan></text>
+  </g>
+
+  <g id="page-footer" data-pptx-bounds="64 652 1152 28" fill="#5A6672" font-size="16">
+    <text x="64" y="670">来源 docs/2026.9.17 批次1 锚点探针 · 两项锚点均为零训练；全膜协议暂列储备</text>
+    <text x="1216" y="670" text-anchor="end">16 / 17</text>
+  </g>
+</svg>

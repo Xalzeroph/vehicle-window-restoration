@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial, sans-serif" data-pptx-page-role="content">
+  <rect id="page-bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <g id="page-title" data-pptx-bounds="64 48 1152 80">
+    <text x="64" y="96" font-size="42" fill="#123A5C">四个独立估计器全部撞在 0.7：这不是调参问题</text>
+    <line x1="64" y1="124" x2="1216" y2="124" stroke="#D5DCE2" stroke-width="1"/>
+  </g>
+
+  <g id="p06-curves" data-pptx-bounds="64 148 860 241">
+    <image href="../images/alpha_sat_curves.png" x="64" y="148" width="860" height="241" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <g id="p06-estimators" data-pptx-bounds="948 148 268 241">
+    <text x="948" y="176" font-size="18" fill="#5A6672">无膜区平均估计（真值 1.0）</text>
+    <line x1="948" y1="188" x2="1216" y2="188" stroke="#D5DCE2" stroke-width="1"/>
+
+    <text x="948" y="222" font-size="18" fill="#17202A">α 头</text>
+    <text x="1216" y="222" font-size="24" font-weight="bold" fill="#123A5C" text-anchor="end">0.711</text>
+
+    <text x="948" y="258" font-size="18" fill="#17202A">ridge-ALL</text>
+    <text x="1216" y="258" font-size="24" font-weight="bold" fill="#123A5C" text-anchor="end">0.741</text>
+
+    <text x="948" y="294" font-size="18" fill="#17202A">GLOBAL</text>
+    <text x="1216" y="294" font-size="24" font-weight="bold" fill="#123A5C" text-anchor="end">0.634</text>
+
+    <text x="948" y="330" font-size="18" fill="#17202A">B 臂</text>
+    <text x="1216" y="330" font-size="24" font-weight="bold" fill="#123A5C" text-anchor="end">0.605–0.680</text>
+
+    <line x1="948" y1="348" x2="1216" y2="348" stroke="#D5DCE2" stroke-width="1"/>
+    <text x="948" y="376" font-size="16" fill="#5A6672">目标 ≥ 0.9（左图红虚线）</text>
+  </g>
+
+  <g id="p06-maps" data-pptx-bounds="64 412 620 186">
+    <image href="../images/alpha_sat_maps.png" x="64" y="412" width="620" height="186" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <g id="p06-reading" data-pptx-bounds="708 412 508 136">
+    <text x="708" y="448" font-size="24" font-weight="bold" fill="#123A5C">单帧只能定乘积，上限约 0.7</text>
+    <text x="708" y="480" font-size="18" fill="#17202A">四个估计器互不相同，却落在同一区间<tspan x="708" dy="26">与 Retinex、去雾、阴影同属「先验 + 锚点」消歧</tspan><tspan x="708" dy="26">与其继续调 α 头，不如引入结构锚</tspan></text>
+  </g>
+
+  <g id="page-footer" data-pptx-bounds="64 652 1152 28" fill="#5A6672" font-size="16">
+    <text x="64" y="670">来源 docs/2026.9.13 α 线改进方向评审 · 左为 α 头两 run 的饱和曲线，右为四个估计器在无膜区的读数</text>
+    <text x="1216" y="670" text-anchor="end">06 / 17</text>
+  </g>
+</svg>

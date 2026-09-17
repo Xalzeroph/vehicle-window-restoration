@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial, sans-serif" data-pptx-page-role="content">
+  <rect id="page-bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <g id="page-title" data-pptx-bounds="64 48 1152 80">
+    <text x="64" y="96" font-size="42" fill="#123A5C">任务是把 <tspan font-family="Consolas, Microsoft YaHei, monospace">I = α(x)·T + R</tspan> 里的 T 抠出来</text>
+    <line x1="64" y1="124" x2="1216" y2="124" stroke="#D5DCE2" stroke-width="1"/>
+  </g>
+
+  <g id="task-model" data-pptx-bounds="64 144 600 262">
+    <text x="64" y="178" font-size="32" fill="#123A5C">场景与成像模型</text>
+    <text x="64" y="222" font-size="24" fill="#17202A">深色车膜（α ≪ 1）下的单帧成像<tspan x="64" dy="36">观测 I 由透射层 T 与反射层 R 叠加</tspan><tspan x="64" dy="36">而成；目标是只凭单帧 I 还原 T。</tspan></text>
+    <rect x="64" y="314" width="600" height="92" fill="#F1F4F6"/>
+    <text x="88" y="352" font-size="30" font-family="Consolas, Microsoft YaHei, monospace" fill="#123A5C">I = α(x) · T + R</text>
+    <text x="88" y="386" font-size="18" fill="#5A6672">车膜吃掉七成光再叠上反射，要还原「车里长什么样」</text>
+  </g>
+
+  <g id="task-route" data-pptx-bounds="700 144 516 244">
+    <text x="700" y="178" font-size="32" fill="#123A5C">两阶段路线</text>
+    <rect x="700" y="216" width="190" height="84" fill="#F1F4F6"/>
+    <text x="795" y="252" font-size="24" font-weight="bold" fill="#123A5C" text-anchor="middle">RDNet</text>
+    <text x="795" y="280" font-size="18" fill="#5A6672" text-anchor="middle">去反射</text>
+    <g id="p02-route-arrow" data-pptx-authoring="preset" data-pptx-object="shape" data-pptx-prst="rightArrow" data-pptx-frame="902 242 60 44" fill="#123A5C" stroke="none">
+      <path d="M 902 253 L 940 253 L 940 242 L 962 264 L 940 286 L 940 275 L 902 275 Z"/>
+    </g>
+    <rect x="974" y="216" width="242" height="84" fill="#F1F4F6"/>
+    <text x="1095" y="252" font-size="24" font-weight="bold" fill="#123A5C" text-anchor="middle">ExpoMamba</text>
+    <text x="1095" y="280" font-size="18" fill="#5A6672" text-anchor="middle">低光增强</text>
+    <text x="700" y="344" font-size="24" fill="#17202A">基准 v2.1：3 档 α × 12 场景</text>
+    <text x="700" y="378" font-size="18" fill="#5A6672">口径 raw/gm PSNR · 常数基线 · 结构相关</text>
+  </g>
+
+  <g id="guard-baseline" data-pptx-bounds="64 432 368 168">
+    <rect x="64" y="436" width="48" height="3" fill="#C2410C"/>
+    <use data-icon="tabler-outline/scale" x="64" y="452" width="40" height="40" fill="#123A5C" stroke-width="2"/>
+    <text x="120" y="482" font-size="24" font-weight="bold" fill="#123A5C">常数基线同框</text>
+    <text x="64" y="534" font-size="18" fill="#17202A">低对比 GT 下涂成 GT 均值<tspan x="64" dy="26">也能拿 17.68 dB</tspan></text>
+  </g>
+
+  <g id="guard-dual-set" data-pptx-bounds="456 432 368 168">
+    <rect x="456" y="436" width="48" height="3" fill="#C2410C"/>
+    <use data-icon="tabler-outline/checklist" x="456" y="452" width="40" height="40" fill="#123A5C" stroke-width="2"/>
+    <text x="512" y="482" font-size="24" font-weight="bold" fill="#123A5C">双测试集固定</text>
+    <text x="456" y="534" font-size="18" fill="#17202A">结论只在单集成立时不外推<tspan x="456" dy="26">v2.1 与扩增集各自报数</tspan></text>
+  </g>
+
+  <g id="guard-ci" data-pptx-bounds="848 432 368 168">
+    <rect x="848" y="436" width="48" height="3" fill="#C2410C"/>
+    <use data-icon="tabler-outline/chart-line" x="848" y="452" width="40" height="40" fill="#123A5C" stroke-width="2"/>
+    <text x="904" y="482" font-size="24" font-weight="bold" fill="#123A5C">配对 + 聚类 CI</text>
+    <text x="848" y="534" font-size="18" fill="#17202A">一律配对检验 + 场景聚类<tspan x="848" dy="26">95% CI，不读单 seed 点估</tspan></text>
+  </g>
+
+  <g id="page-footer" data-pptx-bounds="64 652 1152 28" fill="#5A6672" font-size="16">
+    <text x="64" y="670">口径 raw PSNR (dB) · 2 seed 均值 · 场景聚类 95% CI</text>
+    <text x="1216" y="670" text-anchor="end">02 / 17</text>
+  </g>
+</svg>

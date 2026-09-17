@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial, sans-serif" data-pptx-page-role="content">
+  <rect id="page-bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <g id="page-title" data-pptx-bounds="64 48 1152 80">
+    <text x="64" y="96" font-size="42" fill="#123A5C">域适配把 α = 0.3 档从 12.05 拉到 18.5 dB</text>
+    <line x1="64" y1="124" x2="1216" y2="124" stroke="#D5DCE2" stroke-width="1"/>
+  </g>
+
+  <g id="p08-kpi" data-pptx-bounds="64 148 1152 156">
+    <line x1="328" y1="152" x2="328" y2="268" stroke="#D5DCE2" stroke-width="1"/>
+    <line x1="616" y1="152" x2="616" y2="268" stroke="#D5DCE2" stroke-width="1"/>
+    <line x1="904" y1="152" x2="904" y2="268" stroke="#D5DCE2" stroke-width="1"/>
+
+    <text x="64" y="184" font-size="18" fill="#5A6672">零样本（官方权重）</text>
+    <text x="64" y="246" font-size="42" fill="#8A9099">12.05</text>
+
+    <text x="352" y="184" font-size="18" fill="#5A6672">域适配后（主结果）</text>
+    <text x="352" y="246" font-size="42" font-weight="bold" fill="#0E7C86">18.5</text>
+    <text x="470" y="246" font-size="18" fill="#5A6672">+6.4 dB</text>
+
+    <text x="640" y="184" font-size="18" fill="#5A6672">α = 0.6 档</text>
+    <text x="640" y="246" font-size="42" fill="#123A5C">19.7</text>
+
+    <text x="928" y="184" font-size="18" fill="#5A6672">α = 1.0 档</text>
+    <text x="928" y="246" font-size="42" fill="#123A5C">19.7</text>
+
+    <text x="64" y="292" font-size="18" fill="#17202A">方法：冻主干 + 30k iter 域适配微调 + 干净数据管线 ｜ 结构相关 <tspan font-weight="bold" fill="#0E7C86">0.26 → 0.63</tspan></text>
+  </g>
+
+  <g id="p08-evidence" data-pptx-bounds="142 322 995 318">
+    <image href="../images/rdt_s1_v21_t_alpha03.png" x="142" y="322" width="995" height="318" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <g id="page-footer" data-pptx-bounds="64 652 1152 28" fill="#5A6672" font-size="16">
+    <text x="64" y="670">来源 fig/rdt_s1_v21_t_alpha03.png · 六列对照（输入 / GT / 零样本 / pilot / 域适配），四臂 18.3–18.7 dB</text>
+    <text x="1216" y="670" text-anchor="end">09 / 17</text>
+  </g>
+</svg>

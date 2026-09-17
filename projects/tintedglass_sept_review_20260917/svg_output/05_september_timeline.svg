@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial, sans-serif" data-pptx-page-role="content">
+  <rect id="page-bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <g id="page-title" data-pptx-bounds="64 48 1152 80">
+    <text x="64" y="96" font-size="42" fill="#123A5C">九月这条路：从定基准到把边界量化</text>
+    <line x1="64" y1="124" x2="1216" y2="124" stroke="#D5DCE2" stroke-width="1"/>
+  </g>
+
+  <g id="p04-timeline" data-pptx-bounds="64 300 1152 184">
+    <line x1="64" y1="380" x2="1216" y2="380" stroke="#D5DCE2" stroke-width="2"/>
+
+    <text x="160" y="336" font-size="24" font-weight="bold" fill="#123A5C" text-anchor="middle">9.9</text>
+    <line x1="160" y1="350" x2="160" y2="370" stroke="#0E7C86" stroke-width="2"/>
+    <circle cx="160" cy="380" r="9" fill="#0E7C86"/>
+    <text x="160" y="420" font-size="18" fill="#17202A" text-anchor="middle">预演与实拍协议</text>
+
+    <text x="352" y="336" font-size="24" font-weight="bold" fill="#123A5C" text-anchor="middle">9.13</text>
+    <line x1="352" y1="350" x2="352" y2="370" stroke="#0E7C86" stroke-width="2"/>
+    <circle cx="352" cy="380" r="9" fill="#0E7C86"/>
+    <text x="352" y="420" font-size="18" fill="#17202A" text-anchor="middle">基准 v2.1 定版<tspan x="352" dy="26">pilot A/B</tspan><tspan x="352" dy="26">α 平台</tspan></text>
+
+    <text x="544" y="336" font-size="24" font-weight="bold" fill="#C2410C" text-anchor="middle">9.14</text>
+    <line x1="544" y1="350" x2="544" y2="370" stroke="#C2410C" stroke-width="2"/>
+    <circle cx="544" cy="380" r="9" fill="#C2410C"/>
+    <text x="544" y="420" font-size="18" fill="#17202A" text-anchor="middle">迁入共享机<tspan x="544" dy="26">环境重建</tspan></text>
+
+    <text x="736" y="336" font-size="24" font-weight="bold" fill="#C2410C" text-anchor="middle">9.15</text>
+    <line x1="736" y1="350" x2="736" y2="370" stroke="#C2410C" stroke-width="2"/>
+    <circle cx="736" cy="380" r="9" fill="#C2410C"/>
+    <text x="736" y="420" font-size="18" fill="#17202A" text-anchor="middle">数据卫生重建<tspan x="736" dy="26">分离器方案</tspan></text>
+
+    <text x="928" y="336" font-size="24" font-weight="bold" fill="#123A5C" text-anchor="middle">9.16</text>
+    <line x1="928" y1="350" x2="928" y2="370" stroke="#0E7C86" stroke-width="2"/>
+    <circle cx="928" cy="380" r="9" fill="#0E7C86"/>
+    <text x="928" y="420" font-size="18" fill="#17202A" text-anchor="middle">S1 域适配判决<tspan x="928" dy="26">主结果落袋</tspan></text>
+
+    <text x="1120" y="336" font-size="24" font-weight="bold" fill="#123A5C" text-anchor="middle">9.17</text>
+    <line x1="1120" y1="350" x2="1120" y2="370" stroke="#0E7C86" stroke-width="2"/>
+    <circle cx="1120" cy="380" r="9" fill="#0E7C86"/>
+    <text x="1120" y="420" font-size="18" fill="#17202A" text-anchor="middle">出口判决<tspan x="1120" dy="26">锚点探针</tspan><tspan x="1120" dy="26">新方向</tspan></text>
+  </g>
+
+  <g id="p04-breaks" data-pptx-bounds="64 512 1152 110">
+    <text x="64" y="544" font-size="24" font-weight="bold" fill="#123A5C">两个断点</text>
+    <text x="64" y="586" font-size="18" fill="#17202A">9.14 迁入共享机：环境重建占用一天，训练链整体重跑<tspan x="64" dy="26">9.15 数据卫生事故：训练池被测试集 T 污染，一批结论作废后按内容级核查重建</tspan></text>
+  </g>
+
+  <g id="page-footer" data-pptx-bounds="64 652 1152 28" fill="#5A6672" font-size="16">
+    <text x="64" y="670">来源 项目日志整理 · 橙点为节奏断点</text>
+    <text x="1216" y="670" text-anchor="end">05 / 17</text>
+  </g>
+</svg>

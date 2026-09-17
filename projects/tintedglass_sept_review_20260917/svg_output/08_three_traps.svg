@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial, sans-serif" data-pptx-page-role="content">
+  <rect id="page-bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <g id="page-title" data-pptx-bounds="64 48 1152 80">
+    <text x="64" y="96" font-size="42" fill="#123A5C">三个足以翻转判断的统计陷阱</text>
+    <line x1="64" y1="124" x2="1216" y2="124" stroke="#D5DCE2" stroke-width="1"/>
+  </g>
+
+  <g id="trap-baseline" data-pptx-bounds="64 150 368 272">
+    <rect x="64" y="154" width="48" height="3" fill="#C2410C"/>
+    <use data-icon="tabler-outline/scale" x="64" y="170" width="40" height="40" fill="#C2410C" stroke-width="2"/>
+    <text x="64" y="268" font-size="32" fill="#123A5C">常数基线</text>
+    <line x1="64" y1="290" x2="432" y2="290" stroke="#D5DCE2" stroke-width="1"/>
+    <text x="64" y="330" font-size="18" fill="#17202A">低对比 GT 下，一张<tspan x="64" dy="26">涂成 GT 均值的平坦图</tspan><tspan x="64" dy="26">就能拿 <tspan font-weight="bold" fill="#C2410C">17.68 dB</tspan>。低档</tspan><tspan x="64" dy="26">PSNR 必须并读基线。</tspan></text>
+  </g>
+
+  <g id="trap-testset-sign" data-pptx-bounds="456 150 368 272">
+    <rect x="456" y="154" width="48" height="3" fill="#C2410C"/>
+    <use data-icon="tabler-outline/chart-line" x="456" y="170" width="40" height="40" fill="#C2410C" stroke-width="2"/>
+    <text x="456" y="268" font-size="32" fill="#123A5C">跟测试集走</text>
+    <line x1="456" y1="290" x2="824" y2="290" stroke="#D5DCE2" stroke-width="1"/>
+    <text x="456" y="330" font-size="18" fill="#17202A">w 重加权在 v2.1 为负、<tspan x="456" dy="26">在扩增集为正；R 偏差</tspan><tspan x="456" dy="26">在 v2.1 偏亮、v23 偏暗。</tspan><tspan x="456" dy="26">单集结论不可外推。</tspan></text>
+  </g>
+
+  <g id="trap-noise-power" data-pptx-bounds="848 150 368 272">
+    <rect x="848" y="154" width="48" height="3" fill="#C2410C"/>
+    <use data-icon="tabler-outline/alert-triangle" x="848" y="170" width="40" height="40" fill="#C2410C" stroke-width="2"/>
+    <text x="848" y="268" font-size="32" fill="#123A5C">噪声同量级</text>
+    <line x1="848" y1="290" x2="1216" y2="290" stroke="#D5DCE2" stroke-width="1"/>
+    <text x="848" y="330" font-size="18" fill="#17202A">seed 极差<tspan x="848" dy="26">0.4–0.6 dB 与判据门槛</tspan><tspan x="848" dy="26">同量级；一律配对检验</tspan><tspan x="848" dy="26">+ 场景聚类 95% CI。</tspan></text>
+  </g>
+
+  <g id="traps-takeaway" data-pptx-bounds="64 462 1152 150">
+    <line x1="64" y1="462" x2="1216" y2="462" stroke="#D5DCE2" stroke-width="1"/>
+    <text x="64" y="508" font-size="24" font-weight="bold" fill="#123A5C">口径先于结论</text>
+    <text x="64" y="546" font-size="18" fill="#17202A">每一个数字旁边，都要站着它的基线、测试集与不确定性<tspan x="64" dy="28">三条均已固化为流程护栏，写进每一轮实验的准入检查</tspan></text>
+  </g>
+
+  <g id="page-footer" data-pptx-bounds="64 652 1152 28" fill="#5A6672" font-size="16">
+    <text x="64" y="670">三个陷阱各自对应一次本项目的真实翻转，不是假想风险</text>
+    <text x="1216" y="670" text-anchor="end">08 / 17</text>
+  </g>
+</svg>

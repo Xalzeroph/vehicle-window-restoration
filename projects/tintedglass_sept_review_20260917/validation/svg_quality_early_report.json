@@ -1,0 +1,609 @@
+{
+  "schema": "ppt-master.svg-quality-report.v1",
+  "stage": "early",
+  "target": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917",
+  "source_fingerprint": {
+    "algorithm": "sha256",
+    "digest": "b088a58db51c31d4f2a4edfa7ccb286db55e96e1678be347b226f1eb35fb6a51",
+    "file_count": 7,
+    "files": [
+      {
+        "file": "01_cover.svg",
+        "sha256": "8841bcc5a837b7d94f97b0ced64e97fc17d2dbdb67dea1d612dd62b84962ef49"
+      },
+      {
+        "file": "02_task_and_benchmark.svg",
+        "sha256": "5f5a2297cdd48a878248690f6a3077f531f5a8c0b229bb4fd65bf4e196118ad6"
+      },
+      {
+        "file": "03_zero_shot_collapse.svg",
+        "sha256": "7445b79d9b05da4c077e708921f7ec24638c5b5008a2f980602b11a6d4a023a8"
+      },
+      {
+        "file": "04_september_timeline.svg",
+        "sha256": "d79679282caf9c3aaa2b9f7773f4d51439cafdb250b7c9e3c8a29e5ddc100b22"
+      },
+      {
+        "file": "05_alpha_plateau.svg",
+        "sha256": "ea02d315120d248e05b4795558b10cfa579bfd6e062d621cff4f11db259f00ef"
+      },
+      {
+        "file": "06_leak_incident.svg",
+        "sha256": "73fc541f7ec68fa8e2a9a88ce8d131f6dde64424e5033bb7f24c91388ecae7e2"
+      },
+      {
+        "file": "07_three_traps.svg",
+        "sha256": "ba1391471783166ba83072f2cb9b12015b3f49e818975974b98b9e887923016e"
+      }
+    ]
+  },
+  "summary": {
+    "total": 7,
+    "passed": 0,
+    "warnings": 5,
+    "errors": 2
+  },
+  "issue_types": {
+    "Other": 2,
+    "XML well-formedness": 1
+  },
+  "categories": {
+    "blocking": {
+      "count": 3,
+      "issues": [
+        {
+          "file": "02_task_and_benchmark.svg",
+          "message": "<text> (x=64, y=222; text='深色车膜（α ≪ 1）下的单帧成像：观测…') exceeds <g id=\"task-model\"> data-pptx-bounds on the horizontal axis: content (64.0, 201.6)-(713.0, 302.4), container (64.0, 144.0)-(664.0, 406.0), overflow horizontal 8.2%, vertical 0.0% (error above 5%); expand the root module bounds into available non-overlapping space; otherwise reflow the text; ≈23.2 px per mixed char at 24px incl. headroom; ≈25 chars fit in 600 px"
+        },
+        {
+          "file": "02_task_and_benchmark.svg",
+          "message": "<text> (x=700, y=344; text='基准 v2.1：3 档 α（1.0 / …') exceeds <g id=\"task-route\"> data-pptx-bounds on the horizontal axis: content (700.0, 323.6)-(1252.0, 352.4), container (700.0, 144.0)-(1216.0, 388.0), overflow horizontal 7.0%, vertical 0.0% (error above 5%); expand the root module bounds into available non-overlapping space; otherwise reflow the text; ≈19.7 px per mixed char at 24px incl. headroom; ≈26 chars fit in 516 px"
+        },
+        {
+          "file": "07_three_traps.svg",
+          "message": "Invalid XML: mismatched tag: line 14, column 246 — SVG must be well-formed XML. Use raw Unicode for typography (—, ©, →, NBSP); escape XML reserved chars as &amp; &lt; &gt; &quot; &apos; (see references/shared-standards-core.md §1)."
+        }
+      ]
+    },
+    "introduced": {
+      "count": 13,
+      "issues": [
+        {
+          "file": "01_cover.svg",
+          "message": "Noncanonical compact authoring: Authoring SVG contains noncanonical or redundant inherited style declarations (4 change(s)); examples (group:attr None -> value hoists the shared value onto that group; child:attr value -> None drops the copy the child now inherits): cover-hook:text-anchor None -> 'end'; text[10]:text-anchor 'end' -> None; text[11]:text-anchor 'end' -> None (advisory; normalize with `python3 scripts/compact_svg_styles.py <svg_output> --inplace`, re-stamp pages that carry Chart/Table fallbacks, and rerun the final gate, or leave the explicit form)"
+        },
+        {
+          "file": "02_task_and_benchmark.svg",
+          "message": "Noncanonical compact authoring: Authoring SVG contains noncanonical or redundant inherited style declarations (6 change(s)); examples (group:attr None -> value hoists the shared value onto that group; child:attr value -> None drops the copy the child now inherits): page-footer:fill None -> '#5A6672'; page-footer:font-size None -> '16'; text[47]:fill '#5A6672' -> None (advisory; normalize with `python3 scripts/compact_svg_styles.py <svg_output> --inplace`, re-stamp pages that carry Chart/Table fallbacks, and rerun the final gate, or leave the explicit form)"
+        },
+        {
+          "file": "02_task_and_benchmark.svg",
+          "message": "Detected 3 paragraph-like line run(s) split across sibling <text> elements (<g id=\"guard-baseline\"> x=64.0, y=534.0..560.0, 2 lines; <g id=\"guard-dual-set\"> x=456.0, y=534.0..560.0, 2 lines; <g id=\"guard-ci\"> x=848.0, y=534.0..560.0, 2 lines). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+        },
+        {
+          "file": "03_zero_shot_collapse.svg",
+          "message": "Noncanonical compact authoring: Authoring SVG contains noncanonical or redundant inherited style declarations (6 change(s)); examples (group:attr None -> value hoists the shared value onto that group; child:attr value -> None drops the copy the child now inherits): page-footer:fill None -> '#5A6672'; page-footer:font-size None -> '16'; text[25]:fill '#5A6672' -> None (advisory; normalize with `python3 scripts/compact_svg_styles.py <svg_output> --inplace`, re-stamp pages that carry Chart/Table fallbacks, and rerun the final gate, or leave the explicit form)"
+        },
+        {
+          "file": "03_zero_shot_collapse.svg",
+          "message": "<text> (x=714, y=448; text='结构相关仅 0.26；失败是内容级损伤，…') exceeds <g id=\"p03-numbers\"> data-pptx-bounds on the vertical axis: content (714.0, 427.6)-(1085.7, 492.4), container (714.0, 150.0)-(1216.0, 486.0), overflow horizontal 0.0%, vertical 1.9% (error above 5%); expand the root module bounds into available non-overlapping space; otherwise reflow the text"
+        },
+        {
+          "file": "03_zero_shot_collapse.svg",
+          "message": "Image ../images/testset_v21_sheet_0915.png is 1280x1988 and renders at 0.17x scale in a 217x340 meet frame; the source is 2.8 MiB — file-size advisory only, not an aspect-ratio warning; consider a smaller source asset, or export with svg_to_pptx.py --image-sizing display to downsize at export time"
+        },
+        {
+          "file": "04_september_timeline.svg",
+          "message": "Noncanonical compact authoring: Authoring SVG contains noncanonical or redundant inherited style declarations (6 change(s)); examples (group:attr None -> value hoists the shared value onto that group; child:attr value -> None drops the copy the child now inherits): page-footer:fill None -> '#5A6672'; page-footer:font-size None -> '16'; text[42]:fill '#5A6672' -> None (advisory; normalize with `python3 scripts/compact_svg_styles.py <svg_output> --inplace`, re-stamp pages that carry Chart/Table fallbacks, and rerun the final gate, or leave the explicit form)"
+        },
+        {
+          "file": "04_september_timeline.svg",
+          "message": "Detected 1 paragraph-like line run(s) split across sibling <text> elements (<g id=\"p04-breaks\"> x=64.0, y=586.0..612.0, 2 lines). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+        },
+        {
+          "file": "05_alpha_plateau.svg",
+          "message": "Noncanonical compact authoring: Authoring SVG contains noncanonical or redundant inherited style declarations (6 change(s)); examples (group:attr None -> value hoists the shared value onto that group; child:attr value -> None drops the copy the child now inherits): page-footer:fill None -> '#5A6672'; page-footer:font-size None -> '16'; text[17]:fill '#5A6672' -> None (advisory; normalize with `python3 scripts/compact_svg_styles.py <svg_output> --inplace`, re-stamp pages that carry Chart/Table fallbacks, and rerun the final gate, or leave the explicit form)"
+        },
+        {
+          "file": "05_alpha_plateau.svg",
+          "message": "Detected 1 paragraph-like line run(s) split across sibling <text> elements (<g id=\"p05-reading\"> x=584.0, y=548.0..632.0, 4 lines). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+        },
+        {
+          "file": "05_alpha_plateau.svg",
+          "message": "Image ../images/alpha_sat_maps.png is 2200x660 and renders at 0.23x scale in a 500x150 meet frame; the source is 1.2 MiB — file-size advisory only, not an aspect-ratio warning; consider a smaller source asset, or export with svg_to_pptx.py --image-sizing display to downsize at export time"
+        },
+        {
+          "file": "06_leak_incident.svg",
+          "message": "Noncanonical compact authoring: Authoring SVG contains noncanonical or redundant inherited style declarations (6 change(s)); examples (group:attr None -> value hoists the shared value onto that group; child:attr value -> None drops the copy the child now inherits): page-footer:fill None -> '#5A6672'; page-footer:font-size None -> '16'; text[24]:fill '#5A6672' -> None (advisory; normalize with `python3 scripts/compact_svg_styles.py <svg_output> --inplace`, re-stamp pages that carry Chart/Table fallbacks, and rerun the final gate, or leave the explicit form)"
+        },
+        {
+          "file": "06_leak_incident.svg",
+          "message": "Detected 4 paragraph-like line run(s) split across sibling <text> elements (<g id=\"p06-story\"> x=64.0, y=220.0..246.0, 2 lines; <g id=\"p06-story\"> x=64.0, y=326.0..352.0, 2 lines; <g id=\"p06-story\"> x=64.0, y=432.0..484.0, 3 lines; +1 more). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+        }
+      ]
+    },
+    "inherited": {
+      "count": 0,
+      "issues": []
+    },
+    "source-import": {
+      "count": 0,
+      "summary": {
+        "warning_count": 0,
+        "by_code": {}
+      }
+    }
+  },
+  "drift": {
+    "colors": {
+      "#8A9099": [
+        "01_cover.svg"
+      ]
+    },
+    "fonts": {},
+    "sizes": {}
+  },
+  "carrier_receipt": {
+    "scope": "informational-not-a-quota",
+    "pages": 6,
+    "totals": {
+      "text_elements": 79,
+      "image_placements": 7,
+      "icons": 4,
+      "svg_geometry_elements": 32,
+      "preset_shapes": 1,
+      "page_frame_elements": 6,
+      "marker_uses": 0,
+      "inline_emphasis_runs": 2,
+      "gradient_uses": 0,
+      "filter_uses": 0,
+      "text_effects": 0
+    },
+    "pages_with": {
+      "images": 4,
+      "icons": 2,
+      "presets": 1,
+      "charts": 0,
+      "tables": 0,
+      "formulas": 0,
+      "inline_emphasis_runs": 1,
+      "gradient_uses": 0,
+      "filter_uses": 0,
+      "text_effects": 0
+    },
+    "relationship_pages": 0,
+    "geometry_elements": {
+      "circle": 6,
+      "ellipse": 0,
+      "line": 13,
+      "path": 0,
+      "polygon": 0,
+      "polyline": 0,
+      "rect": 13
+    },
+    "preset_names": {
+      "rightArrow": 1
+    },
+    "native_objects": {
+      "chart": 0,
+      "formula_block": 0,
+      "formula_inline": 0,
+      "other": 0,
+      "table": 0
+    },
+    "image_page_max_frame_share_range": [
+      0.16,
+      0.4402
+    ]
+  },
+  "project_issues": {
+    "template": [],
+    "animation": [],
+    "illustration": [],
+    "communication_trace": [],
+    "pptx_structure": []
+  },
+  "files": [
+    {
+      "file": "01_cover.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/01_cover.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Noncanonical compact authoring: Authoring SVG contains noncanonical or redundant inherited style declarations (4 change(s)); examples (group:attr None -> value hoists the shared value onto that group; child:attr value -> None drops the copy the child now inherits): cover-hook:text-anchor None -> 'end'; text[10]:text-anchor 'end' -> None; text[11]:text-anchor 'end' -> None (advisory; normalize with `python3 scripts/compact_svg_styles.py <svg_output> --inplace`, re-stamp pages that carry Chart/Table fallbacks, and rerun the final gate, or leave the explicit form)"
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 6,
+          "images": {
+            "placements": 1,
+            "files": [
+              "rdt_s1_v21_t_alpha03.png"
+            ],
+            "max_frame_share": 0.4402
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 2,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 0,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 6,
+        "tspan_elements": 1,
+        "contextual_values": {
+          "colors": [
+            "#8A9099"
+          ]
+        }
+      },
+      "passed": true,
+      "source_sha256": "8841bcc5a837b7d94f97b0ced64e97fc17d2dbdb67dea1d612dd62b84962ef49"
+    },
+    {
+      "file": "02_task_and_benchmark.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/02_task_and_benchmark.svg",
+      "exists": true,
+      "errors": [
+        "<text> (x=64, y=222; text='深色车膜（α ≪ 1）下的单帧成像：观测…') exceeds <g id=\"task-model\"> data-pptx-bounds on the horizontal axis: content (64.0, 201.6)-(713.0, 302.4), container (64.0, 144.0)-(664.0, 406.0), overflow horizontal 8.2%, vertical 0.0% (error above 5%); expand the root module bounds into available non-overlapping space; otherwise reflow the text; ≈23.2 px per mixed char at 24px incl. headroom; ≈25 chars fit in 600 px",
+        "<text> (x=700, y=344; text='基准 v2.1：3 档 α（1.0 / …') exceeds <g id=\"task-route\"> data-pptx-bounds on the horizontal axis: content (700.0, 323.6)-(1252.0, 352.4), container (700.0, 144.0)-(1216.0, 388.0), overflow horizontal 7.0%, vertical 0.0% (error above 5%); expand the root module bounds into available non-overlapping space; otherwise reflow the text; ≈19.7 px per mixed char at 24px incl. headroom; ≈26 chars fit in 516 px"
+      ],
+      "warnings": [
+        "Noncanonical compact authoring: Authoring SVG contains noncanonical or redundant inherited style declarations (6 change(s)); examples (group:attr None -> value hoists the shared value onto that group; child:attr value -> None drops the copy the child now inherits): page-footer:fill None -> '#5A6672'; page-footer:font-size None -> '16'; text[47]:fill '#5A6672' -> None (advisory; normalize with `python3 scripts/compact_svg_styles.py <svg_output> --inplace`, re-stamp pages that carry Chart/Table fallbacks, and rerun the final gate, or leave the explicit form)",
+        "Detected 3 paragraph-like line run(s) split across sibling <text> elements (<g id=\"guard-baseline\"> x=64.0, y=534.0..560.0, 2 lines; <g id=\"guard-dual-set\"> x=456.0, y=534.0..560.0, 2 lines; <g id=\"guard-ci\"> x=848.0, y=534.0..560.0, 2 lines). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 23,
+          "images": {
+            "placements": 0,
+            "files": [],
+            "max_frame_share": 0.0
+          },
+          "icons": 3,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 7,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 1,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 1,
+            "preset_names": {
+              "rightArrow": 1
+            },
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Consolas, Microsoft YaHei, monospace",
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 23,
+        "tspan_elements": 4
+      },
+      "passed": false,
+      "source_sha256": "5f5a2297cdd48a878248690f6a3077f531f5a8c0b229bb4fd65bf4e196118ad6"
+    },
+    {
+      "file": "03_zero_shot_collapse.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/03_zero_shot_collapse.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Noncanonical compact authoring: Authoring SVG contains noncanonical or redundant inherited style declarations (6 change(s)); examples (group:attr None -> value hoists the shared value onto that group; child:attr value -> None drops the copy the child now inherits): page-footer:fill None -> '#5A6672'; page-footer:font-size None -> '16'; text[25]:fill '#5A6672' -> None (advisory; normalize with `python3 scripts/compact_svg_styles.py <svg_output> --inplace`, re-stamp pages that carry Chart/Table fallbacks, and rerun the final gate, or leave the explicit form)",
+        "<text> (x=714, y=448; text='结构相关仅 0.26；失败是内容级损伤，…') exceeds <g id=\"p03-numbers\"> data-pptx-bounds on the vertical axis: content (714.0, 427.6)-(1085.7, 492.4), container (714.0, 150.0)-(1216.0, 486.0), overflow horizontal 0.0%, vertical 1.9% (error above 5%); expand the root module bounds into available non-overlapping space; otherwise reflow the text",
+        "Image ../images/testset_v21_sheet_0915.png is 1280x1988 and renders at 0.17x scale in a 217x340 meet frame; the source is 2.8 MiB — file-size advisory only, not an aspect-ratio warning; consider a smaller source asset, or export with svg_to_pptx.py --image-sizing display to downsize at export time"
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 8,
+          "images": {
+            "placements": 3,
+            "files": [
+              "E3_error_vs_alpha.png",
+              "E3_structure.png",
+              "testset_v21_sheet_0915.png"
+            ],
+            "max_frame_share": 0.16
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 2,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 1,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 2,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 8,
+        "tspan_elements": 5
+      },
+      "passed": true,
+      "source_sha256": "7445b79d9b05da4c077e708921f7ec24638c5b5008a2f980602b11a6d4a023a8"
+    },
+    {
+      "file": "04_september_timeline.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/04_september_timeline.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Noncanonical compact authoring: Authoring SVG contains noncanonical or redundant inherited style declarations (6 change(s)); examples (group:attr None -> value hoists the shared value onto that group; child:attr value -> None drops the copy the child now inherits): page-footer:fill None -> '#5A6672'; page-footer:font-size None -> '16'; text[42]:fill '#5A6672' -> None (advisory; normalize with `python3 scripts/compact_svg_styles.py <svg_output> --inplace`, re-stamp pages that carry Chart/Table fallbacks, and rerun the final gate, or leave the explicit form)",
+        "Detected 1 paragraph-like line run(s) split across sibling <text> elements (<g id=\"p04-breaks\"> x=64.0, y=586.0..612.0, 2 lines). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 18,
+          "images": {
+            "placements": 0,
+            "files": [],
+            "max_frame_share": 0.0
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 1,
+              "circle": 6,
+              "ellipse": 0,
+              "line": 8,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 18,
+        "tspan_elements": 5
+      },
+      "passed": true,
+      "source_sha256": "d79679282caf9c3aaa2b9f7773f4d51439cafdb250b7c9e3c8a29e5ddc100b22"
+    },
+    {
+      "file": "05_alpha_plateau.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/05_alpha_plateau.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Noncanonical compact authoring: Authoring SVG contains noncanonical or redundant inherited style declarations (6 change(s)); examples (group:attr None -> value hoists the shared value onto that group; child:attr value -> None drops the copy the child now inherits): page-footer:fill None -> '#5A6672'; page-footer:font-size None -> '16'; text[17]:fill '#5A6672' -> None (advisory; normalize with `python3 scripts/compact_svg_styles.py <svg_output> --inplace`, re-stamp pages that carry Chart/Table fallbacks, and rerun the final gate, or leave the explicit form)",
+        "Detected 1 paragraph-like line run(s) split across sibling <text> elements (<g id=\"p05-reading\"> x=584.0, y=548.0..632.0, 4 lines). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate.",
+        "Image ../images/alpha_sat_maps.png is 2200x660 and renders at 0.23x scale in a 500x150 meet frame; the source is 1.2 MiB — file-size advisory only, not an aspect-ratio warning; consider a smaller source asset, or export with svg_to_pptx.py --image-sizing display to downsize at export time"
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 8,
+          "images": {
+            "placements": 2,
+            "files": [
+              "alpha_sat_curves.png",
+              "alpha_sat_maps.png"
+            ],
+            "max_frame_share": 0.4034
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 1,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 1,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 8,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "ea02d315120d248e05b4795558b10cfa579bfd6e062d621cff4f11db259f00ef"
+    },
+    {
+      "file": "06_leak_incident.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/06_leak_incident.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Noncanonical compact authoring: Authoring SVG contains noncanonical or redundant inherited style declarations (6 change(s)); examples (group:attr None -> value hoists the shared value onto that group; child:attr value -> None drops the copy the child now inherits): page-footer:fill None -> '#5A6672'; page-footer:font-size None -> '16'; text[24]:fill '#5A6672' -> None (advisory; normalize with `python3 scripts/compact_svg_styles.py <svg_output> --inplace`, re-stamp pages that carry Chart/Table fallbacks, and rerun the final gate, or leave the explicit form)",
+        "Detected 4 paragraph-like line run(s) split across sibling <text> elements (<g id=\"p06-story\"> x=64.0, y=220.0..246.0, 2 lines; <g id=\"p06-story\"> x=64.0, y=326.0..352.0, 2 lines; <g id=\"p06-story\"> x=64.0, y=432.0..484.0, 3 lines; +1 more). If each run is one prose paragraph, combine it into one <text>: keep its first line as direct text and use direct <tspan> children with the parent x and positive relative dy values for later lines. An all-<tspan> form may start with dy=\"0\". Keep semantically independent text frames separate."
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 16,
+          "images": {
+            "placements": 1,
+            "files": [
+              "cluster_leak_check_0915.png"
+            ],
+            "max_frame_share": 0.1875
+          },
+          "icons": 1,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 1,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 1,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 16,
+        "tspan_elements": 0
+      },
+      "passed": true,
+      "source_sha256": "73fc541f7ec68fa8e2a9a88ce8d131f6dde64424e5033bb7f24c91388ecae7e2"
+    },
+    {
+      "file": "07_three_traps.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/07_three_traps.svg",
+      "exists": true,
+      "errors": [
+        "Invalid XML: mismatched tag: line 14, column 246 — SVG must be well-formed XML. Use raw Unicode for typography (—, ©, →, NBSP); escape XML reserved chars as &amp; &lt; &gt; &quot; &apos; (see references/shared-standards-core.md §1)."
+      ],
+      "warnings": [],
+      "info": {},
+      "passed": false,
+      "source_sha256": "ba1391471783166ba83072f2cb9b12015b3f49e818975974b98b9e887923016e"
+    }
+  ]
+}

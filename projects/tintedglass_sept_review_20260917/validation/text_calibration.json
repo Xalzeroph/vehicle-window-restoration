@@ -1,0 +1,137 @@
+{
+  "roles": {
+    "body": {
+      "family": "Microsoft YaHei, Arial, sans-serif",
+      "size": 24.0,
+      "weight": "normal",
+      "cjk_chars_per_100px": 3.9,
+      "latin_chars_per_100px": 8.1,
+      "caps_chars_per_100px": 7.5,
+      "digits_chars_per_100px": 7.1,
+      "citation_chars_per_100px": 7.5,
+      "script_clusters_per_100px": {
+        "Greek": 7.1
+      },
+      "longest_planned_line": {
+        "px": 1347.7,
+        "slide": "P11",
+        "text": "结论：出口线条件性冻结，重启条件 = α̃ 跨域误差够小（当前测试端场景均值 M…"
+      }
+    },
+    "title": {
+      "family": "Microsoft YaHei, Arial, sans-serif",
+      "size": 42.0,
+      "weight": "normal",
+      "cjk_chars_per_100px": 2.2,
+      "latin_chars_per_100px": 4.6,
+      "caps_chars_per_100px": 4.3,
+      "digits_chars_per_100px": 4.1,
+      "citation_chars_per_100px": 4.3,
+      "script_clusters_per_100px": {
+        "Greek": 4.1
+      },
+      "longest_planned_line": {
+        "px": 1304.4,
+        "slide": "P15",
+        "text": "结构锚 + 全膜协议：把 α 用结构钉住，把无参照场景交给一次标定"
+      }
+    },
+    "subtitle": {
+      "family": "Microsoft YaHei, Arial, sans-serif",
+      "size": 32.0,
+      "weight": "normal",
+      "cjk_chars_per_100px": 2.9,
+      "latin_chars_per_100px": 6.1,
+      "caps_chars_per_100px": 5.6,
+      "digits_chars_per_100px": 5.4,
+      "citation_chars_per_100px": 5.6,
+      "script_clusters_per_100px": {
+        "Greek": 5.4
+      },
+      "longest_planned_line": {
+        "px": 2467.7,
+        "slide": "P15",
+        "text": "全膜（无参照）场景单帧不可辨，改用\"候选族 + 一次标定\"协议：oracle@…"
+      }
+    },
+    "annotation": {
+      "family": "Microsoft YaHei, Arial, sans-serif",
+      "size": 18.0,
+      "weight": "normal",
+      "cjk_chars_per_100px": 5.2,
+      "latin_chars_per_100px": 10.8,
+      "caps_chars_per_100px": 10.0,
+      "digits_chars_per_100px": 9.5,
+      "citation_chars_per_100px": 10.0,
+      "script_clusters_per_100px": {
+        "Greek": 9.5
+      },
+      "longest_planned_line": null
+    },
+    "data": {
+      "family": "Consolas, Microsoft YaHei, monospace",
+      "size": 24.0,
+      "weight": "normal",
+      "cjk_chars_per_100px": 3.9,
+      "latin_chars_per_100px": 7.1,
+      "caps_chars_per_100px": 6.8,
+      "digits_chars_per_100px": 7.1,
+      "citation_chars_per_100px": 7.0,
+      "script_clusters_per_100px": {
+        "Greek": 7.1
+      },
+      "longest_planned_line": null
+    },
+    "display": {
+      "family": "Microsoft YaHei, Arial, sans-serif",
+      "size": 64.0,
+      "weight": "normal",
+      "cjk_chars_per_100px": 1.5,
+      "latin_chars_per_100px": 3.0,
+      "caps_chars_per_100px": 2.8,
+      "digits_chars_per_100px": 2.7,
+      "citation_chars_per_100px": 2.8,
+      "script_clusters_per_100px": {
+        "Greek": 2.7
+      },
+      "longest_planned_line": null
+    },
+    "footnote": {
+      "family": "Microsoft YaHei, Arial, sans-serif",
+      "size": 16.0,
+      "weight": "normal",
+      "cjk_chars_per_100px": 5.9,
+      "latin_chars_per_100px": 12.1,
+      "caps_chars_per_100px": 11.2,
+      "digits_chars_per_100px": 10.7,
+      "citation_chars_per_100px": 11.3,
+      "script_clusters_per_100px": {
+        "Greek": 10.7
+      },
+      "longest_planned_line": null
+    },
+    "lead": {
+      "family": "Microsoft YaHei, Arial, sans-serif",
+      "size": 30.0,
+      "weight": "normal",
+      "cjk_chars_per_100px": 3.1,
+      "latin_chars_per_100px": 6.5,
+      "caps_chars_per_100px": 6.0,
+      "digits_chars_per_100px": 5.7,
+      "citation_chars_per_100px": 6.0,
+      "script_clusters_per_100px": {
+        "Greek": 5.7
+      },
+      "longest_planned_line": null
+    }
+  },
+  "script_samples": {
+    "Greek": "ᾱααααααᾱαᾱᾱᾱαααα̃ᾱβα̃ᾱααα̂ααᾱᾱααααααᾱαᾱᾱααα̂"
+  },
+  "source": "spec_lock.md",
+  "generated_at": "2026-09-16T23:16:44Z",
+  "notes": [
+    "role display (64px, at least twice body) has no display_family and uses body_family; declare display_family if it is display type",
+    "every role is measured at normal weight; recalibrate a role realized as bold deck-wide with --role NAME:FAMILY:SIZE:bold: bold widens Latin and digits about 7%, while the bundled advance table gives CJK one width for both weights"
+  ]
+}

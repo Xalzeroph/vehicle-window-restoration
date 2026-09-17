@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial, sans-serif" data-pptx-page-role="content">
+  <rect id="page-bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <g id="page-title" data-pptx-bounds="64 48 1152 80">
+    <text x="64" y="96" font-size="42" fill="#123A5C">出口机制没问题，瓶颈是 α 的跨域校准</text>
+    <line x1="64" y1="124" x2="1216" y2="124" stroke="#D5DCE2" stroke-width="1"/>
+  </g>
+
+  <g id="p11-findings" data-pptx-bounds="64 150 626 456">
+    <text x="64" y="186" font-size="24" font-weight="bold" fill="#123A5C">判决：E 与 G 完全等价</text>
+    <text x="64" y="220" font-size="18" fill="#17202A">E（估计 α 除法）与 G（自由增益）差异 ≤ 0.02 dB<tspan x="64" dy="26">α = 1.0 档相对 plain −2.02 dB，出口只把工作点搬走</tspan></text>
+
+    <g id="p11-exit-formula" data-pptx-replace-with="formula"
+       data-pptx-x="64" data-pptx-y="278" data-pptx-width="626" data-pptx-height="64"
+       data-pptx-bounds="64 278 626 64">
+      <metadata type="application/json"><![CDATA[
+        {"latex":"\\hat{T} = (1-\\beta)\\cdot\\hat{T}_{head} + \\beta\\cdot(I-\\hat{R})/\\tilde{\\alpha}",
+         "display":"block","font_size":30,"color":"#123A5C","align":"left"}
+      ]]></metadata>
+      <text x="64" y="322" font-size="30" font-family="Consolas, Microsoft YaHei, monospace" fill="#123A5C">T̂ = (1−β)·T̂_head + β·(I−R̂)/α̃</text>
+    </g>
+
+    <text x="64" y="400" font-size="24" font-weight="bold" fill="#123A5C">决定性反事实</text>
+    <text x="64" y="434" font-size="18" fill="#17202A">同 β 换真值 α → <tspan font-weight="bold" fill="#0E7C86">22.15 / 21.18 / 18.85</tspan><tspan x="64" dy="26">α = 1.0 档单档 +4.26 dB，与天花板 22.25 几乎重合</tspan></text>
+
+    <text x="64" y="510" font-size="24" font-weight="bold" fill="#123A5C">结论与重启条件</text>
+    <text x="64" y="544" font-size="18" fill="#17202A">出口线条件性冻结；重启条件 = α 跨域误差足够小<tspan x="64" dy="26">当前测试端场景均值 MAE 0.26 / 0.17 / 0.07，远高于 0.1 门</tspan></text>
+  </g>
+
+  <g id="p11-counterfactual" data-pptx-bounds="730 150 486 347">
+    <image href="../images/fig_exit_counterfactual.png" x="730" y="150" width="486" height="347" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <g id="page-footer" data-pptx-bounds="64 652 1152 28" fill="#5A6672" font-size="16">
+    <text x="64" y="670">来源 docs/2026.9.17 S2 物理出口轮 · E / G 各 2 seed，反事实为冻 β 复算</text>
+    <text x="1216" y="670" text-anchor="end">12 / 17</text>
+  </g>
+</svg>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial, sans-serif" data-pptx-page-role="content">
+  <rect id="page-bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <g id="page-title" data-pptx-bounds="64 48 1152 80">
+    <text x="64" y="96" font-size="42" fill="#123A5C">瓶颈是 R̂：误差被 1/α 放大</text>
+    <line x1="64" y1="124" x2="1216" y2="124" stroke="#D5DCE2" stroke-width="1"/>
+  </g>
+
+  <g id="p12-mechanism" data-pptx-bounds="64 150 626 412">
+    <text x="64" y="186" font-size="24" font-weight="bold" fill="#123A5C">误差预算</text>
+    <text x="64" y="220" font-size="18" fill="#17202A">真 R 30.7 / 34.1 / 34.9 → R̂ 17.2 / 20.3 / 22.3<tspan x="64" dy="26">落差 <tspan font-weight="bold" fill="#C2410C">13.5 / 13.7 / 12.6 dB</tspan></tspan><tspan x="64" dy="26">α = 0.3 档的 R̂ 误差被 1/α ≈ 2.44 倍放大</tspan></text>
+
+    <line x1="64" y1="322" x2="690" y2="322" stroke="#D5DCE2" stroke-width="1"/>
+    <text x="64" y="362" font-size="24" font-weight="bold" fill="#123A5C">跨域翻符号</text>
+    <text x="64" y="396" font-size="18" fill="#17202A">v2.1 上偏亮（+4 ~ +15 灰阶，92% 同号）<tspan x="64" dy="26">扩增集上反为偏暗 —— 同一根因的两种表现</tspan></text>
+
+    <line x1="64" y1="450" x2="690" y2="450" stroke="#D5DCE2" stroke-width="1"/>
+    <text x="64" y="490" font-size="24" font-weight="bold" fill="#123A5C">根因假设</text>
+    <text x="64" y="524" font-size="18" fill="#17202A">R 训练池只有 <tspan font-weight="bold" fill="#C2410C">131</tspan> 张（601 候选中剔除 470）<tspan x="64" dy="26">其中真正与测试 R 同簇的只有 75 张</tspan></text>
+  </g>
+
+  <g id="p12-budget" data-pptx-bounds="730 150 486 347">
+    <image href="../images/fig_error_budget.png" x="730" y="150" width="486" height="347" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <g id="page-footer" data-pptx-bounds="64 652 1152 28" fill="#5A6672" font-size="16">
+    <text x="64" y="670">来源 eval/probe_s2_exit · 误差预算以 α = 0.3 / 0.6 / 1.0 档顺次给出</text>
+    <text x="1216" y="670" text-anchor="end">13 / 17</text>
+  </g>
+</svg>

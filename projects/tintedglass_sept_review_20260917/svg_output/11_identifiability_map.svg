@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial, sans-serif" data-pptx-page-role="content">
+  <rect id="page-bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <g id="page-title" data-pptx-bounds="64 48 1152 80">
+    <text x="64" y="96" font-size="42" fill="#123A5C">可辨识性地图：天花板在哪，我们卡在哪级</text>
+    <line x1="64" y1="124" x2="1216" y2="124" stroke="#D5DCE2" stroke-width="1"/>
+  </g>
+
+  <g id="p10-chart" data-pptx-bounds="64 150 620 426">
+    <image href="../images/fig_boundary_map.png" x="64" y="150" width="620" height="424.7" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <g id="p10-ladder" data-pptx-bounds="720 150 496 470">
+    <rect x="720" y="168" width="20" height="20" fill="#8A9099"/>
+    <text x="756" y="184" font-size="18" fill="#17202A">真值天花板（真 R / 真 α）</text>
+    <text x="720" y="222" font-size="30" fill="#123A5C">30.7 / 34.1 / 34.9</text>
+
+    <rect x="720" y="262" width="20" height="20" fill="#0E7C86"/>
+    <text x="756" y="278" font-size="18" fill="#17202A">R̂ 除法（我们的 R / 真 α）</text>
+    <text x="720" y="316" font-size="30" fill="#0E7C86">17.2 / 20.3 / 22.3</text>
+
+    <rect x="720" y="356" width="20" height="20" fill="#1F5C8B"/>
+    <text x="756" y="372" font-size="18" fill="#17202A">当前方法（域适配后）</text>
+    <text x="720" y="410" font-size="30" fill="#123A5C">18.5 / 19.7 / 19.7</text>
+
+    <rect x="720" y="450" width="20" height="20" fill="#C2410C"/>
+    <text x="756" y="466" font-size="18" fill="#17202A">平坦图常数基线</text>
+    <text x="720" y="504" font-size="30" fill="#C2410C">17.68</text>
+
+    <line x1="720" y1="540" x2="1216" y2="540" stroke="#D5DCE2" stroke-width="1"/>
+    <text x="720" y="578" font-size="18" fill="#17202A">按 α = 0.3 / 0.6 / 1.0 档顺次给出。<tspan x="720" dy="26">差距几乎全在 R̂ 与 α 上，不在出口。</tspan></text>
+  </g>
+
+  <g id="page-footer" data-pptx-bounds="64 652 1152 28" fill="#5A6672" font-size="16">
+    <text x="64" y="670">来源 eval/e2_oracle 与 probe_s2_exit · 真值天花板 = 完美去 R + 精确逐像素 α</text>
+    <text x="1216" y="670" text-anchor="end">11 / 17</text>
+  </g>
+</svg>

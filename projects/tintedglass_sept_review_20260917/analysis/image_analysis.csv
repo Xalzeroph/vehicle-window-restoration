@@ -1,0 +1,15 @@
+No,Filename,Width,Height,AspectRatio,PixelAspectRatio,SourceDisplayRatio,RatioSource,Format,HasTransparentPixels,UsageCount,DisplayRatioVariants,AssetKind,SvgRenderable,PptxNativeSupported,SizeKB,Category
+1,E3_error_vs_alpha.png,910,585,1.56,1.56,,native,PNG,False,1,,bitmap,True,True,45.0,Wide landscape
+2,E3_structure.png,1686,190,8.87,8.87,,native,PNG,False,1,,bitmap,True,True,224.6,Ultra-wide
+3,alpha_sat_curves.png,1950,546,3.57,3.57,,native,PNG,False,1,,bitmap,True,True,262.2,Ultra-wide
+4,alpha_sat_maps.png,2200,660,3.33,3.33,,native,PNG,False,1,,bitmap,True,True,1227.3,Ultra-wide
+5,cluster_leak_check_0915.png,974,932,1.05,1.05,,native,PNG,False,1,,bitmap,True,True,230.4,Near square
+6,fig_boundary_map.png,1088,745,1.46,1.46,,native,PNG,False,1,,bitmap,True,True,60.7,Standard landscape
+7,fig_delta_alpha.png,1073,692,1.55,1.55,,native,PNG,False,1,,bitmap,True,True,70.5,Wide landscape
+8,fig_error_budget.png,1038,743,1.40,1.40,,native,PNG,False,1,,bitmap,True,True,44.9,Standard landscape
+9,fig_exit_counterfactual.png,1088,779,1.40,1.40,,native,PNG,False,1,,bitmap,True,True,57.3,Standard landscape
+10,fig_r_pool.png,1487,846,1.76,1.76,,native,PNG,False,1,,bitmap,True,True,90.1,Wide landscape
+11,r_sources_preview_0915.png,2710,720,3.76,3.76,,native,PNG,False,1,,bitmap,True,True,890.1,Ultra-wide
+12,rdt_s1_v21_t_alpha03.png,2474,790,3.13,3.13,,native,PNG,False,1,,bitmap,True,True,2446.9,Ultra-wide
+13,synth_v21_preview.png,2445,689,3.55,3.55,,native,PNG,False,1,,bitmap,True,True,1510.7,Ultra-wide
+14,testset_v21_sheet_0915.png,1280,1988,0.64,0.64,,native,PNG,False,1,,bitmap,True,True,2883.3,Portrait

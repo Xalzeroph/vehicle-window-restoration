@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial, sans-serif" data-pptx-page-role="content">
+  <rect id="page-bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <g id="page-title" data-pptx-bounds="64 48 1152 80">
+    <text x="64" y="96" font-size="42" fill="#123A5C">官方权重直接跑，还不如一张平坦灰图</text>
+    <line x1="64" y1="124" x2="1216" y2="124" stroke="#D5DCE2" stroke-width="1"/>
+  </g>
+
+  <g id="p03-testset" data-pptx-bounds="64 150 218 340">
+    <image href="../images/testset_v21_sheet_0915.png" x="64" y="150" width="217.6" height="340" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <g id="p03-error-chart" data-pptx-bounds="306 150 384 296">
+    <text x="306" y="178" font-size="24" font-weight="bold" fill="#123A5C">误差随 α 下降急剧上升</text>
+    <image href="../images/E3_error_vs_alpha.png" x="306" y="196" width="384" height="246" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <g id="p03-numbers" data-pptx-bounds="714 150 502 344">
+    <text x="714" y="178" font-size="18" fill="#5A6672">零样本（官方权重）· α = 0.3 档 raw PSNR</text>
+    <text x="714" y="252" font-size="64" font-weight="bold" fill="#C2410C">12.05 dB</text>
+    <line x1="714" y1="284" x2="1216" y2="284" stroke="#D5DCE2" stroke-width="1"/>
+    <text x="714" y="326" font-size="24" fill="#17202A">同一档上，一张涂成 GT 均值的<tspan x="714" dy="36">平坦图能拿 <tspan font-weight="bold" fill="#123A5C">17.68 dB</tspan>，比它高</tspan><tspan x="714" dy="36">5.6 dB。</tspan></text>
+    <text x="714" y="448" font-size="24" fill="#17202A">结构相关仅 <tspan font-weight="bold" fill="#C2410C">0.26</tspan>；失败是内容级<tspan x="714" dy="36">损伤，不是亮度问题。</tspan></text>
+  </g>
+
+  <g id="p03-structure-chart" data-pptx-bounds="64 510 1152 128">
+    <image href="../images/E3_structure.png" x="64" y="510" width="1152" height="128" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <g id="page-footer" data-pptx-bounds="64 652 1152 28" fill="#5A6672" font-size="16">
+    <text x="64" y="670">来源 eval/rdt_zeroshot_synth_rrw_v21_0913 · 常数基线 17.68 dB 为 GT 均值平坦图口径</text>
+    <text x="1216" y="670" text-anchor="end">04 / 17</text>
+  </g>
+</svg>

@@ -1,0 +1,1228 @@
+{
+  "schema": "ppt-master.svg-quality-report.v1",
+  "stage": "final",
+  "target": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917",
+  "source_fingerprint": {
+    "algorithm": "sha256",
+    "digest": "c6268bdf50879bfc7d809349897218f2368363274aa1335642f814d5cb3e4df8",
+    "file_count": 17,
+    "files": [
+      {
+        "file": "01_cover.svg",
+        "sha256": "22c3cdd147145f25235320890b66e12f6d5d89db6231010d424dbb6c3bd32eac"
+      },
+      {
+        "file": "02_task_and_benchmark.svg",
+        "sha256": "01eb58b22991b9163043ad94606fe5377992352bf7a9d35f11bca6f7c88fab27"
+      },
+      {
+        "file": "03_network_architecture.svg",
+        "sha256": "826e9cfbcaa5e829f52d8425a11667ca6522878922be3363dff279621358a6dc"
+      },
+      {
+        "file": "04_zero_shot_collapse.svg",
+        "sha256": "79866993312dba211f94249c4cf4494693f742ff02431f82e0bed100285cde89"
+      },
+      {
+        "file": "05_september_timeline.svg",
+        "sha256": "889ef8b578bcda7ac331113cd2b7e2013ca74d9b1a7202a8e9df207b1a35c9e8"
+      },
+      {
+        "file": "06_alpha_plateau.svg",
+        "sha256": "d27118cecba4b6c623aa7ab3f1ba1d752ee9611d09db525142af124af36b9fdb"
+      },
+      {
+        "file": "07_leak_incident.svg",
+        "sha256": "cb24d0045eb5f168811ee4c8df5cb2c260360680a76fff92581b06f52841ce53"
+      },
+      {
+        "file": "08_three_traps.svg",
+        "sha256": "765349d50f697b3a91952c5b98a4cc643ee7eb3aeee882bcf87d3b45b2d0654e"
+      },
+      {
+        "file": "09_domain_adaptation.svg",
+        "sha256": "a554dc0aea346aa67b29ce486f8657d0facd85114f02c1f3f8d19f27217ce699"
+      },
+      {
+        "file": "10_low_alpha_specialist.svg",
+        "sha256": "1276d2c2b29a29d62bb08b776bbb11b644bc36e6fd8bb3d738d518ba8a885e0f"
+      },
+      {
+        "file": "11_identifiability_map.svg",
+        "sha256": "a308c4c000c398769d260632611f67e45663ceb3a8da0f2dcb460a1a8637d470"
+      },
+      {
+        "file": "12_physical_exit.svg",
+        "sha256": "755c991990599aaad06e769e16f8d5e4ff70c0162e226f5019c3cb5d3123594a"
+      },
+      {
+        "file": "13_rhat_bottleneck.svg",
+        "sha256": "cc8ce419cef5e7549cdbc039136aa2464222b8a99cb8a5b91ecbe6c1501bef2f"
+      },
+      {
+        "file": "14_mona_peft.svg",
+        "sha256": "78df6faa73b445bf298fd3c15eb9d47f2eb2d53be1396caee43051d708789d87"
+      },
+      {
+        "file": "15_rrw_expansion.svg",
+        "sha256": "25cbe0e055ddca8ead0b6bc5b01b2625c156d793e57337517a96c72989d56826"
+      },
+      {
+        "file": "16_structure_anchor.svg",
+        "sha256": "0e9cf516c9c2e81c18499416cad1e1b5af9843f5bf3c8dfa0c0826abe9c274f8"
+      },
+      {
+        "file": "17_judgment_and_plan.svg",
+        "sha256": "744311e6a10038a4e049e9541957d1c205cba2d9ef85e800d5e31d3ba11a97a7"
+      }
+    ]
+  },
+  "summary": {
+    "total": 17,
+    "passed": 16,
+    "warnings": 1,
+    "errors": 0
+  },
+  "issue_types": {},
+  "categories": {
+    "blocking": {
+      "count": 0,
+      "issues": []
+    },
+    "introduced": {
+      "count": 1,
+      "issues": [
+        {
+          "file": "04_zero_shot_collapse.svg",
+          "message": "Image ../images/testset_v21_sheet_0915.png is 1280x1988 and renders at 0.17x scale in a 217x340 meet frame; the source is 2.8 MiB — file-size advisory only, not an aspect-ratio warning; consider a smaller source asset, or export with svg_to_pptx.py --image-sizing display to downsize at export time"
+        }
+      ]
+    },
+    "inherited": {
+      "count": 0,
+      "issues": []
+    },
+    "source-import": {
+      "count": 0,
+      "summary": {
+        "warning_count": 0,
+        "by_code": {}
+      }
+    }
+  },
+  "drift": {
+    "colors": {
+      "#1F5C8B": [
+        "11_identifiability_map.svg"
+      ],
+      "#8A9099": [
+        "01_cover.svg",
+        "03_network_architecture.svg",
+        "09_domain_adaptation.svg",
+        "11_identifiability_map.svg"
+      ]
+    },
+    "fonts": {},
+    "sizes": {}
+  },
+  "carrier_receipt": {
+    "scope": "informational-not-a-quota",
+    "pages": 17,
+    "totals": {
+      "text_elements": 239,
+      "image_placements": 14,
+      "icons": 11,
+      "svg_geometry_elements": 130,
+      "preset_shapes": 1,
+      "page_frame_elements": 17,
+      "marker_uses": 12,
+      "inline_emphasis_runs": 10,
+      "gradient_uses": 0,
+      "filter_uses": 0,
+      "text_effects": 0
+    },
+    "pages_with": {
+      "images": 10,
+      "icons": 6,
+      "presets": 1,
+      "charts": 0,
+      "tables": 0,
+      "formulas": 1,
+      "inline_emphasis_runs": 7,
+      "gradient_uses": 0,
+      "filter_uses": 0,
+      "text_effects": 0
+    },
+    "relationship_pages": 0,
+    "geometry_elements": {
+      "circle": 9,
+      "ellipse": 0,
+      "line": 64,
+      "path": 0,
+      "polygon": 0,
+      "polyline": 0,
+      "rect": 57
+    },
+    "preset_names": {
+      "rightArrow": 1
+    },
+    "native_objects": {
+      "chart": 0,
+      "formula_block": 1,
+      "formula_inline": 0,
+      "other": 0,
+      "table": 0
+    },
+    "image_page_max_frame_share_range": [
+      0.16,
+      0.4402
+    ]
+  },
+  "project_issues": {
+    "template": [],
+    "animation": [],
+    "illustration": [],
+    "communication_trace": [],
+    "pptx_structure": []
+  },
+  "files": [
+    {
+      "file": "01_cover.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/01_cover.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 6,
+          "images": {
+            "placements": 1,
+            "files": [
+              "rdt_s1_v21_t_alpha03.png"
+            ],
+            "max_frame_share": 0.4402
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 2,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 0,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 6,
+        "tspan_elements": 1,
+        "contextual_values": {
+          "colors": [
+            "#8A9099"
+          ]
+        }
+      },
+      "passed": true,
+      "source_sha256": "22c3cdd147145f25235320890b66e12f6d5d89db6231010d424dbb6c3bd32eac"
+    },
+    {
+      "file": "02_task_and_benchmark.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/02_task_and_benchmark.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 20,
+          "images": {
+            "placements": 0,
+            "files": [],
+            "max_frame_share": 0.0
+          },
+          "icons": 3,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 7,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 1,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 1,
+            "preset_names": {
+              "rightArrow": 1
+            },
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Consolas, Microsoft YaHei, monospace",
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 20,
+        "tspan_elements": 6
+      },
+      "passed": true,
+      "source_sha256": "01eb58b22991b9163043ad94606fe5377992352bf7a9d35f11bca6f7c88fab27"
+    },
+    {
+      "file": "03_network_architecture.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/03_network_architecture.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 47,
+          "images": {
+            "placements": 0,
+            "files": [],
+            "max_frame_share": 0.0
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 19,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 14,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 12
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 47,
+        "tspan_elements": 1,
+        "contextual_values": {
+          "colors": [
+            "#8A9099"
+          ]
+        }
+      },
+      "passed": true,
+      "source_sha256": "826e9cfbcaa5e829f52d8425a11667ca6522878922be3363dff279621358a6dc"
+    },
+    {
+      "file": "04_zero_shot_collapse.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/04_zero_shot_collapse.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [
+        "Image ../images/testset_v21_sheet_0915.png is 1280x1988 and renders at 0.17x scale in a 217x340 meet frame; the source is 2.8 MiB — file-size advisory only, not an aspect-ratio warning; consider a smaller source asset, or export with svg_to_pptx.py --image-sizing display to downsize at export time"
+      ],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 8,
+          "images": {
+            "placements": 3,
+            "files": [
+              "E3_error_vs_alpha.png",
+              "E3_structure.png",
+              "testset_v21_sheet_0915.png"
+            ],
+            "max_frame_share": 0.16
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 2,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 1,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 2,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 8,
+        "tspan_elements": 5
+      },
+      "passed": true,
+      "source_sha256": "79866993312dba211f94249c4cf4494693f742ff02431f82e0bed100285cde89"
+    },
+    {
+      "file": "05_september_timeline.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/05_september_timeline.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 17,
+          "images": {
+            "placements": 0,
+            "files": [],
+            "max_frame_share": 0.0
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 1,
+              "circle": 6,
+              "ellipse": 0,
+              "line": 8,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 17,
+        "tspan_elements": 8
+      },
+      "passed": true,
+      "source_sha256": "889ef8b578bcda7ac331113cd2b7e2013ca74d9b1a7202a8e9df207b1a35c9e8"
+    },
+    {
+      "file": "06_alpha_plateau.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/06_alpha_plateau.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 15,
+          "images": {
+            "placements": 2,
+            "files": [
+              "alpha_sat_curves.png",
+              "alpha_sat_maps.png"
+            ],
+            "max_frame_share": 0.2249
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 1,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 3,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 15,
+        "tspan_elements": 2
+      },
+      "passed": true,
+      "source_sha256": "d27118cecba4b6c623aa7ab3f1ba1d752ee9611d09db525142af124af36b9fdb"
+    },
+    {
+      "file": "07_leak_incident.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/07_leak_incident.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 11,
+          "images": {
+            "placements": 1,
+            "files": [
+              "cluster_leak_check_0915.png"
+            ],
+            "max_frame_share": 0.1875
+          },
+          "icons": 1,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 1,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 1,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 11,
+        "tspan_elements": 5
+      },
+      "passed": true,
+      "source_sha256": "cb24d0045eb5f168811ee4c8df5cb2c260360680a76fff92581b06f52841ce53"
+    },
+    {
+      "file": "08_three_traps.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/08_three_traps.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 11,
+          "images": {
+            "placements": 0,
+            "files": [],
+            "max_frame_share": 0.0
+          },
+          "icons": 3,
+          "effects": {
+            "inline_emphasis_runs": 1,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 4,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 5,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 11,
+        "tspan_elements": 11
+      },
+      "passed": true,
+      "source_sha256": "765349d50f697b3a91952c5b98a4cc643ee7eb3aeee882bcf87d3b45b2d0654e"
+    },
+    {
+      "file": "09_domain_adaptation.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/09_domain_adaptation.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 13,
+          "images": {
+            "placements": 1,
+            "files": [
+              "rdt_s1_v21_t_alpha03.png"
+            ],
+            "max_frame_share": 0.3433
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 1,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 1,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 4,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 13,
+        "tspan_elements": 1,
+        "contextual_values": {
+          "colors": [
+            "#8A9099"
+          ]
+        }
+      },
+      "passed": true,
+      "source_sha256": "a554dc0aea346aa67b29ce486f8657d0facd85114f02c1f3f8d19f27217ce699"
+    },
+    {
+      "file": "10_low_alpha_specialist.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/10_low_alpha_specialist.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 9,
+          "images": {
+            "placements": 1,
+            "files": [
+              "fig_delta_alpha.png"
+            ],
+            "max_frame_share": 0.2691
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 2,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 1,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 3,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 9,
+        "tspan_elements": 9
+      },
+      "passed": true,
+      "source_sha256": "1276d2c2b29a29d62bb08b776bbb11b644bc36e6fd8bb3d738d518ba8a885e0f"
+    },
+    {
+      "file": "11_identifiability_map.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/11_identifiability_map.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 12,
+          "images": {
+            "placements": 1,
+            "files": [
+              "fig_boundary_map.png"
+            ],
+            "max_frame_share": 0.2857
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 5,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 2,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 12,
+        "tspan_elements": 1,
+        "contextual_values": {
+          "colors": [
+            "#1F5C8B",
+            "#8A9099"
+          ]
+        }
+      },
+      "passed": true,
+      "source_sha256": "a308c4c000c398769d260632611f67e45663ceb3a8da0f2dcb460a1a8637d470"
+    },
+    {
+      "file": "12_physical_exit.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/12_physical_exit.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 10,
+          "images": {
+            "placements": 1,
+            "files": [
+              "fig_exit_counterfactual.png"
+            ],
+            "max_frame_share": 0.183
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 1,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 1,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 1,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 1,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Consolas, Microsoft YaHei, monospace",
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 10,
+        "tspan_elements": 4
+      },
+      "passed": true,
+      "source_sha256": "755c991990599aaad06e769e16f8d5e4ff70c0162e226f5019c3cb5d3123594a"
+    },
+    {
+      "file": "13_rhat_bottleneck.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/13_rhat_bottleneck.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 9,
+          "images": {
+            "placements": 1,
+            "files": [
+              "fig_error_budget.png"
+            ],
+            "max_frame_share": 0.183
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 2,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 1,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 3,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 9,
+        "tspan_elements": 6
+      },
+      "passed": true,
+      "source_sha256": "cc8ce419cef5e7549cdbc039136aa2464222b8a99cb8a5b91ecbe6c1501bef2f"
+    },
+    {
+      "file": "14_mona_peft.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/14_mona_peft.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 15,
+          "images": {
+            "placements": 0,
+            "files": [],
+            "max_frame_share": 0.0
+          },
+          "icons": 1,
+          "effects": {
+            "inline_emphasis_runs": 1,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 6,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 5,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 15,
+        "tspan_elements": 6
+      },
+      "passed": true,
+      "source_sha256": "78df6faa73b445bf298fd3c15eb9d47f2eb2d53be1396caee43051d708789d87"
+    },
+    {
+      "file": "15_rrw_expansion.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/15_rrw_expansion.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 7,
+          "images": {
+            "placements": 2,
+            "files": [
+              "fig_r_pool.png",
+              "r_sources_preview_0915.png"
+            ],
+            "max_frame_share": 0.2498
+          },
+          "icons": 1,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 1,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 2,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 7,
+        "tspan_elements": 3
+      },
+      "passed": true,
+      "source_sha256": "25cbe0e055ddca8ead0b6bc5b01b2625c156d793e57337517a96c72989d56826"
+    },
+    {
+      "file": "16_structure_anchor.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/16_structure_anchor.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 11,
+          "images": {
+            "placements": 0,
+            "files": [],
+            "max_frame_share": 0.0
+          },
+          "icons": 2,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 1,
+              "circle": 0,
+              "ellipse": 0,
+              "line": 2,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Consolas, Microsoft YaHei, monospace",
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 11,
+        "tspan_elements": 7
+      },
+      "passed": true,
+      "source_sha256": "0e9cf516c9c2e81c18499416cad1e1b5af9843f5bf3c8dfa0c0826abe9c274f8"
+    },
+    {
+      "file": "17_judgment_and_plan.svg",
+      "path": "/DataDisk/zmy_code/TintedGlass_Enhance/projects/tintedglass_sept_review_20260917/svg_output/17_judgment_and_plan.svg",
+      "exists": true,
+      "errors": [],
+      "warnings": [],
+      "info": {
+        "viewbox": "0 0 1280 720",
+        "carrier_receipt": {
+          "text_elements": 18,
+          "images": {
+            "placements": 0,
+            "files": [],
+            "max_frame_share": 0.0
+          },
+          "icons": 0,
+          "effects": {
+            "inline_emphasis_runs": 0,
+            "gradient_uses": 0,
+            "filter_uses": 0,
+            "text_effects": 0
+          },
+          "geometry": {
+            "svg_elements": {
+              "rect": 4,
+              "circle": 3,
+              "ellipse": 0,
+              "line": 8,
+              "polyline": 0,
+              "polygon": 0,
+              "path": 0
+            },
+            "preset_shapes": 0,
+            "preset_names": {},
+            "page_frame_elements": 1,
+            "marker_uses": {
+              "start": 0,
+              "mid": 0,
+              "end": 0
+            }
+          },
+          "native_objects": {
+            "chart": 0,
+            "table": 0,
+            "formula_block": 0,
+            "formula_inline": 0,
+            "other": 0
+          }
+        },
+        "fonts": [
+          "Microsoft YaHei, Arial, sans-serif"
+        ],
+        "text_elements": 18,
+        "tspan_elements": 12
+      },
+      "passed": true,
+      "source_sha256": "744311e6a10038a4e049e9541957d1c205cba2d9ef85e800d5e31d3ba11a97a7"
+    }
+  ]
+}

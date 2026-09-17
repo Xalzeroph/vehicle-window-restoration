@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial, sans-serif" data-pptx-page-role="content">
+  <rect id="page-bg" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <g id="page-title" data-pptx-bounds="64 48 1152 80">
+    <text x="64" y="96" font-size="42" fill="#123A5C">低 α 专支：增益与代价分别落在哪</text>
+    <line x1="64" y1="124" x2="1216" y2="124" stroke="#D5DCE2" stroke-width="1"/>
+  </g>
+
+  <g id="p09-curve" data-pptx-bounds="64 150 620 400">
+    <image href="../images/fig_delta_alpha.png" x="64" y="150" width="620" height="400" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <g id="p09-numbers" data-pptx-bounds="720 150 496 456">
+    <text x="720" y="186" font-size="24" font-weight="bold" fill="#123A5C">扩增集（48 场景，leak-free）</text>
+    <text x="720" y="220" font-size="18" fill="#17202A">α = 0.05：+1.31　[+0.93, +1.69]<tspan x="720" dy="26">α = 0.1 ：<tspan font-weight="bold" fill="#0E7C86">+1.75</tspan>　[+1.18, +2.26]</tspan><tspan x="720" dy="26">α = 0.2 ：+1.09　[+0.55, +1.64]</tspan><tspan x="720" dy="26">α = 0.3 ：<tspan font-weight="bold" fill="#C2410C">+0.52</tspan>　[+0.06, +0.99]</tspan><tspan x="720" dy="26">α = 1.0 ：−0.36　[−0.79, +0.08]</tspan></text>
+
+    <line x1="720" y1="352" x2="1216" y2="352" stroke="#D5DCE2" stroke-width="1"/>
+    <text x="720" y="388" font-size="24" font-weight="bold" fill="#123A5C">代价（v2.1，12 场景）</text>
+    <text x="720" y="422" font-size="18" fill="#17202A">v2.1：α = 0.6 / 1.0 档 −1.75 / −0.94<tspan x="720" dy="26">代价量级只在 v2.1，两集不可直接换算</tspan></text>
+
+    <line x1="720" y1="474" x2="1216" y2="474" stroke="#D5DCE2" stroke-width="1"/>
+    <text x="720" y="510" font-size="24" font-weight="bold" fill="#123A5C">定位</text>
+    <text x="720" y="544" font-size="18" fill="#17202A">这不是独立增益，而是把工作点往低 α 搬的旋钮<tspan x="720" dy="26">价值主要在 0.2 档及以下；0.3 档已贴线</tspan><tspan x="720" dy="26">定位：低 α 专支，与主臂分工，不作替代</tspan></text>
+  </g>
+
+  <g id="page-footer" data-pptx-bounds="64 652 1152 28" fill="#5A6672" font-size="16">
+    <text x="64" y="670">来源 eval/ · Δ = freeze − plain，raw PSNR，场景聚类 95% CI</text>
+    <text x="1216" y="670" text-anchor="end">10 / 17</text>
+  </g>
+</svg>

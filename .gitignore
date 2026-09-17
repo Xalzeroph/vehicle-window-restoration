@@ -22,3 +22,9 @@ nohup.out
 #   runs/{ckpt,pred}                               权重/逐图预测
 data/
 runs/
+
+# PPT 工程中间产物(可由 scripts/make_ppt_figs_0917.py 与 fig/ 重建; 交付 pptx 在 exports/ 入库)
+projects/*/images/
+projects/*/svg_final/
+projects/*/backup/
+projects/*/live_preview/
