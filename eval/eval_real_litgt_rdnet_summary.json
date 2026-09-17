@@ -1,0 +1,187 @@
+{
+ "ALL": {
+  "identity": {
+   "psnr_median": 15.69,
+   "psnr_mean": 15.841052631578942,
+   "ssim_median": 0.6713
+  },
+  "const": {
+   "psnr_median": 15.825,
+   "psnr_mean": 15.938157894736841,
+   "ssim_median": 0.75025
+  },
+  "identity_gm": {
+   "psnr_median": 17.155,
+   "psnr_mean": 17.83315789473684,
+   "ssim_median": 0.7019500000000001
+  },
+  "blur_identity": {
+   "psnr_median": 15.715,
+   "psnr_mean": 15.862631578947367,
+   "ssim_median": 0.6829000000000001
+  },
+  "rdnet": {
+   "psnr_median": 16.19,
+   "psnr_mean": 16.39657894736842,
+   "ssim_median": 0.69015
+  },
+  "rdnet_gm": {
+   "psnr_median": 16.795,
+   "psnr_mean": 17.391052631578944,
+   "ssim_median": 0.696
+  },
+  "tests": {
+   "rdnet_vs_identity": {
+    "median_delta": 0.40999999999999837,
+    "p": 0.0030909809981116117
+   },
+   "rdnet_gm_vs_identity_gm": {
+    "median_delta": -0.28000000000000114,
+    "p": 1.543373209867837e-05
+   },
+   "rdnet_gm_vs_blur_identity": {
+    "median_delta": 0.8100000000000005,
+    "p": 0.00021384115098044276
+   }
+  }
+ },
+ "none_low": {
+  "identity": {
+   "psnr_median": 15.76,
+   "psnr_mean": 15.890000000000002,
+   "ssim_median": 0.6645
+  },
+  "const": {
+   "psnr_median": 17.14,
+   "psnr_mean": 16.799230769230768,
+   "ssim_median": 0.7607
+  },
+  "identity_gm": {
+   "psnr_median": 15.87,
+   "psnr_mean": 16.398461538461543,
+   "ssim_median": 0.6718
+  },
+  "blur_identity": {
+   "psnr_median": 15.81,
+   "psnr_mean": 15.923076923076923,
+   "ssim_median": 0.68
+  },
+  "rdnet": {
+   "psnr_median": 15.2,
+   "psnr_mean": 15.800000000000002,
+   "ssim_median": 0.6865
+  },
+  "rdnet_gm": {
+   "psnr_median": 15.22,
+   "psnr_mean": 16.05923076923077,
+   "ssim_median": 0.6863
+  },
+  "tests": {
+   "rdnet_vs_identity": {
+    "median_delta": -0.14000000000000057,
+    "p": 0.385009765625
+   },
+   "rdnet_gm_vs_identity_gm": {
+    "median_delta": -0.28999999999999915,
+    "p": 0.00048828125
+   },
+   "rdnet_gm_vs_blur_identity": {
+    "median_delta": -0.009999999999999787,
+    "p": 1.0
+   }
+  }
+ },
+ "refl_low": {
+  "identity": {
+   "psnr_median": 15.46,
+   "psnr_mean": 15.326923076923078,
+   "ssim_median": 0.6787
+  },
+  "const": {
+   "psnr_median": 15.55,
+   "psnr_mean": 15.963076923076922,
+   "ssim_median": 0.7463
+  },
+  "identity_gm": {
+   "psnr_median": 16.94,
+   "psnr_mean": 16.93461538461539,
+   "ssim_median": 0.7076
+  },
+  "blur_identity": {
+   "psnr_median": 15.47,
+   "psnr_mean": 15.334615384615386,
+   "ssim_median": 0.6827
+  },
+  "rdnet": {
+   "psnr_median": 15.67,
+   "psnr_mean": 15.844615384615384,
+   "ssim_median": 0.6887
+  },
+  "rdnet_gm": {
+   "psnr_median": 15.66,
+   "psnr_mean": 16.143076923076926,
+   "ssim_median": 0.6934
+  },
+  "tests": {
+   "rdnet_vs_identity": {
+    "median_delta": 0.48999999999999844,
+    "p": 0.167724609375
+   },
+   "rdnet_gm_vs_identity_gm": {
+    "median_delta": -0.7800000000000011,
+    "p": 0.001708984375
+   },
+   "rdnet_gm_vs_blur_identity": {
+    "median_delta": 0.5,
+    "p": 0.10986328125
+   }
+  }
+ },
+ "refl_norm": {
+  "identity": {
+   "psnr_median": 16.05,
+   "psnr_mean": 16.345000000000002,
+   "ssim_median": 0.67825
+  },
+  "const": {
+   "psnr_median": 15.05,
+   "psnr_mean": 14.978333333333333,
+   "ssim_median": 0.73315
+  },
+  "identity_gm": {
+   "psnr_median": 19.67,
+   "psnr_mean": 20.360833333333332,
+   "ssim_median": 0.729
+  },
+  "blur_identity": {
+   "psnr_median": 16.07,
+   "psnr_mean": 16.369166666666665,
+   "ssim_median": 0.69
+  },
+  "rdnet": {
+   "psnr_median": 17.229999999999997,
+   "psnr_mean": 17.640833333333337,
+   "ssim_median": 0.70675
+  },
+  "rdnet_gm": {
+   "psnr_median": 19.585,
+   "psnr_mean": 20.185833333333335,
+   "ssim_median": 0.7353000000000001
+  },
+  "tests": {
+   "rdnet_vs_identity": {
+    "median_delta": 1.1999999999999993,
+    "p": 0.00048828125
+   },
+   "rdnet_gm_vs_identity_gm": {
+    "median_delta": -0.08000000000000007,
+    "p": 0.2255859375
+   },
+   "rdnet_gm_vs_blur_identity": {
+    "median_delta": 3.5199999999999996,
+    "p": 0.00048828125
+   }
+  }
+ },
+ "n": 38
+}

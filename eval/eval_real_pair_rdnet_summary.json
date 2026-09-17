@@ -1,0 +1,61 @@
+{
+ "identity": {
+  "psnr_median": 19.4,
+  "psnr_mean": 19.478461538461538,
+  "ssim_median": 0.7416,
+  "ssim_mean": 0.7414307692307692
+ },
+ "const": {
+  "psnr_median": 18.24,
+  "psnr_mean": 17.919999999999998,
+  "ssim_median": 0.7877,
+  "ssim_mean": 0.7758615384615383
+ },
+ "identity_gm": {
+  "psnr_median": 22.4,
+  "psnr_mean": 22.321538461538463,
+  "ssim_median": 0.7671,
+  "ssim_mean": 0.7705615384615384
+ },
+ "blur_identity": {
+  "psnr_median": 19.43,
+  "psnr_mean": 19.503846153846155,
+  "ssim_median": 0.7509,
+  "ssim_mean": 0.751823076923077
+ },
+ "rdnet": {
+  "psnr_median": 21.96,
+  "psnr_mean": 22.182307692307692,
+  "ssim_median": 0.7738,
+  "ssim_mean": 0.7720999999999999
+ },
+ "rdnet_gm": {
+  "psnr_median": 22.73,
+  "psnr_mean": 22.70846153846154,
+  "ssim_median": 0.7754,
+  "ssim_mean": 0.7729692307692306
+ },
+ "tests": {
+  "rdnet_vs_identity": {
+   "median_delta": 1.9599999999999973,
+   "p": 0.000244140625
+  },
+  "rdnet_gm_vs_identity_gm": {
+   "median_delta": -0.26000000000000156,
+   "p": 0.635498046875
+  },
+  "rdnet_gm_vs_blur_identity": {
+   "median_delta": 2.5599999999999987,
+   "p": 0.000244140625
+  },
+  "identity_gm_vs_blur_identity": {
+   "median_delta": 2.719999999999999,
+   "p": 0.000244140625
+  },
+  "rdnet_vs_const": {
+   "median_delta": 3.6099999999999994,
+   "p": 0.000244140625
+  }
+ },
+ "n_scenes": 13
+}
