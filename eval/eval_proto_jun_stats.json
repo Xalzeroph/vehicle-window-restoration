@@ -1,0 +1,77 @@
+{
+ "stats": {
+  "rdnet": {
+   "d_perc": {
+    "median": 0.029318,
+    "ci_lo": 0.008244,
+    "ci_hi": 0.04256,
+    "n_scenes": 13,
+    "noninferior": false
+   },
+   "d_bg": {
+    "median": 0.081567,
+    "ci_lo": -0.430074,
+    "ci_hi": 0.342973,
+    "n_scenes": 13,
+    "noninferior": false
+   },
+   "d_struct": {
+    "median": -1.505203,
+    "ci_lo": -2.130691,
+    "ci_hi": -0.516127,
+    "n_scenes": 13,
+    "sign_test": {
+     "k": 2,
+     "n": 13,
+     "p": 0.0224609375
+    }
+   },
+   "pass_noninferior": false
+  },
+  "remo": {
+   "d_perc": {
+    "median": 0.059559,
+    "ci_lo": 0.043834,
+    "ci_hi": 0.072223,
+    "n_scenes": 13,
+    "noninferior": false
+   },
+   "d_bg": {
+    "median": 0.655943,
+    "ci_lo": 0.357087,
+    "ci_hi": 0.87276,
+    "n_scenes": 13,
+    "noninferior": false
+   },
+   "d_struct": {
+    "median": -0.927571,
+    "ci_lo": -1.423726,
+    "ci_hi": -0.423874,
+    "n_scenes": 13,
+    "sign_test": {
+     "k": 2,
+     "n": 13,
+     "p": 0.0224609375
+    }
+   },
+   "pass_noninferior": false
+  }
+ },
+ "n_cases": 13,
+ "args": {
+  "set": "data/test_sets/real_pair_0917",
+  "layout": "jun",
+  "arm": [
+   "rdnet=runs/pred/real_pair_0917_rdnet",
+   "remo=runs/pred/real_pair_0917_remo|remo.png"
+  ],
+  "pred_file": "ytmt_ucs_sirs_l.png",
+  "out": "eval/eval_proto_jun.csv",
+  "thr_k": 3.0,
+  "thr_min": 8.0,
+  "n0": 3.0,
+  "no_lpips": false,
+  "limit": 0,
+  "selftest": false
+ }
+}

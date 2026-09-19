@@ -1,0 +1,25 @@
+{
+ "s1_lowref_psnr": {
+  "median": -2.1956099833624165,
+  "ci_lo": -2.955155494856844,
+  "ci_hi": -1.4800762728288164,
+  "n_scenes": 177
+ },
+ "s1_pass": true,
+ "s2_clean_ge_loss": -0.017279391931492194,
+ "s2_pass": false,
+ "s3_strong_resid": {
+  "identity_gm": 0.1116432909576763,
+  "rdnet": 0.10679070362941669
+ },
+ "s3_pass": true,
+ "s4_gm_vs_raw": {
+  "identity_gm": 33.85547209601625,
+  "identity": 34.95326217199019
+ },
+ "s4_pass": false,
+ "n_blocks": 38700,
+ "n_pairs": 200,
+ "n_low_blocks": 19785,
+ "PASS_ALL": false
+}

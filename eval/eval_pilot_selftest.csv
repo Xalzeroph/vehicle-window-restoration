@@ -1,0 +1,17 @@
+pair,kind,case,med_d,V1_left,machine,machine_side,human,human_side,note,match
+pair_01,main,VID_20260512_162203__I_000009,21.55,rdnet_gm,igm,right,左,left,茶叶盒上仍有部分三脚架影子没去掉,0
+pair_02,main,VID_20260512_162901__I_000675,9.28,identity_gm,igm,left,右,right,,0
+pair_03,main,VID_20260512_162623__I_000975,9.69,rdnet_gm,igm,right,无偏好,,没有看到明显区别,
+pair_04,main,VID_20260609_172143,39.41,identity_gm,igm,left,左,left,左边自然；两边都没去掉影子；右边试图去人影但没去掉，所以糊了一些,1
+pair_05,main,VID_20260426_173604__I_000007,38.96,identity_gm,igm,left,无偏好,,两边都没去掉；右边试图去了但没有效果,
+pair_06,main,VID_20260426_173237__I_000006,62.29,rdnet_gm,igm,right,左,left,都没去掉；左边去了一部分吧,0
+pair_07,main,VID_20260426_173237__I_000013,68.42,rdnet_gm,rdnet,left,无偏好,,都没去掉,
+pair_08,main,VID_20260609_172600,38.72,rdnet_gm,igm,right,无偏好,,都没去掉；左边人影去了一些，但把图案也去掉了一些,
+pair_09,trap_same,VID_20260512_164653__I_000000,34.02,identity_gm,igm,left,无偏好,,都没有去掉，都很一般,
+pair_10,main,VID_20260426_173827__I_000019,53.79,rdnet_gm,igm,right,左,left,左边去了很多，但糊掉了一些,0
+pair_11,trap_igm,VID_20260609_173727,35.36,identity_gm,igm,left,无偏好,,都很一般，没去掉,
+pair_12,main,VID_20260512_162623__I_001250,9.62,identity_gm,igm,left,无偏好,,能看出右边暗一点,
+pair_13,main,VID_20260426_173827__I_000009,53.24,rdnet_gm,igm,right,左,left,左边去了很多，但人的膀臂没去掉,0
+pair_14,trap_igm,VID_20260512_164653__I_000023,34.83,identity_gm,igm,left,无偏好,,都很一般没去掉,
+pair_15,main,VID_20260426_173604__I_000014,39.35,identity_gm,igm,left,右,right,都很一般没去掉；右边在努力了，有一点点效果,0
+pair_16,trap_same,VID_20260512_162901__I_000875,34.27,identity_gm,igm,left,无偏好,,都一般没去掉,

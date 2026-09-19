@@ -1,0 +1,88 @@
+{
+ "jun/rdnet": {
+  "A": {
+   "median": -4.041726051661712,
+   "ci_lo": -5.404732307145718,
+   "ci_hi": -3.2970463747968424,
+   "n_scenes": 10,
+   "pass_": true
+  },
+  "B": {
+   "loss_median": -0.009136900577310147,
+   "pass_": false
+  },
+  "support": true
+ },
+ "jun/remo": {
+  "A": {
+   "median": -3.802551083907005,
+   "ci_lo": -4.547900676207526,
+   "ci_hi": -2.391062449795904,
+   "n_scenes": 10,
+   "pass_": true
+  },
+  "B": {
+   "loss_median": -0.08767111338733213,
+   "pass_": false
+  },
+  "support": true
+ },
+ "apr/rdnet": {
+  "A": {
+   "median": -8.200155242595402,
+   "ci_lo": -9.326346229079576,
+   "ci_hi": -6.735803314894358,
+   "n_scenes": 5,
+   "pass_": true
+  },
+  "B": {
+   "loss_median": 0.24725556929177528,
+   "pass_": true
+  },
+  "support": true
+ },
+ "apr/remo": {
+  "A": {
+   "median": -3.093178073545497,
+   "ci_lo": -11.92859897887466,
+   "ci_hi": -0.6369440911356179,
+   "n_scenes": 5,
+   "pass_": true
+  },
+  "B": {
+   "loss_median": -0.18813508764899467,
+   "pass_": false
+  },
+  "support": true
+ },
+ "may/rdnet": {
+  "A": {
+   "median": -2.7714679180670707,
+   "ci_lo": -5.7210902502774985,
+   "ci_hi": -1.4663040816048714,
+   "n_scenes": 3,
+   "pass_": true
+  },
+  "B": {
+   "loss_median": 0.3016876133457919,
+   "pass_": true
+  },
+  "support": true
+ },
+ "may/remo": {
+  "A": {
+   "median": -1.9185691342984654,
+   "ci_lo": -2.26135013957434,
+   "ci_hi": -0.3674935083753539,
+   "n_scenes": 3,
+   "pass_": true
+  },
+  "B": {
+   "loss_median": 0.007785937312756508,
+   "pass_": false
+  },
+  "support": true
+ },
+ "rdnet_verdict": "3/3 套支持（≥2/3 → 通病成立）",
+ "remo_verdict": "3/3 套支持（≥2/3 → 通病成立）"
+}
