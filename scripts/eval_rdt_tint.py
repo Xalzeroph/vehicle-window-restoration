@@ -4,6 +4,7 @@
 用法:
   python3 scripts/eval_rdt_tint.py --ckpt runs/ckpt/rdt_freeze/ckpt_final.pth --tag rdt_freeze
   python3 scripts/eval_rdt_tint.py --ckpt pretrained/rdnet.pth --tag zeroshot   # 官方权重对照
+  python3 scripts/eval_rdt_tint.py --ckpt runs/ckpt/rdt_mona_*/ckpt_final.pth --mona both --tag rdt_mona
 输出:
   eval/eval_rdt_<tag>_<set>.csv（逐图） + _summary.json（档位均值）
   runs/pred/rdt_<tag>/<set>/<level>/<scene>/{t_hat,r_hat}.png
@@ -24,6 +25,8 @@ sys.path.insert(0, RDNET)
 os.chdir(RDNET)
 from models.arch.RDnet_ import FullNet_NLP              # noqa: E402
 from models.arch.classifier import PretrainedConvNext  # noqa: E402
+from rdnet_peft import (patch_focalnet, is_mona_name, mona_params,   # noqa: E402
+                        mona_state_dict_keys)
 
 SETS = {
     "synth_rrw_v21_0913": "data/test_sets/synth_rrw_v21_0913",
@@ -50,15 +53,35 @@ def gain_match(q, g):
     return np.clip(q * s, 0, 255)
 
 
-def build(ckpt_path, exit_ckpt=None, save_memory=True):
+def build(ckpt_path, exit_ckpt=None, save_memory=True, mona="none"):
     net = FullNet_NLP(channels=[64, 128, 256, 512], layers=[2, 2, 4, 2], num_subnet=4,
                       loss_col=4, num_classes=1000, drop_path=0, save_memory=save_memory,
                       inter_supv=True, head_init_scale=None, kernel_size=3)
+    if mona != "none":                                  # Mona-PEFT: 构造后、load 前 patch（key 约束见 rdnet_peft）
+        n_blk = patch_focalnet(net, mona, verbose=True)
+        print(f"[eval-rdt] patch_focalnet mode={mona}: {n_blk} 个 block")
     ck = torch.load(ckpt_path, map_location="cpu")
     sd = ck.get("icnn", ck)
+    n_sd_mona = len(mona_state_dict_keys(sd))
     miss, unex = net.load_state_dict(sd, strict=False)
     print(f"[eval-rdt] ckpt={ckpt_path} missing={len(miss)} unexpected={len(unex)}"
           f" iter={ck.get('iter', '-')}")
+    # mona 断言：要么干净加载、要么明确报错，不允许静默退回 plain / 静默丢 mona 权重
+    if mona != "none":
+        n_net_mona = len(mona_params(net))
+        miss_mona = [k for k in miss if is_mona_name(k)]
+        if n_sd_mona == 0:
+            raise RuntimeError(f"[eval-rdt] --mona {mona} 但 ckpt 不含 mona 权重 "
+                               f"(peft={ck.get('peft', '无')})：会静默退回 plain，拒绝执行")
+        if n_sd_mona != n_net_mona or miss_mona:
+            raise RuntimeError(f"[eval-rdt] mona 权重未完整加载: ckpt={n_sd_mona} net={n_net_mona} "
+                               f"missing={len(miss_mona)} -> --mona {mona} 与 ckpt(peft="
+                               f"{ck.get('peft', {}).get('mode', '?')}) 不匹配")
+        print(f"[eval-rdt] mona={mona} 已加载(missing=0) keys={n_net_mona} "
+              f"ckpt_peft={ck.get('peft', {})}")
+    elif n_sd_mona:
+        raise RuntimeError(f"[eval-rdt] --mona none 但 ckpt 含 {n_sd_mona} 个 mona key"
+                           f"(net=0, 会被整体丢弃)：请用 --mona both/ffn")
     net_c = PretrainedConvNext("convnext_small_in22k")
     ck2 = torch.load(os.path.join(PROJ, "pretrained/cls_model.pth"), map_location="cpu")
     sd2 = ck2.get("icnn", ck2.get("model", ck2))
@@ -167,6 +190,8 @@ def main():
     ap.add_argument("--sets", default="synth_rrw_v21_0913,synth_rrw_v21_indomain,synth_rrw_v22_scan")
     ap.add_argument("--gpu", type=int, default=0)
     ap.add_argument("--exit-ckpt", default="", help="S2 出口头 ckpt（应用 T̂=(1−β)T̂_head+β·T̂_phys）")
+    ap.add_argument("--mona", choices=["none", "both", "ffn"], default="none",
+                    help="ckpt 是 Mona-PEFT 训练时按对应模式 patch 后再加载（none=plain 主臂）")
     ap.add_argument("--no-save-pred", action="store_true")
     ap.add_argument("--out-dir", default=os.path.join(PROJ, "eval"))
     args = ap.parse_args()
@@ -176,7 +201,7 @@ def main():
         args.exit_ckpt if os.path.isabs(args.exit_ckpt) else os.path.join(PROJ, args.exit_ckpt))
     pred_root = os.path.join(PROJ, "runs/pred", f"rdt_{args.tag}")
     dev = torch.device(f"cuda:{args.gpu}")
-    net, net_c, head = build(ckpt, ex or None)
+    net, net_c, head = build(ckpt, ex or None, mona=args.mona)
     net.to(dev).eval()
     net_c.to(dev)
     if head is not None:

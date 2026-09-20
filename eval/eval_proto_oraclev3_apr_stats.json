@@ -1,0 +1,77 @@
+{
+ "stats": {
+  "oraclev3": {
+   "d_perc": {
+    "median": -0.001487,
+    "ci_lo": -0.020608,
+    "ci_hi": 0.0,
+    "n_scenes": 6,
+    "noninferior": true
+   },
+   "d_bg": {
+    "median": 0.0560655,
+    "ci_lo": -0.204249,
+    "ci_hi": 0.17101,
+    "n_scenes": 6,
+    "noninferior": false
+   },
+   "d_struct": {
+    "median": -0.5990735,
+    "ci_lo": -1.791688,
+    "ci_hi": 0.0,
+    "n_scenes": 6,
+    "sign_test": {
+     "k": 0,
+     "n": 6,
+     "p": 0.03125
+    }
+   },
+   "pass_noninferior": false
+  },
+  "rdnet": {
+   "d_perc": {
+    "median": 0.04932,
+    "ci_lo": -0.029836,
+    "ci_hi": 0.101279,
+    "n_scenes": 6,
+    "noninferior": false
+   },
+   "d_bg": {
+    "median": 2.3019365,
+    "ci_lo": 1.22112,
+    "ci_hi": 4.045152,
+    "n_scenes": 6,
+    "noninferior": false
+   },
+   "d_struct": {
+    "median": -0.8811264999999999,
+    "ci_lo": -1.721277,
+    "ci_hi": 1.259245,
+    "n_scenes": 6,
+    "sign_test": {
+     "k": 3,
+     "n": 6,
+     "p": 1.0
+    }
+   },
+   "pass_noninferior": false
+  }
+ },
+ "n_cases": 16,
+ "args": {
+  "set": "data/test_sets/real_pair_apr_0917",
+  "layout": "multi",
+  "arm": [
+   "oraclev3=runs/pred/apr_oraclev3|oraclev3.png",
+   "rdnet=runs/pred/apr_rdnet"
+  ],
+  "pred_file": "ytmt_ucs_sirs_l.png",
+  "out": "eval/eval_proto_oraclev3_apr.csv",
+  "thr_k": 3.0,
+  "thr_min": 8.0,
+  "n0": 3.0,
+  "no_lpips": false,
+  "limit": 0,
+  "selftest": false
+ }
+}

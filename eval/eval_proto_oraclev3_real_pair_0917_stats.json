@@ -1,0 +1,77 @@
+{
+ "stats": {
+  "oraclev3": {
+   "d_perc": {
+    "median": -0.000797,
+    "ci_lo": -0.003103,
+    "ci_hi": 0.0,
+    "n_scenes": 13,
+    "noninferior": true
+   },
+   "d_bg": {
+    "median": -0.009585,
+    "ci_lo": -0.142395,
+    "ci_hi": -0.006701,
+    "n_scenes": 13,
+    "noninferior": true
+   },
+   "d_struct": {
+    "median": -0.168535,
+    "ci_lo": -0.543586,
+    "ci_hi": -0.004876,
+    "n_scenes": 13,
+    "sign_test": {
+     "k": 2,
+     "n": 13,
+     "p": 0.0224609375
+    }
+   },
+   "pass_noninferior": true
+  },
+  "rdnet": {
+   "d_perc": {
+    "median": 0.029318,
+    "ci_lo": 0.008244,
+    "ci_hi": 0.04256,
+    "n_scenes": 13,
+    "noninferior": false
+   },
+   "d_bg": {
+    "median": 0.081567,
+    "ci_lo": -0.430074,
+    "ci_hi": 0.342973,
+    "n_scenes": 13,
+    "noninferior": false
+   },
+   "d_struct": {
+    "median": -1.505203,
+    "ci_lo": -2.130691,
+    "ci_hi": -0.516127,
+    "n_scenes": 13,
+    "sign_test": {
+     "k": 2,
+     "n": 13,
+     "p": 0.0224609375
+    }
+   },
+   "pass_noninferior": false
+  }
+ },
+ "n_cases": 13,
+ "args": {
+  "set": "data/test_sets/real_pair_0917",
+  "layout": "jun",
+  "arm": [
+   "oraclev3=runs/pred/real_pair_0917_oraclev3|oraclev3.png",
+   "rdnet=runs/pred/real_pair_0917_rdnet"
+  ],
+  "pred_file": "ytmt_ucs_sirs_l.png",
+  "out": "eval/eval_proto_oraclev3_real_pair_0917.csv",
+  "thr_k": 3.0,
+  "thr_min": 8.0,
+  "n0": 3.0,
+  "no_lpips": false,
+  "limit": 0,
+  "selftest": false
+ }
+}

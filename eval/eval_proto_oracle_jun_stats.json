@@ -1,0 +1,106 @@
+{
+ "stats": {
+  "oraclew": {
+   "d_perc": {
+    "median": -0.001783,
+    "ci_lo": -0.005378,
+    "ci_hi": -0.000105,
+    "n_scenes": 13,
+    "noninferior": true
+   },
+   "d_bg": {
+    "median": -0.14489,
+    "ci_lo": -0.356371,
+    "ci_hi": -0.002659,
+    "n_scenes": 13,
+    "noninferior": true
+   },
+   "d_struct": {
+    "median": -0.567124,
+    "ci_lo": -1.499728,
+    "ci_hi": -0.476996,
+    "n_scenes": 13,
+    "sign_test": {
+     "k": 2,
+     "n": 13,
+     "p": 0.0224609375
+    }
+   },
+   "pass_noninferior": true
+  },
+  "randw": {
+   "d_perc": {
+    "median": 0.017111,
+    "ci_lo": 0.010023,
+    "ci_hi": 0.019017,
+    "n_scenes": 13,
+    "noninferior": false
+   },
+   "d_bg": {
+    "median": 0.218566,
+    "ci_lo": -0.016783,
+    "ci_hi": 0.458549,
+    "n_scenes": 13,
+    "noninferior": false
+   },
+   "d_struct": {
+    "median": -0.483231,
+    "ci_lo": -0.790343,
+    "ci_hi": -0.335603,
+    "n_scenes": 13,
+    "sign_test": {
+     "k": 2,
+     "n": 13,
+     "p": 0.0224609375
+    }
+   },
+   "pass_noninferior": false
+  },
+  "rdnet": {
+   "d_perc": {
+    "median": 0.029318,
+    "ci_lo": 0.008244,
+    "ci_hi": 0.04256,
+    "n_scenes": 13,
+    "noninferior": false
+   },
+   "d_bg": {
+    "median": 0.081567,
+    "ci_lo": -0.430074,
+    "ci_hi": 0.342973,
+    "n_scenes": 13,
+    "noninferior": false
+   },
+   "d_struct": {
+    "median": -1.505203,
+    "ci_lo": -2.130691,
+    "ci_hi": -0.516127,
+    "n_scenes": 13,
+    "sign_test": {
+     "k": 2,
+     "n": 13,
+     "p": 0.0224609375
+    }
+   },
+   "pass_noninferior": false
+  }
+ },
+ "n_cases": 13,
+ "args": {
+  "set": "data/test_sets/real_pair_0917",
+  "layout": "jun",
+  "arm": [
+   "rdnet=runs/pred/real_pair_0917_rdnet",
+   "oraclew=runs/pred/real_pair_0917_oraclew|oraclew.png",
+   "randw=runs/pred/real_pair_0917_randw|randw.png"
+  ],
+  "pred_file": "ytmt_ucs_sirs_l.png",
+  "out": "eval/eval_proto_oracle_jun.csv",
+  "thr_k": 3.0,
+  "thr_min": 8.0,
+  "n0": 3.0,
+  "no_lpips": false,
+  "limit": 0,
+  "selftest": false
+ }
+}

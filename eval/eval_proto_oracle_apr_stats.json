@@ -1,0 +1,106 @@
+{
+ "stats": {
+  "oraclew": {
+   "d_perc": {
+    "median": -6.55e-05,
+    "ci_lo": -0.02507,
+    "ci_hi": 0.025436,
+    "n_scenes": 6,
+    "noninferior": false
+   },
+   "d_bg": {
+    "median": -0.1649225,
+    "ci_lo": -0.279652,
+    "ci_hi": 0.036137,
+    "n_scenes": 6,
+    "noninferior": false
+   },
+   "d_struct": {
+    "median": -1.1120565,
+    "ci_lo": -2.167513,
+    "ci_hi": -0.620387,
+    "n_scenes": 6,
+    "sign_test": {
+     "k": 0,
+     "n": 6,
+     "p": 0.03125
+    }
+   },
+   "pass_noninferior": false
+  },
+  "randw": {
+   "d_perc": {
+    "median": 0.022010500000000002,
+    "ci_lo": 0.002882,
+    "ci_hi": 0.10556,
+    "n_scenes": 6,
+    "noninferior": false
+   },
+   "d_bg": {
+    "median": 1.2258495,
+    "ci_lo": 0.822891,
+    "ci_hi": 1.930903,
+    "n_scenes": 6,
+    "noninferior": false
+   },
+   "d_struct": {
+    "median": -0.148688,
+    "ci_lo": -0.858848,
+    "ci_hi": 0.852843,
+    "n_scenes": 6,
+    "sign_test": {
+     "k": 3,
+     "n": 6,
+     "p": 1.0
+    }
+   },
+   "pass_noninferior": false
+  },
+  "rdnet": {
+   "d_perc": {
+    "median": 0.04932,
+    "ci_lo": -0.029836,
+    "ci_hi": 0.101279,
+    "n_scenes": 6,
+    "noninferior": false
+   },
+   "d_bg": {
+    "median": 2.3019365,
+    "ci_lo": 1.22112,
+    "ci_hi": 4.045152,
+    "n_scenes": 6,
+    "noninferior": false
+   },
+   "d_struct": {
+    "median": -0.8811264999999999,
+    "ci_lo": -1.721277,
+    "ci_hi": 1.259245,
+    "n_scenes": 6,
+    "sign_test": {
+     "k": 3,
+     "n": 6,
+     "p": 1.0
+    }
+   },
+   "pass_noninferior": false
+  }
+ },
+ "n_cases": 16,
+ "args": {
+  "set": "data/test_sets/real_pair_apr_0917",
+  "layout": "multi",
+  "arm": [
+   "rdnet=runs/pred/apr_rdnet",
+   "oraclew=runs/pred/apr_oraclew|oraclew.png",
+   "randw=runs/pred/apr_randw|randw.png"
+  ],
+  "pred_file": "ytmt_ucs_sirs_l.png",
+  "out": "eval/eval_proto_oracle_apr.csv",
+  "thr_k": 3.0,
+  "thr_min": 8.0,
+  "n0": 3.0,
+  "no_lpips": false,
+  "limit": 0,
+  "selftest": false
+ }
+}

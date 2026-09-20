@@ -1,0 +1,106 @@
+{
+ "stats": {
+  "oraclew": {
+   "d_perc": {
+    "median": -0.0005549999999999999,
+    "ci_lo": -0.003564,
+    "ci_hi": 0.0057755,
+    "n_scenes": 5,
+    "noninferior": false
+   },
+   "d_bg": {
+    "median": -0.0331665,
+    "ci_lo": -0.203384,
+    "ci_hi": -0.013284,
+    "n_scenes": 5,
+    "noninferior": true
+   },
+   "d_struct": {
+    "median": -0.25683,
+    "ci_lo": -0.486039,
+    "ci_hi": -0.071414,
+    "n_scenes": 5,
+    "sign_test": {
+     "k": 0,
+     "n": 5,
+     "p": 0.0625
+    }
+   },
+   "pass_noninferior": false
+  },
+  "randw": {
+   "d_perc": {
+    "median": 0.033379,
+    "ci_lo": 0.024459,
+    "ci_hi": 0.039296,
+    "n_scenes": 5,
+    "noninferior": false
+   },
+   "d_bg": {
+    "median": -0.005712000000000002,
+    "ci_lo": -0.263121,
+    "ci_hi": 0.47113,
+    "n_scenes": 5,
+    "noninferior": false
+   },
+   "d_struct": {
+    "median": -0.282436,
+    "ci_lo": -0.44043350000000003,
+    "ci_hi": 0.281446,
+    "n_scenes": 5,
+    "sign_test": {
+     "k": 1,
+     "n": 5,
+     "p": 0.375
+    }
+   },
+   "pass_noninferior": false
+  },
+  "rdnet": {
+   "d_perc": {
+    "median": 0.096048,
+    "ci_lo": 0.076931,
+    "ci_hi": 0.127228,
+    "n_scenes": 5,
+    "noninferior": false
+   },
+   "d_bg": {
+    "median": 0.16714500000000002,
+    "ci_lo": -1.002522,
+    "ci_hi": 0.932501,
+    "n_scenes": 5,
+    "noninferior": false
+   },
+   "d_struct": {
+    "median": -1.07836,
+    "ci_lo": -1.23122,
+    "ci_hi": 0.473337,
+    "n_scenes": 5,
+    "sign_test": {
+     "k": 1,
+     "n": 5,
+     "p": 0.375
+    }
+   },
+   "pass_noninferior": false
+  }
+ },
+ "n_cases": 14,
+ "args": {
+  "set": "data/test_sets/real_pair_may_0917",
+  "layout": "multi",
+  "arm": [
+   "rdnet=runs/pred/may_rdnet",
+   "oraclew=runs/pred/may_oraclew|oraclew.png",
+   "randw=runs/pred/may_randw|randw.png"
+  ],
+  "pred_file": "ytmt_ucs_sirs_l.png",
+  "out": "eval/eval_proto_oracle_may.csv",
+  "thr_k": 3.0,
+  "thr_min": 8.0,
+  "n0": 3.0,
+  "no_lpips": false,
+  "limit": 0,
+  "selftest": false
+ }
+}
