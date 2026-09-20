@@ -3,6 +3,8 @@
 统计强度/形态分布，并与现有 R 池、6 月实拍 R_eff 对照。
 
 背景：现有池 `data/pools/r_train_expand_0918`（287 张，RRW 提取）缺"深色剪影"反射；
+【2026-09-20 澄清】"缺剪影"是对**池**成立（uint8 存储 ≥0、负值落盘即截），对 **RRW 数据集本身不成立**
+（实测含大量负反射；见 `docs/2026.9.20_人影对照与RRW事实核查.md`）；如需负反射训练数据，RRW 亦可重提有符号 R。
 OpenRR-5k（NTIRE 2026 真实拍摄配对，CC-BY-NC-SA-4.0）配对逐像素对齐（实测位移 <=0.05px），
 可直接相减提 R。用法: python3 scripts/extract_openrr_r.py [--n 5000] [--out data/pools/r_openrr_0917]
 """
