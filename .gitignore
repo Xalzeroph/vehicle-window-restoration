@@ -28,3 +28,6 @@ projects/*/images/
 projects/*/svg_final/
 projects/*/backup/
 projects/*/live_preview/
+
+# 人评发放包（大二进制，本地留存不入库）
+发放包_V*.zip
