@@ -3,7 +3,8 @@
 
 用法: python3 scripts/eval_s2_detail.py <pred_root> [tag]
   pred_root 下为 <key>/ytmt_ucs_sirs_l.png（如 runs/pred/may_s2v2it1000）
-输出: 逐场景明细 + 汇总（⑤ 通过线：全图 ≥0.90 且 ≥4/5 场景、点名三场景必达；透射区 |P−I| ≤3/255）
+输出: 逐场景明细 + 汇总（⑤ 通过线：全图 ≥0.90 且 ≥4/5 场景、点名三场景必达；透射区 |P−I| ≤5/255
+（2026-09-22 重锚：地板实测 4.7/2.6/3.6））
 """
 import os, sys
 import cv2
@@ -47,7 +48,7 @@ def main():
     must = {s: rv for s, f, rv, ev in rows if s in MUST}
     print(f'汇总: 细节保留中位 {np.median(r):.3f}、≥0.90 的 {n_ok}/{len(rows)} 行'
           f'（线：≥4/5 场景）| 点名场景 ' + ' '.join(f'{k}:{v:.2f}' for k, v in must.items()))
-    print(f'      透射区 |P−I| 中位 {np.median(e):.2f}/255（线 ≤3）')
+    print(f'      透射区 |P−I| 中位 {np.median(e):.2f}/255（线 ≤5；2026-09-22 重锚）')
 
 
 if __name__ == '__main__':

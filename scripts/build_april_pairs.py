@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""4 月（车窗户外，强反射档）实拍配对集：GT = 用户手工挑选的无人影帧（label.txt 中唯一帧号），
+"""4 月（车窗户外，强反射档）实拍配对集：GT = 视频结尾黑布遮满全反射层段（2026-09-22 更正；label.txt 中唯一帧号），
 输入 = 各场景均匀抽取、且与 GT 对齐可信的帧（边缘域全搜索，峰值比 >= 4 才保留）。
 
 产出 data/test_sets/real_pair_apr_0917/{scene}/{GT.png,I_*.png} + meta.json
@@ -94,7 +94,7 @@ def main():
             f"{k}(峰值{v['peak_ratio']:.1f},D_p95={v['D_p95']:.0f})" for k, v in meta['inputs'].items()))
     print(f'\n=== {len(rows)} 场景，共 {sum(len(r["inputs"]) for r in rows)} 个输入 ===')
     with open(os.path.join(args.out, 'DO_NOT_USE_IN_TRAINING.md'), 'w') as fh:
-        fh.write('# 评测专用（eval-only）。4 月车窗实拍，GT 为用户手工挑选的无人影帧。\n')
+        fh.write('# 评测专用（eval-only）。4 月车窗实拍，GT = 视频结尾黑布遮满全反射层段（去反射语义；2026-09-22 更正）。\n')
 
 
 if __name__ == '__main__':
