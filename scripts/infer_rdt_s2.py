@@ -35,10 +35,12 @@ def main():
     ap.add_argument('--sets', default='apr,may,jun')
     ap.add_argument('--tag', required=True)
     ap.add_argument('--gpu', type=int, default=0)
+    ap.add_argument('--mona', choices=['both', 'none'], default='both',
+                    help='none=纯官方（加载 pretrained/rdnet.pth 原生推理，无 PEFT）')
     args = ap.parse_args()
     dev = torch.device(f'cuda:{args.gpu}')
     ckpt = args.ckpt if os.path.isabs(args.ckpt) else os.path.join(ORIG_CWD, args.ckpt)
-    net, net_c = build(save_memory=True, mona='both', grad_ckpt=False)
+    net, net_c = build(save_memory=True, mona=args.mona, grad_ckpt=False)
     ck = torch.load(ckpt, map_location='cpu')
     miss, unex = net.load_state_dict(ck['icnn'], strict=False)
     assert not [k for k in miss if 'mona' not in k], f'非 mona 权重缺失: {miss[:5]}'
