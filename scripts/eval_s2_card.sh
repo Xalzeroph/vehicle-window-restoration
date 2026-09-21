@@ -10,3 +10,4 @@ CUDA_VISIBLE_DEVICES=$GPU OMP_NUM_THREADS=8 $PY scripts/infer_rdt_s2.py \
 CUDA_VISIBLE_DEVICES=$GPU OMP_NUM_THREADS=8 $PY scripts/eval_g2_baseline.py \
     --sets may --extra-arm "s2=runs/pred/may_$TAG" --skip-official --out eval/eval_s2_card_$TAG.csv
 $PY scripts/summarize_s2_dev.py "eval/eval_s2_card_$TAG.csv" "$TAG"
+$PY scripts/eval_s2_detail.py "runs/pred/may_$TAG" "$TAG"
