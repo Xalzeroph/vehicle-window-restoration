@@ -31,3 +31,7 @@ projects/*/live_preview/
 
 # 人评发放包（大二进制，本地留存不入库）
 发放包_V*.zip
+
+# 参考论文 PDF（大二进制，本机保留不入库；提取文本入库）
+RDNet/*_paper.pdf
+docs/papers/*.pdf
