@@ -10,7 +10,7 @@
 臂：identity / perfect(=T，上限检验) / rdnet / remo。
 产物：eval/eval_g2_baseline.csv
 """
-import csv, os, sys
+import argparse, csv, os, sys
 import cv2
 import numpy as np
 import torch
@@ -65,11 +65,19 @@ def luma(x):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--sets', default='jun,apr,may', help='逗号分隔，如 may')
+    ap.add_argument('--extra-arm', action='append', default=[], metavar='NAME=ROOT',
+                    help='外部预测臂（目录下 <key>/ytmt_ucs_sirs_l.png），可多次')
+    ap.add_argument('--skip-official', action='store_true', help='跳过 rdnet/remo 官方臂')
+    ap.add_argument('--out', default='eval/eval_g2_baseline.csv')
+    args = ap.parse_args()
     dev = torch.device('cuda:0')
     lp = pyiqa.create_metric('lpips', device=dev)
     rows = []
+    todo = [t for t in SETS if t in args.sets.split(',')]
     with torch.no_grad():
-        for tag, (d, gtn, pr1, pf1, pr2, pf2) in SETS.items():
+        for tag, (d, gtn, pr1, pf1, pr2, pf2) in [(t, SETS[t]) for t in todo]:
             for sc in sorted(x for x in os.listdir(d) if x.startswith('VID_')):
                 sd = os.path.join(d, sc)
                 T = cv2.imread(os.path.join(sd, gtn))
@@ -85,12 +93,19 @@ def main():
                     ker = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * PAD + 1, 2 * PAD + 1))
                     ring = (cv2.dilate(Om.astype(np.uint8), ker) > 0) & (~Om)
                     arms = {'identity': I, 'perfect': T}
-                    P = cv2.imread(os.path.join(pr1, key, pf1))
-                    if P is not None:
-                        arms['rdnet'] = cv2.resize(P, (T.shape[1], T.shape[0])) if P.shape != T.shape else P
-                    P2 = cv2.imread(os.path.join(pr2, key, pf2))
-                    if P2 is not None:
-                        arms['remo'] = cv2.resize(P2, (T.shape[1], T.shape[0])) if P2.shape != T.shape else P2
+                    if not args.skip_official:
+                        P = cv2.imread(os.path.join(pr1, key, pf1))
+                        if P is not None:
+                            arms['rdnet'] = cv2.resize(P, (T.shape[1], T.shape[0])) if P.shape != T.shape else P
+                        P2 = cv2.imread(os.path.join(pr2, key, pf2))
+                        if P2 is not None:
+                            arms['remo'] = cv2.resize(P2, (T.shape[1], T.shape[0])) if P2.shape != T.shape else P2
+                    for spec in args.extra_arm:
+                        an, _, root = spec.partition('=')
+                        root = root if os.path.isabs(root) else os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', root)
+                        Px = cv2.imread(os.path.join(root, key, 'ytmt_ucs_sirs_l.png'))
+                        if Px is not None:
+                            arms[an] = cv2.resize(Px, (T.shape[1], T.shape[0])) if Px.shape != T.shape else Px
                     lI = luma(I); lT = luma(T)
                     C_I = lI[ring].mean() - lI[Om].mean()
                     C_T = lT[ring].mean() - lT[Om].mean()
@@ -138,12 +153,12 @@ def main():
                           + (' ' if den_ok else '[den不足] ') + ' '.join(
                         f"{an}:ρ{fm(rec[f'{an}_rho'], '+.2f')}/①{rec[f'{an}_pass1']}/②{fm(rec[f'{an}_ref_gain'], '+.3f')}"
                         f"/③{fm(rec[f'{an}_out_dPSNR'], '+.2f')}" for an in arms))
-    os.makedirs('eval', exist_ok=True)
+    os.makedirs(os.path.dirname(args.out) or '.', exist_ok=True)
     keys = sorted({k for r in rows for k in r})
-    with open('eval/eval_g2_baseline.csv', 'w', newline='') as fh:
+    with open(args.out, 'w', newline='') as fh:
         wr = csv.DictWriter(fh, fieldnames=keys, restval='')
         wr.writeheader(); wr.writerows(rows)
-    print('\n写出 eval/eval_g2_baseline.csv')
+    print(f'\n写出 {args.out}')
 
 
 if __name__ == '__main__':
