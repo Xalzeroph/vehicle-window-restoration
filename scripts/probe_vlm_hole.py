@@ -52,10 +52,17 @@ def load(tag):
             repo, torch_dtype=torch.bfloat16, device_map='cuda:0').eval()
         return ('qwen', m, AutoProcessor.from_pretrained(repo))
     if tag == 'smolvlm':
-        from transformers import AutoModelForVision2Seq
+        import transformers as tf
         repo = 'HuggingFaceTB/SmolVLM-Instruct'
-        m = AutoModelForVision2Seq.from_pretrained(
-            repo, torch_dtype=torch.bfloat16, device_map='cuda:0').eval()
+        cls = None
+        for name in ('AutoModelForImageTextToText', 'AutoModelForVision2Seq',
+                     'Idefics3ForConditionalGeneration', 'AutoModelForCausalLM'):
+            cls = getattr(tf, name, None)
+            if cls is not None:
+                print(f'[smolvlm] 用 {name}', flush=True); break
+        if cls is None:
+            raise SystemExit('transformers 里找不到可用的 VLM 类')
+        m = cls.from_pretrained(repo, torch_dtype=torch.bfloat16, device_map='cuda:0').eval()
         return ('smolvlm', m, AutoProcessor.from_pretrained(repo))
     if tag == 'internvl':
         from transformers import AutoModel, AutoTokenizer
