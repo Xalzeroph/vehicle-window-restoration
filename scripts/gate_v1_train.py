@@ -58,7 +58,9 @@ def load_set(root, names, min_side=256):
             z = np.load(f)
             I, P, T = (_pad(z[k], min_side) for k in ('I', 'P', 'T'))
             bh, bw = I.shape[0]//BS, I.shape[1]//BS
-            gs, mk = z['gstar'], z['mask']
+            # v2 集不存标签（循环内现算），缺失时给默认值
+            gs = z['gstar'] if 'gstar' in z.files else np.zeros((bh, bw), np.float32)
+            mk = z['mask'] if 'mask' in z.files else np.ones((bh, bw), np.float32)
             gs = cv2.copyMakeBorder(gs, 0, bh-gs.shape[0], 0, bw-gs.shape[1], cv2.BORDER_REPLICATE)
             mk = cv2.copyMakeBorder(mk, 0, bh-mk.shape[0], 0, bw-mk.shape[1], cv2.BORDER_REPLICATE)
             xs.append((I, P, T, gs, mk))
@@ -68,13 +70,14 @@ def load_set(root, names, min_side=256):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--train', default='apr'); ap.add_argument('--out', required=True)
+    ap.add_argument('--root', default='data/gate_v1')
     ap.add_argument('--iters', type=int, default=3000); ap.add_argument('--bs', type=int, default=8)
     ap.add_argument('--crop', type=int, default=256); ap.add_argument('--lr', type=float, default=3e-4)
     ap.add_argument('--lam-lab', type=float, default=2.0); ap.add_argument('--lam-harm', type=float, default=1.0)
     ap.add_argument('--lam-tv', type=float, default=0.02)
     a = ap.parse_args()
     dev = torch.device('cuda:0')
-    data = load_set(os.path.join(PROJ, 'data/gate_v1'), a.train.split(','))
+    data = load_set(os.path.join(PROJ, a.root), a.train.split(','))
     print(f'[gate] 训练样本 {len(data)} 张（{a.train}）', flush=True)
     net = Gate().to(dev); opt = torch.optim.Adam(net.parameters(), lr=a.lr)
     rng = np.random.default_rng(20261008)
@@ -97,8 +100,15 @@ def main():
         Ig = I + g*(P - I)
         L_rec = (Ig - T).abs().mean()
         L_harm = torch.relu((Ig - T).abs() - (I - T).abs()).mean()
-        # 标签监督：逐像素闭式 g*，池化到块级与 1/4 级两路
-        a_ = (I - T); b_ = (P - I)
+        # 标签监督：先把 I、P 各自 affine 对齐到 T（消掉全局色调自由度），再算逐像素闭式 g*
+        def _aff(X, Y):
+            bb_ = X.reshape(X.shape[0], -1); tt_ = Y.reshape(Y.shape[0], -1)
+            xm = bb_.mean(1, keepdim=True); tm = tt_.mean(1, keepdim=True)
+            xc = bb_ - xm; tc = tt_ - tm
+            aa = (xc*tc).sum(1, keepdim=True)/((xc*xc).sum(1, keepdim=True) + 1e-8)
+            return (aa[:, :, None, None]*(X - xm[:, :, None, None]) + tm[:, :, None, None]).clamp(0, 1)
+        Ia_l, Pa_l = _aff(I, T), _aff(P, T)
+        a_ = (Ia_l - T); b_ = (Pa_l - Ia_l)
         num = -(a_*b_).sum(1, keepdim=True); den = (b_*b_).sum(1, keepdim=True) + 1e-6
         gstar_f = (num/den).clamp(0, 1)
         msk_f = (den > 1e-4).float()
