@@ -35,3 +35,6 @@ projects/*/live_preview/
 # 参考论文 PDF（大二进制，本机保留不入库；提取文本入库）
 RDNet/*_paper.pdf
 docs/papers/*.pdf
+
+# LOVO 人眼对比 sheet（11 张 PNG ~33MB，可由 scripts/viz_lovo_review.py 一键重生）
+fig/lovo_review/

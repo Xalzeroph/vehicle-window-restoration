@@ -65,13 +65,13 @@ def load_rgb(path, size, rng, jitter_crop=None):
     return img[y0:y0 + size, x0:x0 + size].astype(np.float32) / 255., (y0, x0)
 
 
-def synth_R(rng):
+def synth_R(rng, omega_dir):
     """从白名单 R 池取一张并解码为有符号 [-0.5,0.5]（uint8=+128 存储）。"""
     f = rng.choice(os.listdir(RRW_R_DIR)) if rng.random() < 0.36 else None
     if f is None:
-        ids = os.listdir(os.path.join(OMEGA_DIR, "R"))
+        ids = os.listdir(os.path.join(omega_dir, "R"))
         f2 = rng.choice(ids)
-        img = cv2.imread(os.path.join(OMEGA_DIR, "R", f2))[:, :, ::-1]
+        img = cv2.imread(os.path.join(omega_dir, "R", f2))[:, :, ::-1]
     else:
         img = cv2.imread(os.path.join(RRW_R_DIR, f))[:, :, ::-1]
     return img.astype(np.float32) / 255.0 - 128.0 / 255.0
@@ -84,12 +84,13 @@ def blur_R(R, rng):
 
 
 class S2Dataset(Dataset):
-    def __init__(self, arm='main', size=224, s_jitter=0.0):
+    def __init__(self, arm='main', size=224, s_jitter=0.0, omega_dir=None):
+        self.omega_dir = omega_dir or OMEGA_DIR
         self.size = size
         self.s_jitter = s_jitter
         self.arm = arm
         self.p = np.array([0.3, 0.4, 0.3]) if arm == 'main' else np.array([0.0, 0.57, 0.43])
-        with open(os.path.join(OMEGA_DIR, 'meta.json')) as fp:
+        with open(os.path.join(self.omega_dir, 'meta.json')) as fp:
             self.om_meta = json.load(fp)
         self.om_ids = sorted(self.om_meta.keys())
         self.t_files = []
@@ -113,7 +114,7 @@ class S2Dataset(Dataset):
         if src == 0:                                    # omega 真实配对（裁剪锚定 Ω，保证窗内含人影）
             case = self.om_ids[rng.integers(len(self.om_ids))]
             m = self.om_meta[case]
-            omf = cv2.imread(os.path.join(OMEGA_DIR, 'omega', case + '.png'), 0)
+            omf = cv2.imread(os.path.join(self.omega_dir, 'omega', case + '.png'), 0)
             H, W = omf.shape
             ys, xs = np.nonzero(omf > 127)
             if len(ys):
@@ -122,16 +123,16 @@ class S2Dataset(Dataset):
                 x0 = int(np.clip(int(xs[k]) - s // 2, 0, max(0, W - s)))
             else:
                 y0, x0 = int(rng.integers(0, max(1, H - s + 1))), int(rng.integers(0, max(1, W - s + 1)))
-            I, (y0, x0) = load_rgb(os.path.join(OMEGA_DIR, 'I', case + '.png'), s, rng, (y0, x0))
-            T, _ = load_rgb(os.path.join(OMEGA_DIR, 'T', case + '.png'), s, rng, (y0, x0))
-            R, _ = load_rgb(os.path.join(OMEGA_DIR, 'R', case + '.png'), s, rng, (y0, x0))
+            I, (y0, x0) = load_rgb(os.path.join(self.omega_dir, 'I', case + '.png'), s, rng, (y0, x0))
+            T, _ = load_rgb(os.path.join(self.omega_dir, 'T', case + '.png'), s, rng, (y0, x0))
+            R, _ = load_rgb(os.path.join(self.omega_dir, 'R', case + '.png'), s, rng, (y0, x0))
             R = R - 128.0 / 255.0
-            om3, _ = load_rgb(os.path.join(OMEGA_DIR, 'omega', case + '.png'), s, rng, (y0, x0))
+            om3, _ = load_rgb(os.path.join(self.omega_dir, 'omega', case + '.png'), s, rng, (y0, x0))
             om = (om3[:, :, :1] > 0.5).transpose(2, 0, 1).astype(np.float32)
             has_R, has_om, C_I = 1.0, (1.0 if om.any() else 0.0), float(m['C_I'])
         elif src == 1:                                  # 在线合成
             T, _ = load_rgb(self.t_files[rng.integers(len(self.t_files))], s, rng)
-            Rn = synth_R(rng)
+            Rn = synth_R(rng, self.omega_dir)
             H, W = Rn.shape[:2]
             if min(H, W) < s:
                 Rn = cv2.resize(Rn, (max(s, round(W * s / min(H, W))),
@@ -213,6 +214,7 @@ def main():
     ap.add_argument('--lam-grad', type=float, default=5.0, help='全图一阶梯度保真（防抹平）')
     ap.add_argument('--lam-lap', type=float, default=2.0, help='全图二阶 Laplacian 保真（防抹平）')
     ap.add_argument('--s-jitter', type=float, default=0.0, help='合成曝光抖动幅度（0=关闭）')
+    ap.add_argument('--omega-dir', default=None, help='真实 Ω 配对目录（默认 train_pairs_omega_0920；LOVO 子集用）')
     ap.add_argument('--save-every', type=int, default=1000)
     ap.add_argument('--log-every', type=int, default=50)
     ap.add_argument('--seg-iters', type=int, default=2000)
@@ -239,7 +241,7 @@ def main():
     dists_net = pyiqa.create_metric('dists', device=dev).net
     dists_net.eval().requires_grad_(False)
 
-    ds = S2Dataset(arm=args.arm, size=224, s_jitter=args.s_jitter)
+    ds = S2Dataset(arm=args.arm, size=224, s_jitter=args.s_jitter, omega_dir=args.omega_dir)
     print(f'[s2] T 源 {len(ds.t_files)} 张 | R 白名单 {len(ds.om_ids)}+{len(ds.rrw_ids)-1} 层 | '
           f'开源 {len(ds.os_pairs)} 对 | p={ds.p}', flush=True)
     opt = torch.optim.Adam([p for p in net.parameters() if p.requires_grad], lr=args.lr)
