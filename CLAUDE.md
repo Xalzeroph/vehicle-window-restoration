@@ -112,3 +112,11 @@ P3 执行 → P4 分析 → P5 写 `docs/` md 汇报 → P6 确认后 git 提交
 3. **产物落盘**：实验产物/数据集一律放**项目目录内**（延续旧机习惯）；不写 `/storage`；`/DataDisk` 是系统盘，累计产物超 ~200G 时再议转移。
 4. **不动他人目录**：`/home/{fangyuan,kyshen,hjl,...}` 属其他用户；sudo 需密码，系统级操作先问用户。
 5. 长任务用 `tmux`/`nohup` 跑防 SSH 断开；GPU0 有桌面会话常驻少量显存占用，优先用 1–7 号卡。
+
+## 网络与模型下载（2026-10-08 实测）
+
+- **`huggingface.co` 不通**；但 **`hf-mirror.com` / `modelscope.cn` / pypi 清华源 / `github.com` / `download.pytorch.org` 均可用**。勿再据"外网不通"放弃下载方案。
+- 下载：`export HF_ENDPOINT=https://hf-mirror.com HF_HOME=/home/zmy/data/cache/huggingface`
+- 运行：缓存备齐后 `export HF_HUB_OFFLINE=1`（否则 transformers 会探测 huggingface.co 而超时重试）
+- 已缓存基础模型：CLIP ViT-B/32、DINOv2-small/base、timm ResNet18、SegFormer-B0-ADE(150 类)
+- 详见 `docs/2026.10.08_服务器网络与模型下载_实测.md`
