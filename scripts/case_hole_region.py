@@ -20,7 +20,7 @@ def affine(X, T):
 def lap(im):
     return float(cv2.Laplacian(cv2.cvtColor(im, cv2.COLOR_BGR2GRAY), cv2.CV_32F).var())
 
-CASES = [('apr','VID_20260426_172719__000000'), ('may','VID_20260512_163859__000000')]
+CASES = [('apr','VID_20260426_173237__000000'), ('apr','VID_20260426_172719__000000')]
 for sname, c in CASES:
     z1 = np.load(f'data/gate_v1/{sname}/{c}.npz')          # P = 官方
     z2 = np.load(f'data/gate_v2/lovo_k2/{sname}/{c}.npz')  # P = lovo_k2 臂
