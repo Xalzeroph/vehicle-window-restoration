@@ -201,12 +201,14 @@ def main():
               f"T3hit={rec.get('T3_hit','-')} {rec['sec']}s", flush=True)
         with open(a.out, 'w', newline='') as fh:
             w = csv.DictWriter(fh, fieldnames=sorted({kk for r in rows for kk in r})); w.writeheader(); w.writerows(rows)
-    import numpy as np
+    # 注意：此处不可写 `import numpy as np`——函数内任何对 np 的赋值都会把 np 变成
+    # main() 的局部名，使上方第 150 行的 np.load 直接 UnboundLocalError（2026-10-08 已踩）。
+    _np = __import__('numpy')
     print(f'\n===== {a.model} 汇总（n={len(rows)}）=====')
     for kk in ('T1_iou', 'T1_prec', 'T1_rec', 'T2_correct', 'T3_hit'):
         v = [r[kk] for r in rows if kk in r and isinstance(r[kk], (int, float))]
         if v:
-            print(f'  {kk:12s} 均值 {np.mean(v):.3f}  (n={len(v)})')
+            print(f'  {kk:12s} 均值 {_np.mean(v):.3f}  (n={len(v)})')
     print(f"[写出] {a.out}")
 
 
