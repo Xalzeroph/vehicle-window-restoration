@@ -7,9 +7,9 @@
 自动完成：
     1) （视频）抽帧到 <输入>_frames/
     2) 亮度剖面分段：反射段 / 布段
-    3) 门 1  段内漂移      —— AE/AWB 是否真的锁死
+    3) 门 1  段内漂移      —— AE/AWB 是否真的锁死（v2 增设门 1b：逐通道）
     4) 门 2  逐通道一致性  —— 是否需逐通道对齐
-    5) 门 3  跨段一致性    —— 偏移是"场景级恒定"还是"逐帧乱跳"
+    5) 门 3  跨段偏移      —— **仅记录**（v2：反射强度是信号，不判决）
     6) 门 4  结构可分性    —— 有没有东西可学，还是只剩色调差
     7) 门 5  反射强度      —— 反射够不够强
     8) 门 6  几何稳定      —— EIS/抖动是否破坏配对
@@ -204,6 +204,21 @@ def main():
     res['drift_refl'] = d_refl; res['drift_cloth'] = d_cloth
     res['chan_refl'] = c_refl; res['chan_cloth'] = c_cloth
 
+    # v2 新增：段内**逐通道** |g−1| 最大值（抓单通道白平衡漂移）
+    def in_seg_drift_ch(seg, max_pts=20):
+        if len(seg) < 3:
+            return float('nan')
+        pick = seg[::max(1, len(seg) // max_pts)]
+        cs = load_crops(pick)
+        if len(cs) < 3:
+            return float('nan')
+        ref = cs[0]
+        gs = np.array([robust_gain(x, ref) for x in cs[1:]])
+        return float(np.median(np.abs(gs - 1).max(axis=1)))
+
+    res['drift_refl_ch'] = in_seg_drift_ch(refl)
+    res['drift_cloth_ch'] = in_seg_drift_ch(cloth)
+
     # ---- 门 3：跨段一致性 ----
     if refl and cloth:
         pick = refl[::max(1, len(refl) // 20)]
@@ -271,19 +286,26 @@ def main():
 
     # ---- 判决 ----
     G = []
-    def gate(name, val, lo=None, hi=None, ok=None, fmt='{:.4f}', note=''):
+    def gate(name, val, lo=None, hi=None, ok=None, fmt='{:.4f}', note='',
+             record_only=False):
         v = ok if ok is not None else ((lo is None or val >= lo) and (hi is None or val <= hi))
-        G.append((name, fmt.format(val) if val == val else 'nan', '✅' if v else '❌', note))
+        mark = '📝' if record_only else ('✅' if v else '❌')
+        G.append((name, fmt.format(val) if val == val else 'nan', mark, note))
         return v
 
     gate('门1 反射段内漂移 |g−1| 中位', res['drift_refl'], hi=0.02,
          note='AE/AWB 是否锁死（旧数据 0.1749）')
+    # v2 新增：单通道偏色。三通道均值正常但某一通道偏，同样说明 AWB 没锁死。
+    gate('门1b 反射段逐通道 |g−1|', res.get('drift_refl_ch', float('nan')), hi=0.05,
+         note='v2 新增：抓单通道白平衡漂移（旧数据 0.1749）')
     gate('门1 布段内漂移 |g−1| 中位', res['drift_cloth'], hi=0.02,
          note='布段自身稳定性（旧数据布段抖 0.04–0.21）')
     gate('门2 反射段逐通道极差', res['chan_refl'], hi=0.03,
          note='需否逐通道对齐（旧数据 max 0.308）')
-    gate('门3 跨段偏移逐帧变异系数', res['cross_cv'], hi=0.15,
-         note='≤0.15=场景级恒定偏移，可整体吸收')
+    # v2 改：跨段 g 现在是**反射强度信号**，不是采集缺陷，因此只记录不判决。
+    # （旧数据里 g 量的是相机光度漂移，那时设上限才对。）
+    gate('门3 跨段偏移 cross_g_mean（信号，仅记录）', res['cross_g_mean'],
+         record_only=True, note='v2：反射强度是信号，不设上限；逐通道值见明细')
     gate('门4 corr(I, M)  <0.95', res['corr_IM'], hi=0.95,
          note='越低=结构差异越大=越有东西可学；>0.95 才是坏事（只剩色调差）')
     gate('门4 残差结构比', res['resid_struct'], lo=0.20,
@@ -294,6 +316,8 @@ def main():
          note='太弱学不到（旧数据 0.155，合成 0.155–0.634）')
 
     npass = sum(1 for g in G if g[2] == '✅')
+    nrecord = sum(1 for g in G if g[2] == '📝')
+    ntotal = len(G) - nrecord   # 分母只算真正判决的门
 
     # ---- 输出 ----
     lines = []
@@ -305,16 +329,20 @@ def main():
     if 'i_repr' in res:
         lines.append(f'- 代表帧: I={res["i_repr"]}  M={res["c_repr"]}')
     lines.append('')
-    lines.append(f'## 判决: {npass}/{len(G)} 通过\n')
+    lines.append(f'## 判决: {npass}/{ntotal} 通过'
+                 + (f'（另有 {nrecord} 项仅记录）' if nrecord else '') + '\n')
     lines.append('| 检查 | 实测 | 结果 | 说明 |')
     lines.append('|---|---|---|---|')
     for nm, val, mk, note in G:
         lines.append(f'| {nm} | {val} | {mk} | {note} |')
     lines.append('')
     lines.append('## 数值明细\n')
+    lines.append('> v2 口径：`drift_*` = 采集纪律（越小越好，有门限）；'
+                 '`cross_g_*` / `r_obs` = **反射信号**（越大越有东西可学，不设上限）。\n')
     lines.append('| 指标 | 值 |')
     lines.append('|---|---|')
-    for k in ('drift_refl', 'drift_cloth', 'chan_refl', 'chan_cloth',
+    for k in ('drift_refl', 'drift_refl_ch', 'drift_cloth', 'drift_cloth_ch',
+              'chan_refl', 'chan_cloth',
               'cross_g_mean', 'cross_g_chan', 'cross_cv', 'r_obs',
               'corr_IM', 'grad_ratio', 'resid_raw', 'resid_affine', 'resid_struct',
               'shift_med', 'shift_max'):
@@ -334,7 +362,8 @@ def main():
 
     print()
     print('=' * 64)
-    print(f'  判决: {npass}/{len(G)} 通过')
+    print(f'  判决: {npass}/{ntotal} 通过'
+          + (f'（另有 {nrecord} 项仅记录）' if nrecord else ''))
     print('=' * 64)
     for nm, val, mk, note in G:
         print(f'  {mk} {nm:<28} {val:>10}   {note}')

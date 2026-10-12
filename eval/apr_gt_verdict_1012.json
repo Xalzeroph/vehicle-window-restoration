@@ -1,0 +1,144 @@
+{
+ "VID_20260426_172719": {
+  "i_frames": [
+   0,
+   7,
+   15
+  ],
+  "label_gt_frame": 875,
+  "meta_gt_frame": "000875",
+  "gt_absdev": 0.18774840461556988,
+  "gt_passed": false,
+  "n_frames": 64,
+  "n_pass": 54,
+  "pass_frac": 0.844,
+  "longest_consistent_window": {
+   "span_frames": 625,
+   "from": 0,
+   "to": 625
+  },
+  "first_bad_frame": 650,
+  "last_bad_frame": 875,
+  "max_absdev": 0.2098,
+  "max_absdev_frame": 675,
+  "verdict": "GT 不在一致窗口内"
+ },
+ "VID_20260426_172933": {
+  "i_frames": [
+   250
+  ],
+  "label_gt_frame": 400,
+  "meta_gt_frame": "000400",
+  "gt_absdev": 0.10579117637617215,
+  "gt_passed": false,
+  "n_frames": 52,
+  "n_pass": 39,
+  "pass_frac": 0.75,
+  "longest_consistent_window": {
+   "span_frames": 175,
+   "from": 0,
+   "to": 175
+  },
+  "first_bad_frame": 200,
+  "last_bad_frame": 575,
+  "max_absdev": 0.1277,
+  "max_absdev_frame": 450,
+  "verdict": "GT 不在一致窗口内"
+ },
+ "VID_20260426_173237": {
+  "i_frames": [
+   0,
+   6,
+   13
+  ],
+  "label_gt_frame": 475,
+  "meta_gt_frame": "000475",
+  "gt_absdev": 0.2956800247572538,
+  "gt_passed": false,
+  "n_frames": 53,
+  "n_pass": 42,
+  "pass_frac": 0.792,
+  "longest_consistent_window": {
+   "span_frames": 275,
+   "from": 0,
+   "to": 275
+  },
+  "first_bad_frame": 300,
+  "last_bad_frame": 550,
+  "max_absdev": 0.3013,
+  "max_absdev_frame": 400,
+  "verdict": "GT 不在一致窗口内"
+ },
+ "VID_20260426_173349": {
+  "i_frames": [
+   0,
+   6,
+   13
+  ],
+  "label_gt_frame": 625,
+  "meta_gt_frame": "000625",
+  "gt_absdev": 0.12466993211380088,
+  "gt_passed": false,
+  "n_frames": 54,
+  "n_pass": 47,
+  "pass_frac": 0.87,
+  "longest_consistent_window": {
+   "span_frames": 450,
+   "from": 0,
+   "to": 450
+  },
+  "first_bad_frame": 475,
+  "last_bad_frame": 625,
+  "max_absdev": 0.1247,
+  "max_absdev_frame": 625,
+  "verdict": "GT 不在一致窗口内"
+ },
+ "VID_20260426_173604": {
+  "i_frames": [
+   7,
+   14,
+   21
+  ],
+  "label_gt_frame": 725,
+  "meta_gt_frame": "000725",
+  "gt_absdev": 0.009000770914649977,
+  "gt_passed": true,
+  "n_frames": 59,
+  "n_pass": 54,
+  "pass_frac": 0.915,
+  "longest_consistent_window": {
+   "span_frames": 450,
+   "from": 0,
+   "to": 450
+  },
+  "first_bad_frame": 475,
+  "last_bad_frame": 575,
+  "max_absdev": 0.0808,
+  "max_absdev_frame": 525,
+  "verdict": "GT 本身已在一致窗口内 → 换帧救不了"
+ },
+ "VID_20260426_173827": {
+  "i_frames": [
+   0,
+   9,
+   19
+  ],
+  "label_gt_frame": 1025,
+  "meta_gt_frame": "001025",
+  "gt_absdev": 0.17750422249226785,
+  "gt_passed": false,
+  "n_frames": 77,
+  "n_pass": 60,
+  "pass_frac": 0.779,
+  "longest_consistent_window": {
+   "span_frames": 550,
+   "from": 0,
+   "to": 550
+  },
+  "first_bad_frame": 575,
+  "last_bad_frame": 1150,
+  "max_absdev": 0.1982,
+  "max_absdev_frame": 950,
+  "verdict": "GT 不在一致窗口内"
+ }
+}

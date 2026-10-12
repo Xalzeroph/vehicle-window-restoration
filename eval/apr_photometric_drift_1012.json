@@ -1,0 +1,304 @@
+{
+ "VID_20260426_172719": {
+  "scene": "VID_20260426_172719",
+  "n_frames": 64,
+  "frame_span": [
+   0,
+   875
+  ],
+  "luma_min": 118.34,
+  "luma_max": 143.2,
+  "luma_drift": 24.86,
+  "luma_std": 7.04,
+  "ch_drift_BGR": [
+   29.72,
+   23.12,
+   27.14
+  ],
+  "ch_drift_spread": 6.597,
+  "spearman_frame_luma": -0.4155,
+  "median_abs_dluma": 0.2,
+  "max_abs_dluma": 13.616,
+  "n_step_like_transitions": 16,
+  "step_frames": [
+   29,
+   50,
+   200,
+   225,
+   325,
+   475,
+   500,
+   525
+  ],
+  "longest_static_window": {
+   "n_pairs": 29,
+   "from_frame": 0,
+   "to_frame": 29
+  },
+  "gt_luma": 122.46,
+  "i_frames": [
+   [
+    0,
+    137.29
+   ],
+   [
+    7,
+    137.99
+   ],
+   [
+    15,
+    138.27
+   ]
+  ],
+  "signal_vs_drift_ratio": 0.619,
+  "drift_shape": "瞬时台阶 x16"
+ },
+ "VID_20260426_172933": {
+  "scene": "VID_20260426_172933",
+  "n_frames": 52,
+  "frame_span": [
+   0,
+   575
+  ],
+  "luma_min": 118.57,
+  "luma_max": 132.83,
+  "luma_drift": 14.26,
+  "luma_std": 2.82,
+  "ch_drift_BGR": [
+   20.5,
+   13.93,
+   14.74
+  ],
+  "ch_drift_spread": 6.575,
+  "spearman_frame_luma": -0.5961,
+  "median_abs_dluma": 0.093,
+  "max_abs_dluma": 13.581,
+  "n_step_like_transitions": 12,
+  "step_frames": [
+   75,
+   100,
+   125,
+   150,
+   175,
+   225,
+   250,
+   275
+  ],
+  "longest_static_window": {
+   "n_pairs": 31,
+   "from_frame": 0,
+   "to_frame": 75
+  },
+  "gt_luma": 128.42,
+  "i_frames": [
+   [
+    250,
+    118.57
+   ]
+  ],
+  "signal_vs_drift_ratio": 0.691,
+  "drift_shape": "斜坡+台阶(斜坡主, 台阶12)"
+ },
+ "VID_20260426_173237": {
+  "scene": "VID_20260426_173237",
+  "n_frames": 53,
+  "frame_span": [
+   0,
+   600
+  ],
+  "luma_min": 119.19,
+  "luma_max": 150.45,
+  "luma_drift": 31.25,
+  "luma_std": 9.83,
+  "ch_drift_BGR": [
+   46.25,
+   25.81,
+   36.32
+  ],
+  "ch_drift_spread": 20.433,
+  "spearman_frame_luma": -0.5824,
+  "median_abs_dluma": 0.713,
+  "max_abs_dluma": 12.217,
+  "n_step_like_transitions": 3,
+  "step_frames": [
+   75,
+   225,
+   475
+  ],
+  "longest_static_window": {
+   "n_pairs": 12,
+   "from_frame": 17,
+   "to_frame": 29
+  },
+  "gt_luma": 119.19,
+  "i_frames": [
+   [
+    0,
+    144.02
+   ],
+   [
+    6,
+    145.43
+   ],
+   [
+    13,
+    149.61
+   ]
+  ],
+  "signal_vs_drift_ratio": 0.869,
+  "drift_shape": "斜坡+台阶(斜坡主, 台阶3)"
+ },
+ "VID_20260426_173349": {
+  "scene": "VID_20260426_173349",
+  "n_frames": 54,
+  "frame_span": [
+   0,
+   625
+  ],
+  "luma_min": 117.73,
+  "luma_max": 136.31,
+  "luma_drift": 18.58,
+  "luma_std": 5.16,
+  "ch_drift_BGR": [
+   20.14,
+   18.06,
+   20.24
+  ],
+  "ch_drift_spread": 2.172,
+  "spearman_frame_luma": -0.605,
+  "median_abs_dluma": 0.093,
+  "max_abs_dluma": 5.159,
+  "n_step_like_transitions": 14,
+  "step_frames": [
+   75,
+   125,
+   225,
+   300,
+   325,
+   350,
+   375,
+   400
+  ],
+  "longest_static_window": {
+   "n_pairs": 31,
+   "from_frame": 0,
+   "to_frame": 75
+  },
+  "gt_luma": 117.73,
+  "i_frames": [
+   [
+    0,
+    135.07
+   ],
+   [
+    6,
+    135.42
+   ],
+   [
+    13,
+    135.91
+   ]
+  ],
+  "signal_vs_drift_ratio": 0.954,
+  "drift_shape": "斜坡+台阶(斜坡主, 台阶14)"
+ },
+ "VID_20260426_173604": {
+  "scene": "VID_20260426_173604",
+  "n_frames": 59,
+  "frame_span": [
+   0,
+   750
+  ],
+  "luma_min": 131.09,
+  "luma_max": 140.71,
+  "luma_drift": 9.62,
+  "luma_std": 1.88,
+  "ch_drift_BGR": [
+   10.15,
+   9.73,
+   9.77
+  ],
+  "ch_drift_spread": 0.422,
+  "spearman_frame_luma": -0.076,
+  "median_abs_dluma": 0.249,
+  "max_abs_dluma": 5.974,
+  "n_step_like_transitions": 12,
+  "step_frames": [
+   29,
+   150,
+   225,
+   250,
+   275,
+   325,
+   350,
+   425
+  ],
+  "longest_static_window": {
+   "n_pairs": 25,
+   "from_frame": 4,
+   "to_frame": 29
+  },
+  "gt_luma": 133.52,
+  "i_frames": [
+   [
+    7,
+    136.02
+   ],
+   [
+    14,
+    135.59
+   ],
+   [
+    21,
+    135.56
+   ]
+  ],
+  "signal_vs_drift_ratio": 0.228,
+  "drift_shape": "瞬时台阶 x12"
+ },
+ "VID_20260426_173827": {
+  "scene": "VID_20260426_173827",
+  "n_frames": 77,
+  "frame_span": [
+   0,
+   1200
+  ],
+  "luma_min": 128.97,
+  "luma_max": 151.12,
+  "luma_drift": 22.14,
+  "luma_std": 5.76,
+  "ch_drift_BGR": [
+   20.68,
+   21.18,
+   24.62
+  ],
+  "ch_drift_spread": 3.938,
+  "spearman_frame_luma": -0.6776,
+  "median_abs_dluma": 0.776,
+  "max_abs_dluma": 6.869,
+  "n_step_like_transitions": 0,
+  "step_frames": [],
+  "longest_static_window": {
+   "n_pairs": 29,
+   "from_frame": 0,
+   "to_frame": 29
+  },
+  "gt_luma": 131.08,
+  "i_frames": [
+   [
+    0,
+    147.99
+   ],
+   [
+    9,
+    147.78
+   ],
+   [
+    19,
+    146.74
+   ]
+  ],
+  "signal_vs_drift_ratio": 0.742,
+  "drift_shape": "连续斜坡(单调漂移)"
+ }
+}

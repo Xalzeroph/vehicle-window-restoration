@@ -1,0 +1,272 @@
+{
+ "VID_20260426_172719": {
+  "scene": "VID_20260426_172719",
+  "n_frames": 64,
+  "frame_first": 0,
+  "frame_last": 875,
+  "s_first": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "s_last": [
+   0.8554,
+   0.8864,
+   0.86
+  ],
+  "s_max_dev": 0.1798,
+  "s_max_dev_frame": 825,
+  "n_steps": 6,
+  "step_frames": [
+   650,
+   700,
+   725,
+   750,
+   775,
+   800
+  ],
+  "step_sizes": [
+   0.0708,
+   0.0581,
+   0.1002,
+   0.135,
+   0.0818,
+   0.1069
+  ],
+  "max_step_size": 0.135,
+  "max_step_frame": 750,
+  "median_abs_ds": 0.00549,
+  "frac_frames_off_5pct": 0.188,
+  "off_frame_range": [
+   550,
+   875
+  ],
+  "luma_first": 137.29,
+  "luma_last": 122.46,
+  "luma_min": 118.35,
+  "luma_max": 143.19
+ },
+ "VID_20260426_172933": {
+  "scene": "VID_20260426_172933",
+  "n_frames": 52,
+  "frame_first": 0,
+  "frame_last": 575,
+  "s_first": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "s_last": [
+   0.913,
+   0.978,
+   0.9432
+  ],
+  "s_max_dev": 0.1,
+  "s_max_dev_frame": 250,
+  "n_steps": 2,
+  "step_frames": [
+   225,
+   250
+  ],
+  "step_sizes": [
+   0.1058,
+   0.0798
+  ],
+  "max_step_size": 0.1058,
+  "max_step_frame": 225,
+  "median_abs_ds": 0.00399,
+  "frac_frames_off_5pct": 0.096,
+  "off_frame_range": [
+   250,
+   575
+  ],
+  "luma_first": 132.28,
+  "luma_last": 125.2,
+  "luma_min": 118.57,
+  "luma_max": 132.83
+ },
+ "VID_20260426_173237": {
+  "scene": "VID_20260426_173237",
+  "n_frames": 53,
+  "frame_first": 0,
+  "frame_last": 600,
+  "s_first": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "s_last": [
+   0.9939,
+   1.0,
+   1.0
+  ],
+  "s_max_dev": 0.3399,
+  "s_max_dev_frame": 400,
+  "n_steps": 9,
+  "step_frames": [
+   250,
+   275,
+   300,
+   325,
+   350,
+   475,
+   500,
+   525,
+   550
+  ],
+  "step_sizes": [
+   0.0505,
+   0.1295,
+   0.1269,
+   0.0972,
+   0.1999,
+   0.0947,
+   0.2903,
+   0.0872,
+   0.0644
+  ],
+  "max_step_size": 0.2903,
+  "max_step_frame": 500,
+  "median_abs_ds": 0.00507,
+  "frac_frames_off_5pct": 0.208,
+  "off_frame_range": [
+   300,
+   550
+  ],
+  "luma_first": 144.01,
+  "luma_last": 141.15,
+  "luma_min": 119.18,
+  "luma_max": 150.44
+ },
+ "VID_20260426_173349": {
+  "scene": "VID_20260426_173349",
+  "n_frames": 54,
+  "frame_first": 0,
+  "frame_last": 625,
+  "s_first": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "s_last": [
+   0.875,
+   0.9062,
+   0.875
+  ],
+  "s_max_dev": 0.125,
+  "s_max_dev_frame": 625,
+  "n_steps": 5,
+  "step_frames": [
+   175,
+   400,
+   450,
+   550,
+   600
+  ],
+  "step_sizes": [
+   0.0242,
+   0.039,
+   0.0278,
+   0.0274,
+   0.059
+  ],
+  "max_step_size": 0.059,
+  "max_step_frame": 600,
+  "median_abs_ds": 0.00237,
+  "frac_frames_off_5pct": 0.13,
+  "off_frame_range": [
+   475,
+   625
+  ],
+  "luma_first": 135.07,
+  "luma_last": 117.73,
+  "luma_min": 117.73,
+  "luma_max": 136.31
+ },
+ "VID_20260426_173604": {
+  "scene": "VID_20260426_173604",
+  "n_frames": 59,
+  "frame_first": 0,
+  "frame_last": 750,
+  "s_first": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "s_last": [
+   0.9907,
+   1.0,
+   1.012
+  ],
+  "s_max_dev": 0.0921,
+  "s_max_dev_frame": 525,
+  "n_steps": 2,
+  "step_frames": [
+   575,
+   675
+  ],
+  "step_sizes": [
+   0.0612,
+   0.058
+  ],
+  "max_step_size": 0.0612,
+  "max_step_frame": 575,
+  "median_abs_ds": 0.00548,
+  "frac_frames_off_5pct": 0.102,
+  "off_frame_range": [
+   350,
+   575
+  ],
+  "luma_first": 135.08,
+  "luma_last": 133.17,
+  "luma_min": 131.09,
+  "luma_max": 140.71
+ },
+ "VID_20260426_173827": {
+  "scene": "VID_20260426_173827",
+  "n_frames": 77,
+  "frame_first": 0,
+  "frame_last": 1200,
+  "s_first": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "s_last": [
+   1.0446,
+   1.0427,
+   1.0394
+  ],
+  "s_max_dev": 0.2153,
+  "s_max_dev_frame": 950,
+  "n_steps": 6,
+  "step_frames": [
+   800,
+   825,
+   900,
+   925,
+   1075,
+   1100
+  ],
+  "step_sizes": [
+   0.0716,
+   0.0537,
+   0.0667,
+   0.1345,
+   0.0522,
+   0.1762
+  ],
+  "max_step_size": 0.1762,
+  "max_step_frame": 1100,
+  "median_abs_ds": 0.00496,
+  "frac_frames_off_5pct": 0.169,
+  "off_frame_range": [
+   675,
+   1150
+  ],
+  "luma_first": 147.99,
+  "luma_last": 148.93,
+  "luma_min": 128.97,
+  "luma_max": 151.12
+ }
+}
