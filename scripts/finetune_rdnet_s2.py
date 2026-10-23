@@ -84,14 +84,30 @@ def blur_R(R, rng):
 
 
 class S2Dataset(Dataset):
-    def __init__(self, arm='main', size=224, s_jitter=0.0, omega_dir=None):
+    def __init__(self, arm='main', size=224, s_jitter=0.0, omega_dir=None, domains=None,
+                 sample_p=None):
         self.omega_dir = omega_dir or OMEGA_DIR
         self.size = size
         self.s_jitter = s_jitter
         self.arm = arm
         self.p = np.array([0.3, 0.4, 0.3]) if arm == 'main' else np.array([0.0, 0.57, 0.43])
+        if sample_p is not None:
+            p = np.asarray([float(x) for x in str(sample_p).split(',')], dtype=np.float64)
+            if p.size != 3 or p.min() < 0 or p.sum() <= 0:
+                raise SystemExit(f'--sample-p 需 3 个非负数，收到 {sample_p!r}')
+            self.p = p / p.sum()
+            print(f'[s2] 采样比覆盖为 {self.p.tolist()}', flush=True)
         with open(os.path.join(self.omega_dir, 'meta.json')) as fp:
             self.om_meta = json.load(fp)
+        # 2026-10-21：按 domain 过滤（消融要钉死数据构成；不改默认行为）
+        if domains:
+            keep = {d.strip().lower() for d in str(domains).split(',') if d.strip()}
+            before = len(self.om_meta)
+            self.om_meta = {k: v for k, v in self.om_meta.items()
+                            if str(v.get('domain', '')).lower() in keep}
+            if not self.om_meta:
+                raise SystemExit(f'[s2] --omega-domains={domains} 过滤后为空（原 {before} 条）')
+            print(f'[s2] domain 过滤 {sorted(keep)}: {before} → {len(self.om_meta)} 条')
         self.om_ids = sorted(self.om_meta.keys())
         self.t_files = []
         for d in T_SRCS:
@@ -182,6 +198,18 @@ def grad_fidelity(T_hat, T):
     return gxh.abs().mean() + gyh.abs().mean()
 
 
+def grad_fidelity_elem(T_hat, T):
+    """逐样本版（返回 [B]），用于乘样本权重 `w_s`。
+
+    2026-10-21 修：原 `grad_fidelity`/`lap_fidelity` **未乘 `w_s`**（见
+    docs/2026.9.21_S2v2修正版_负结果与归因.md §4）—— opensrc 分支像素项半权，
+    而两项保真全权，等于把 opensrc 的梯度压力相对放大。此处改为先取逐样本均值再乘 w_s。
+    """
+    gxh = (T_hat[..., :, 1:] - T_hat[..., :, :-1]) - (T[..., :, 1:] - T[..., :, :-1])
+    gyh = (T_hat[..., 1:, :] - T_hat[..., :-1, :]) - (T[..., 1:, :] - T[..., :-1, :])
+    return gxh.abs().mean(dim=(1, 2, 3)) + gyh.abs().mean(dim=(1, 2, 3))
+
+
 _LAP_K = None
 
 
@@ -193,6 +221,16 @@ def lap_fidelity(T_hat, T):
         _LAP_K = k.view(1, 1, 3, 3).repeat(3, 1, 1, 1)
     f = lambda x: F.conv2d(x, _LAP_K, padding=1, groups=3)   # noqa: E731
     return (f(T_hat) - f(T)).abs().mean()
+
+
+def lap_fidelity_elem(T_hat, T):
+    """逐样本版（返回 [B]），见 `grad_fidelity_elem` 的说明。"""
+    global _LAP_K
+    if _LAP_K is None:
+        k = torch.tensor([[0., 1., 0.], [1., -4., 1.], [0., 1., 0.]], device=T.device)
+        _LAP_K = k.view(1, 1, 3, 3).repeat(3, 1, 1, 1)
+    f = lambda x: F.conv2d(x, _LAP_K, padding=1, groups=3)   # noqa: E731
+    return (f(T_hat) - f(T)).abs().mean(dim=(1, 2, 3))
 
 
 def main():
@@ -215,6 +253,17 @@ def main():
     ap.add_argument('--lam-lap', type=float, default=2.0, help='全图二阶 Laplacian 保真（防抹平）')
     ap.add_argument('--s-jitter', type=float, default=0.0, help='合成曝光抖动幅度（0=关闭）')
     ap.add_argument('--omega-dir', default=None, help='真实 Ω 配对目录（默认 train_pairs_omega_0920；LOVO 子集用）')
+    ap.add_argument('--omega-domains', default=None,
+                    help='逗号分隔，按 meta 的 domain 字段过滤（如 apr）；默认不过滤')
+    ap.add_argument('--manifest', default='',
+                    help='实验清单 JSON 写出路径（配置/环境/可训练参数/数据构成，供消融归档）')
+    ap.add_argument('--assert-under', default='',
+                    help='入口断言：所有 omega case 路径须落在该目录下，否则中止（防手滑混入锁死域）')
+    ap.add_argument('--no-dists', action='store_true', help='不创建 pyiqa DISTS（λ_dists 必须为 0）')
+    ap.add_argument('--legacy-fidelity', action='store_true',
+                    help='grad/lap 保真项回到 9-21 旧行为（**不乘 w_s**），用于复现旧负结果')
+    ap.add_argument('--sample-p', default=None,
+                    help='采样比覆盖，如 "0.6,0.2,0.2"（omega,synth,opensrc）；默认由 --arm 决定')
     ap.add_argument('--save-every', type=int, default=1000)
     ap.add_argument('--log-every', type=int, default=50)
     ap.add_argument('--seg-iters', type=int, default=2000)
@@ -238,12 +287,59 @@ def main():
     net.to(dev); net_c.to(dev)
 
     import pyiqa
-    dists_net = pyiqa.create_metric('dists', device=dev).net
-    dists_net.eval().requires_grad_(False)
+    if args.no_dists or args.lam_dists <= 0:
+        dists_net = None
+        print('[s2] DISTS 未启用（λ_dists=0 或 --no-dists）', flush=True)
+    else:
+        dists_net = pyiqa.create_metric('dists', device=dev).net
+        dists_net.eval().requires_grad_(False)
 
-    ds = S2Dataset(arm=args.arm, size=224, s_jitter=args.s_jitter, omega_dir=args.omega_dir)
+    ds = S2Dataset(arm=args.arm, size=224, s_jitter=args.s_jitter,
+                   omega_dir=args.omega_dir, domains=args.omega_domains,
+                   sample_p=args.sample_p)
     print(f'[s2] T 源 {len(ds.t_files)} 张 | R 白名单 {len(ds.om_ids)}+{len(ds.rrw_ids)-1} 层 | '
           f'开源 {len(ds.os_pairs)} 对 | p={ds.p}', flush=True)
+
+    # 入口断言：所有 omega case 必须落在 --assert-under 之下（防手滑混入锁死域）
+    if args.assert_under:
+        root = os.path.realpath(args.assert_under)
+        bad = []
+        for case in ds.om_ids:
+            for sub in ('I', 'T', 'R', 'omega'):
+                p = os.path.realpath(os.path.join(ds.omega_dir, sub, case + '.png'))
+                if not p.startswith(root + os.sep):
+                    bad.append(p)
+        if bad:
+            raise SystemExit(f'[s2] 入口断言失败：{len(bad)} 个路径不在 {root} 下，例 {bad[:3]}')
+        print(f'[s2] 入口断言通过：{len(ds.om_ids)} 个 case 全在 {root} 下', flush=True)
+
+    # 实验清单（消融归档用）
+    if args.manifest:
+        import subprocess, socket
+        mp = args.manifest if os.path.isabs(args.manifest) else os.path.join(PROJ, args.manifest)
+        os.makedirs(os.path.dirname(mp), exist_ok=True)
+        try:
+            gitrev = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], cwd=PROJ,
+                                    capture_output=True, text=True).stdout.strip()
+        except Exception:
+            gitrev = '?'
+        man = dict(
+            args=vars(args), git_rev=gitrev, host=socket.gethostname(),
+            cuda_visible_devices=os.environ.get('CUDA_VISIBLE_DEVICES', ''),
+            torch=torch.__version__, cuda=torch.version.cuda,
+            trainable_params=n_tr, mona_keys=n_mona,
+            world_size=1, batch_per_gpu=args.batch, effective_batch=args.batch,
+            omega_dir=ds.omega_dir,
+            n_omega_cases=len(ds.om_ids),
+            omega_domains=sorted({str(v.get('domain', '')) for v in ds.om_meta.values()}),
+            omega_scenes=len({str(v.get('scene', '')) for v in ds.om_meta.values()}),
+            n_t_src=len(ds.t_files), n_opensrc=len(ds.os_pairs), sample_p=ds.p.tolist(),
+            start_time=time.strftime('%Y-%m-%d %H:%M:%S'),
+        )
+        with open(mp, 'w', encoding='utf-8') as fh:
+            json.dump(man, fh, ensure_ascii=False, indent=1)
+        print(f'[s2] manifest -> {mp}', flush=True)
+        args._manifest_path = mp
     opt = torch.optim.Adam([p for p in net.parameters() if p.requires_grad], lr=args.lr)
     sched = torch.optim.lr_scheduler.LambdaLR(
         opt, lambda i: min(1.0, (i + 1) / 200) * (0.1 + 0.45 *
@@ -292,10 +388,17 @@ def main():
                     R_hat, T_hat = out_col[:, :3], out_col[:, 3:]
                     wc = float(ci + 1); wsum += wc
                     L_t = L_t + wc * (w_s * charbonnier(T_hat, T)).mean()
+                    _ws = w_s.reshape(-1)
                     if args.lam_grad > 0:
-                        L_grad = L_grad + args.lam_grad * wc * grad_fidelity(T_hat, T)
+                        if args.legacy_fidelity:      # 复现 9-21 旧行为（漏乘 w_s）
+                            L_grad = L_grad + args.lam_grad * wc * grad_fidelity(T_hat, T)
+                        else:
+                            L_grad = L_grad + args.lam_grad * wc * (_ws * grad_fidelity_elem(T_hat, T)).mean()
                     if args.lam_lap > 0:
-                        L_lap = L_lap + args.lam_lap * wc * lap_fidelity(T_hat, T)
+                        if args.legacy_fidelity:
+                            L_lap = L_lap + args.lam_lap * wc * lap_fidelity(T_hat, T)
+                        else:
+                            L_lap = L_lap + args.lam_lap * wc * (_ws * lap_fidelity_elem(T_hat, T)).mean()
                     if has_R.max() > 0:
                         num = (w_s * charbonnier(R_hat, R) * has_R).sum()
                         den_r = (w_s * has_R).sum() * hw + EPS
@@ -316,20 +419,22 @@ def main():
                     L_hinge = args.lam_hinge * (hg / den * m_om).sum() / m_om.sum().clamp(min=1)
                     idxs = (m_om > 0).nonzero().squeeze(-1)
                     dsum = torch.zeros((), device=dev)
-                    with torch.cuda.amp.autocast(enabled=False):
-                        for bi in idxs[:4]:                   # 每 iter 最多 4 张省时
-                            m = OM[bi, 0] > 0.5
-                            ys, xs = m.any(1).nonzero(), m.any(0).nonzero()
-                            y0, y1 = max(0, int(ys.min()) - 10), int(ys.max()) + 11
-                            x0, x1 = max(0, int(xs.min()) - 10), int(xs.max()) + 11
-                            ta = T_hat[bi:bi + 1, :, y0:y1, x0:x1].float()
-                            tb = T[bi:bi + 1, :, y0:y1, x0:x1].float()
-                            sc = 320.0 / max(ta.shape[2], ta.shape[3])
-                            if sc < 1:
-                                ta = F.interpolate(ta, scale_factor=sc, mode='bilinear', align_corners=False)
-                                tb = F.interpolate(tb, scale_factor=sc, mode='bilinear', align_corners=False)
-                            dsum = dsum + args.lam_dists * dists_net(ta, tb)
-                    L_dists = dsum / max(1, min(len(idxs), 4))
+                    # 2026-10-21：λ_dists=0 时不再白算 DISTS 前向（原先每 iter 最多 4 次）
+                    if args.lam_dists > 0:
+                        with torch.cuda.amp.autocast(enabled=False):
+                            for bi in idxs[:4]:                   # 每 iter 最多 4 张省时
+                                m = OM[bi, 0] > 0.5
+                                ys, xs = m.any(1).nonzero(), m.any(0).nonzero()
+                                y0, y1 = max(0, int(ys.min()) - 10), int(ys.max()) + 11
+                                x0, x1 = max(0, int(xs.min()) - 10), int(xs.max()) + 11
+                                ta = T_hat[bi:bi + 1, :, y0:y1, x0:x1].float()
+                                tb = T[bi:bi + 1, :, y0:y1, x0:x1].float()
+                                sc = 320.0 / max(ta.shape[2], ta.shape[3])
+                                if sc < 1:
+                                    ta = F.interpolate(ta, scale_factor=sc, mode='bilinear', align_corners=False)
+                                    tb = F.interpolate(tb, scale_factor=sc, mode='bilinear', align_corners=False)
+                                dsum = dsum + args.lam_dists * dists_net(ta, tb)
+                        L_dists = dsum / max(1, min(len(idxs), 4))
                 total = L_t + L_r + L_om + L_hinge + L_dists + L_recons + L_excl + L_grad + L_lap
             opt.zero_grad(set_to_none=True)
             scaler.scale(total).backward()
@@ -359,6 +464,22 @@ def main():
                     iter=it, peft=dict(mode=args.mona), arm=args.arm, args=vars(args)),
                os.path.join(out, 'ckpt_final.pth'))
     print(f'[s2] done {it} iter -> {out}', flush=True)
+
+    # 清单收尾：补结束时间/时长/末次损失（供消融归档与「干预是否生效」核查）
+    mp = getattr(args, '_manifest_path', '')
+    if mp and os.path.exists(mp):
+        man = json.load(open(mp, encoding='utf-8'))
+        g = lambda x: float(x.detach())          # noqa: E731
+        man.update(end_time=time.strftime('%Y-%m-%d %H:%M:%S'),
+                   wall_sec=round(time.time() - t0, 1), final_iter=it,
+                   ckpt=os.path.join(out, 'ckpt_final.pth'),
+                   loss_last=dict(L_t=g(L_t), L_r=g(L_r), L_om=g(L_om), L_hinge=g(L_hinge),
+                                  L_dists=g(L_dists), L_recons=g(L_recons), L_excl=g(L_excl),
+                                  L_grad=g(L_grad), L_lap=g(L_lap), total=g(total)),
+                   peak_mem_gb=round(torch.cuda.max_memory_allocated(dev) / 2 ** 30, 2))
+        with open(mp, 'w', encoding='utf-8') as fh:
+            json.dump(man, fh, ensure_ascii=False, indent=1)
+        print(f'[s2] manifest 收尾 -> {mp}', flush=True)
 
 
 if __name__ == '__main__':

@@ -26,7 +26,6 @@ TintedGlass_Enhance/
 ├── pretrained/             # 预训练模型权重（符号链接）
 ├── scripts/                # 推理/实验脚本（probes_0915/ 为一次性探针）
 │   └── pipeline.py         # 联合推理：RDNet → ExpoMamba
-├── .claude/skills/         # research-loop 工作流协议（随库入库）
 ├── data/                   # 实验数据产物（不入 git，可由 scripts/ 重建）
 │   ├── pools/              # T/R 源池、matched_pool_*、probe_rscale_*
 │   ├── test_sets/          # synth_rrw_v21_0913 / _indomain / v2 / demo
@@ -76,16 +75,17 @@ cd RDNet && python3 train.py
 - `--if_align`：将图像对齐到 32 的倍数
 - `--save_memory`：使用可逆模式节省显存
 
-## 研究工作流（research-loop）
+## 课题纪律护栏（2026-10-21 精简）
 
-实验轮次走固化流程：**P0 破题(预登记判决门) → P1 方案 → P2 Opus 红队审核(关键轮) →
-P3 执行 → P4 分析 → P5 写 `docs/` md 汇报 → P6 确认后 git 提交**。三个必停门：
-方案定稿 / 启动 >30min GPU 任务 / git 提交。
+> 原 `research-loop`（P0–P6 + 三个必停门）已于 2026-10-21 **删除**：实测它是"大跃进式"的流程外壳，
+> 阶段仪式并不能替代研究判断（**科研不可 autoloop**）。以下三条与流程无关、单独保留，因为各自拦住过真实错误。
 
-- 协议全文：`.claude/skills/research-loop/SKILL.md`（说"开新一轮/走工作流"即触发）
-- 执行链：`Makefile`（`make help`；check-pool / triplets / train / eval-all / report / clean-ckpts）
-- 每轮护栏：新数据先过 `scripts/check_t_src_leak.py`（内容级泄漏核查）；评测必带
-  常数/平凡基线 + v2.1 & indomain 双测试集；引用历史数字前查 `docs/` 修正框
+1. **新数据池一律先跑内容级泄漏核查** `scripts/check_t_src_leak.py`。一切以**内容**为准，按文件名排除无效；
+   退出码 1 即停。同时看「N 文件 → K 种唯一内容」那行：同场景相邻帧近乎相同，
+   **有效独立样本数远小于文件数**，直接决定统计功效。
+2. **评测面板必带平凡基线**：至少 `identity`（T̂ = I，给分数地板）与官方冻结 ckpt。缺基线时 Δ 无参照，不写进结论。
+3. **判据先预登记，且先算统计功效**。写死"什么数字算通过"后才跑；报 Δ 给 **95% 置信区间**，
+   并写明本测试集能分辨的最小效应（由 n 与配对 sd 决定）；区间覆盖 0 的差异不得当结论。
 
 ## 注意事项
 
