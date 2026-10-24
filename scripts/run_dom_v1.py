@@ -38,20 +38,25 @@ PY = "/DataDisk/miniconda/envs/xreflection/bin/python3"
 OUT = os.path.join(P, "runs/dom_v1")
 POOL = os.path.join(P, "data/train_sets/real_pairs_1020")
 IN19 = os.path.join(P, "data/train_sets/real_pairs_1019split")
+MAY14 = os.path.join(P, "data/train_sets/pairs_may")
+APR16 = os.path.join(P, "data/train_sets/train_pairs_omega_0920")
 
 FID = ["--lam-grad", "5", "--lam-lap", "2", "--legacy-fidelity"]
 COMMON = ["--arm", "main", "--iters", "6000", "--batch", "6",
           "--save-every", "6000", "--log-every", "200"]
 
-# 顺序即队列优先级：先跑三个关键单域（may/jun/域内），再跑组合
+# 臂 -> (omega_dir, domains, seeds_stage1, seeds_stage2)
+# 顺序即队列优先级。doms == "-" 表示不加 --omega-domains 过滤（旧目录没有 domain 字段）
 ARMS = {
+    "R-mayjun":  (POOL, "may,jun",    [101], [202, 303]),
     "R-may":     (POOL, "may",        [101], [202, 303]),
-    "R-jun":     (POOL, "jun",        [101], [202, 303]),
     "R-in19":    (IN19, "1019split",  [101], [202, 303]),
-    "R-aprmay":  (POOL, "apr,may",    [101], []),
-    "R-aprjun":  (POOL, "apr,jun",    [101], []),
-    "R-mayjun":  (POOL, "may,jun",    [101], []),
-    "R-all":     (POOL, "apr,may,jun", [101], []),
+    "R-jun":     (POOL, "jun",        [101], [202, 303]),
+    "R-all":     (POOL, "apr,may,jun", [101], [202, 303]),
+    "R-aprmay":  (POOL, "apr,may",    [101], [202, 303]),
+    "R-aprjun":  (POOL, "apr,jun",    [101], [202, 303]),
+    # 选取规则对照臂：只补种子，阶段 1 已在上一轮跑过
+    "R-apr16":   (APR16, "-",         [],    [202, 303]),
 }
 
 _lock = threading.Lock()
@@ -113,41 +118,63 @@ def release_gpu(gpu, tag):
             _busy.pop(gpu, None)
 
 
-def run_task(task, need_mb, max_wait_s):
+def run_task(task, need_mb, max_wait_s, max_attempts=4):
+    """跑一个任务；若因 OOM 失败则换卡重试。
+
+    2026-10-23 加：显存"检查→启动"之间存在竞态 —— 检查时空闲 ≥7 GB，真分配时
+    已被别人拿走（本轮 8 个任务里 3 个如此，全部 OOM 在只剩 23–55 MB 的卡上）。
+    所以 rc!=0 且日志含 out of memory 时，释放该卡并重新挑卡重试。
+    """
     name, seed, wdir, doms = task
     tag = f"{name}_s{seed}"
-    gpu = acquire_gpu(need_mb, max_wait_s, tag)
-    if gpu is None:
-        return
-    try:
-        out_dir = os.path.join(OUT, tag)
-        os.makedirs(out_dir, exist_ok=True)
-        cmd = [PY, "-u", os.path.join(P, "scripts/finetune_rdnet_s2.py")] + COMMON + [
-            "--seed", str(seed), "--gpu", "0",
-            "--omega-dir", wdir, "--omega-domains", doms,
-            "--assert-under", wdir,
-            "--manifest", os.path.join(out_dir, "manifest.json"),
-            "--out", out_dir] + FID
-        env = dict(os.environ)
-        env["CUDA_VISIBLE_DEVICES"] = str(gpu)
-        env.setdefault("TORCH_HOME", "/home/zmy/data/cache/torch")
-        env.setdefault("HF_HOME", "/home/zmy/data/cache/huggingface")
-        env["OMP_NUM_THREADS"] = "8"
-        env["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
-        t0 = time.time()
-        with open(os.path.join(out_dir, "train.log"), "w") as fh:
-            rc = subprocess.run(cmd, cwd=P, env=env, stdout=fh,
-                                stderr=subprocess.STDOUT).returncode
-        wall = time.time() - t0
-        rec = dict(arm=name, seed=seed, gpu=gpu, out=out_dir, rc=rc,
-                   start=int(t0), end=int(time.time()), wall_sec=int(wall),
-                   cmd=" ".join(cmd[1:]))
-        with _lock:
-            with open(os.path.join(OUT, "launch_log.jsonl"), "a", encoding="utf-8") as fh:
-                fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
-        print(f"[done] {tag} gpu{gpu} rc={rc} wall={wall/60:.0f}min", flush=True)
-    finally:
-        release_gpu(gpu, tag)
+    for attempt in range(1, max_attempts + 1):
+        gpu = acquire_gpu(need_mb, max_wait_s, tag)
+        if gpu is None:
+            return
+        try:
+            out_dir = os.path.join(OUT, tag)
+            os.makedirs(out_dir, exist_ok=True)
+            log_path = os.path.join(out_dir, "train.log")
+            cmd = [PY, "-u", os.path.join(P, "scripts/finetune_rdnet_s2.py")] + COMMON + [
+                "--seed", str(seed), "--gpu", "0",
+                "--omega-dir", wdir,
+                "--assert-under", wdir,
+                "--manifest", os.path.join(out_dir, "manifest.json"),
+                "--out", out_dir] + FID
+            if doms and doms != "-":
+                cmd += ["--omega-domains", doms]
+            env = dict(os.environ)
+            env["CUDA_VISIBLE_DEVICES"] = str(gpu)
+            env.setdefault("TORCH_HOME", "/home/zmy/data/cache/torch")
+            env.setdefault("HF_HOME", "/home/zmy/data/cache/huggingface")
+            env["OMP_NUM_THREADS"] = "8"
+            env["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+            t0 = time.time()
+            with open(log_path, "w") as fh:
+                rc = subprocess.run(cmd, cwd=P, env=env, stdout=fh,
+                                    stderr=subprocess.STDOUT).returncode
+            wall = time.time() - t0
+            oom = False
+            try:
+                txt = open(log_path, errors="replace").read()[-4000:]
+                oom = ("out of memory" in txt.lower()) or ("OutOfMemoryError" in txt)
+            except Exception:
+                pass
+            if rc != 0 and oom and attempt < max_attempts:
+                print(f"[retry] {tag} gpu{gpu} OOM（第 {attempt} 次），换卡重试", flush=True)
+                time.sleep(20)
+                continue
+            rec = dict(arm=name, seed=seed, gpu=gpu, out=out_dir, rc=rc,
+                       attempt=attempt, start=int(t0), end=int(time.time()),
+                       wall_sec=int(wall), cmd=" ".join(cmd[1:]))
+            with _lock:
+                with open(os.path.join(OUT, "launch_log.jsonl"), "a", encoding="utf-8") as fh:
+                    fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+            print(f"[done] {tag} gpu{gpu} rc={rc} attempt={attempt} "
+                  f"wall={wall/60:.0f}min", flush=True)
+            return
+        finally:
+            release_gpu(gpu, tag)
 
 
 def worker(tasks, need_mb, max_wait_s):
@@ -169,6 +196,8 @@ def main() -> int:
     ap.add_argument("--workers", type=int, default=3)
     ap.add_argument("--need-free", type=int, default=7000, help="需要的最小空闲显存(MB)")
     ap.add_argument("--max-wait-h", type=float, default=6.0)
+    ap.add_argument("--skip-done", action="store_true",
+                    help="跳过已有 ckpt_final.pth 的任务（重试/续跑时用，避免重复训练）")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -179,9 +208,12 @@ def main() -> int:
         if only and name not in only:
             continue
         for sd in (s1 if args.stage == 1 else s2):
+            if args.skip_done and os.path.exists(
+                    os.path.join(OUT, f"{name}_s{sd}", "ckpt_final.pth")):
+                continue
             tasks.append((name, sd, wdir, doms))
     if not tasks:
-        print("没有任务")
+        print("没有任务（可能全部已完成）")
         return 0
 
     print(f"阶段 {args.stage}：{len(tasks)} 个任务，{args.workers} 个 worker，"
