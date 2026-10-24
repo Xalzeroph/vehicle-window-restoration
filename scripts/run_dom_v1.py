@@ -40,6 +40,7 @@ POOL = os.path.join(P, "data/train_sets/real_pairs_1020")
 IN19 = os.path.join(P, "data/train_sets/real_pairs_1019split")
 MAY14 = os.path.join(P, "data/train_sets/pairs_may")
 APR16 = os.path.join(P, "data/train_sets/train_pairs_omega_0920")
+APR_DARK14 = os.path.join(P, "data/train_sets/real_pairs_1020_apr_dark14")
 
 FID = ["--lam-grad", "5", "--lam-lap", "2", "--legacy-fidelity"]
 COMMON = ["--arm", "main", "--iters", "6000", "--batch", "6",
@@ -57,6 +58,9 @@ ARMS = {
     "R-aprjun":  (POOL, "apr,jun",    [101], [202, 303]),
     # 选取规则对照臂：只补种子，阶段 1 已在上一轮跑过
     "R-apr16":   (APR16, "-",         [],    [202, 303]),
+    # E2 暗化剂量 14.3%（2026-10-24 补种子）：s101 已跑，只补 202/303。
+    # 见 docs/2026.10.24_预登记_E2dark14补种子.md（判据跑前写死）
+    "E2-dark14": (APR_DARK14, "apr_dark14", [], [202, 303]),
 }
 
 _lock = threading.Lock()
