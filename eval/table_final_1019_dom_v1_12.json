@@ -544,6 +544,38 @@
    "d_hf": 0.618,
    "d_gc": 0.0058,
    "d_gap": 2.145
+  },
+  "dom12_E2-dark14_s202": {
+   "psnr": 21.1079,
+   "ssim": 0.7445,
+   "hf_psnr": 34.1474,
+   "grad_cos": 0.6606,
+   "lapvar": 26.3167,
+   "psnr_hole": 19.9805,
+   "psnr_nonhole": 21.2551,
+   "n": 12,
+   "lapvar_pct": 65.2,
+   "gap": -1.275,
+   "d_psnr": 2.692,
+   "d_hf": 0.997,
+   "d_gc": 0.0147,
+   "d_gap": 2.524
+  },
+  "dom12_E2-dark14_s303": {
+   "psnr": 21.6822,
+   "ssim": 0.7546,
+   "hf_psnr": 34.3291,
+   "grad_cos": 0.6601,
+   "lapvar": 21.2417,
+   "psnr_hole": 19.9312,
+   "psnr_nonhole": 21.9381,
+   "n": 12,
+   "lapvar_pct": 52.7,
+   "gap": -2.007,
+   "d_psnr": 3.267,
+   "d_hf": 1.178,
+   "d_gc": 0.0142,
+   "d_gap": 1.792
   }
  },
  "per_pair": [
@@ -990,6 +1022,32 @@
    "psnr_nonhole": 22.735
   },
   {
+   "scene": "VID_20261019_164257",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s202",
+   "hole_frac": 0.0938,
+   "psnr": 21.433,
+   "ssim": 0.7615,
+   "hf_psnr": 33.479,
+   "grad_cos": 0.7774,
+   "lapvar": 32.2,
+   "psnr_hole": 20.634,
+   "psnr_nonhole": 21.539
+  },
+  {
+   "scene": "VID_20261019_164257",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s303",
+   "hole_frac": 0.0938,
+   "psnr": 22.052,
+   "ssim": 0.7727,
+   "hf_psnr": 33.546,
+   "grad_cos": 0.7766,
+   "lapvar": 23.9,
+   "psnr_hole": 20.942,
+   "psnr_nonhole": 22.199
+  },
+  {
    "scene": "VID_20261019_164555",
    "input": "I_000000",
    "arm": "identity",
@@ -1430,6 +1488,32 @@
    "lapvar": 67.1,
    "psnr_hole": 20.576,
    "psnr_nonhole": 23.153
+  },
+  {
+   "scene": "VID_20261019_164555",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s202",
+   "hole_frac": 0.0908,
+   "psnr": 22.084,
+   "ssim": 0.7465,
+   "hf_psnr": 34.099,
+   "grad_cos": 0.8288,
+   "lapvar": 43.0,
+   "psnr_hole": 20.037,
+   "psnr_nonhole": 22.362
+  },
+  {
+   "scene": "VID_20261019_164555",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s303",
+   "hole_frac": 0.0908,
+   "psnr": 22.549,
+   "ssim": 0.777,
+   "hf_psnr": 34.439,
+   "grad_cos": 0.8218,
+   "lapvar": 22.9,
+   "psnr_hole": 19.348,
+   "psnr_nonhole": 23.062
   },
   {
    "scene": "VID_20261019_164730",
@@ -1874,6 +1958,32 @@
    "psnr_nonhole": 22.782
   },
   {
+   "scene": "VID_20261019_164730",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s202",
+   "hole_frac": 0.0589,
+   "psnr": 22.439,
+   "ssim": 0.7826,
+   "hf_psnr": 34.006,
+   "grad_cos": 0.7505,
+   "lapvar": 29.0,
+   "psnr_hole": 20.803,
+   "psnr_nonhole": 22.578
+  },
+  {
+   "scene": "VID_20261019_164730",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s303",
+   "hole_frac": 0.0589,
+   "psnr": 22.93,
+   "ssim": 0.7833,
+   "hf_psnr": 34.047,
+   "grad_cos": 0.7518,
+   "lapvar": 28.8,
+   "psnr_hole": 20.882,
+   "psnr_nonhole": 23.108
+  },
+  {
    "scene": "VID_20261019_164901",
    "input": "I_000000",
    "arm": "identity",
@@ -2314,6 +2424,32 @@
    "lapvar": 32.6,
    "psnr_hole": 19.831,
    "psnr_nonhole": 21.777
+  },
+  {
+   "scene": "VID_20261019_164901",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s202",
+   "hole_frac": 0.122,
+   "psnr": 20.934,
+   "ssim": 0.782,
+   "hf_psnr": 35.18,
+   "grad_cos": 0.8098,
+   "lapvar": 25.7,
+   "psnr_hole": 19.68,
+   "psnr_nonhole": 21.153
+  },
+  {
+   "scene": "VID_20261019_164901",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s303",
+   "hole_frac": 0.122,
+   "psnr": 21.59,
+   "ssim": 0.7875,
+   "hf_psnr": 35.291,
+   "grad_cos": 0.8065,
+   "lapvar": 22.8,
+   "psnr_hole": 19.628,
+   "psnr_nonhole": 21.962
   },
   {
    "scene": "VID_20261019_165126",
@@ -2758,6 +2894,32 @@
    "psnr_nonhole": 22.927
   },
   {
+   "scene": "VID_20261019_165126",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s202",
+   "hole_frac": 0.1098,
+   "psnr": 21.368,
+   "ssim": 0.8068,
+   "hf_psnr": 36.59,
+   "grad_cos": 0.803,
+   "lapvar": 22.3,
+   "psnr_hole": 18.861,
+   "psnr_nonhole": 21.82
+  },
+  {
+   "scene": "VID_20261019_165126",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s303",
+   "hole_frac": 0.1098,
+   "psnr": 22.309,
+   "ssim": 0.8128,
+   "hf_psnr": 36.656,
+   "grad_cos": 0.8038,
+   "lapvar": 21.9,
+   "psnr_hole": 18.641,
+   "psnr_nonhole": 23.098
+  },
+  {
    "scene": "VID_20261019_165530",
    "input": "I_000000",
    "arm": "identity",
@@ -3198,6 +3360,32 @@
    "lapvar": 26.9,
    "psnr_hole": 18.258,
    "psnr_nonhole": 17.223
+  },
+  {
+   "scene": "VID_20261019_165530",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s202",
+   "hole_frac": 0.1197,
+   "psnr": 17.226,
+   "ssim": 0.5465,
+   "hf_psnr": 31.594,
+   "grad_cos": 0.032,
+   "lapvar": 24.4,
+   "psnr_hole": 18.404,
+   "psnr_nonhole": 17.092
+  },
+  {
+   "scene": "VID_20261019_165530",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s303",
+   "hole_frac": 0.1197,
+   "psnr": 17.642,
+   "ssim": 0.5597,
+   "hf_psnr": 32.007,
+   "grad_cos": 0.0333,
+   "lapvar": 19.2,
+   "psnr_hole": 18.127,
+   "psnr_nonhole": 17.584
   },
   {
    "scene": "VID_20261019_165652",
@@ -3642,6 +3830,32 @@
    "psnr_nonhole": 22.154
   },
   {
+   "scene": "VID_20261019_165652",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s202",
+   "hole_frac": 0.1033,
+   "psnr": 21.047,
+   "ssim": 0.7799,
+   "hf_psnr": 35.048,
+   "grad_cos": 0.8357,
+   "lapvar": 25.0,
+   "psnr_hole": 20.099,
+   "psnr_nonhole": 21.179
+  },
+  {
+   "scene": "VID_20261019_165652",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s303",
+   "hole_frac": 0.1033,
+   "psnr": 22.039,
+   "ssim": 0.7916,
+   "hf_psnr": 35.201,
+   "grad_cos": 0.8336,
+   "lapvar": 20.6,
+   "psnr_hole": 20.036,
+   "psnr_nonhole": 22.356
+  },
+  {
    "scene": "VID_20261019_165849",
    "input": "I_000000",
    "arm": "identity",
@@ -4082,6 +4296,32 @@
    "lapvar": 35.4,
    "psnr_hole": 20.594,
    "psnr_nonhole": 23.357
+  },
+  {
+   "scene": "VID_20261019_165849",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s202",
+   "hole_frac": 0.0567,
+   "psnr": 22.663,
+   "ssim": 0.7971,
+   "hf_psnr": 34.845,
+   "grad_cos": 0.8574,
+   "lapvar": 27.1,
+   "psnr_hole": 21.179,
+   "psnr_nonhole": 22.782
+  },
+  {
+   "scene": "VID_20261019_165849",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s303",
+   "hole_frac": 0.0567,
+   "psnr": 23.073,
+   "ssim": 0.8016,
+   "hf_psnr": 34.963,
+   "grad_cos": 0.8522,
+   "lapvar": 20.5,
+   "psnr_hole": 21.132,
+   "psnr_nonhole": 23.233
   },
   {
    "scene": "VID_20261019_170033",
@@ -4526,6 +4766,32 @@
    "psnr_nonhole": 22.358
   },
   {
+   "scene": "VID_20261019_170033",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s202",
+   "hole_frac": 0.0717,
+   "psnr": 21.894,
+   "ssim": 0.8007,
+   "hf_psnr": 34.996,
+   "grad_cos": 0.8357,
+   "lapvar": 25.2,
+   "psnr_hole": 20.506,
+   "psnr_nonhole": 22.032
+  },
+  {
+   "scene": "VID_20261019_170033",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s303",
+   "hole_frac": 0.0717,
+   "psnr": 22.204,
+   "ssim": 0.8063,
+   "hf_psnr": 35.296,
+   "grad_cos": 0.8389,
+   "lapvar": 19.9,
+   "psnr_hole": 20.557,
+   "psnr_nonhole": 22.371
+  },
+  {
    "scene": "VID_20261019_170621",
    "input": "I_000000",
    "arm": "identity",
@@ -4966,6 +5232,32 @@
    "lapvar": 33.0,
    "psnr_hole": 19.793,
    "psnr_nonhole": 19.266
+  },
+  {
+   "scene": "VID_20261019_170621",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s202",
+   "hole_frac": 0.1072,
+   "psnr": 19.105,
+   "ssim": 0.6315,
+   "hf_psnr": 32.667,
+   "grad_cos": 0.1148,
+   "lapvar": 19.9,
+   "psnr_hole": 19.25,
+   "psnr_nonhole": 19.095
+  },
+  {
+   "scene": "VID_20261019_170621",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s303",
+   "hole_frac": 0.1072,
+   "psnr": 19.703,
+   "ssim": 0.6474,
+   "hf_psnr": 32.917,
+   "grad_cos": 0.1205,
+   "lapvar": 17.0,
+   "psnr_hole": 19.755,
+   "psnr_nonhole": 19.704
   },
   {
    "scene": "VID_20261019_170758",
@@ -5410,6 +5702,32 @@
    "psnr_nonhole": 23.35
   },
   {
+   "scene": "VID_20261019_170758",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s202",
+   "hole_frac": 0.0618,
+   "psnr": 22.731,
+   "ssim": 0.7981,
+   "hf_psnr": 34.774,
+   "grad_cos": 0.7357,
+   "lapvar": 19.9,
+   "psnr_hole": 21.054,
+   "psnr_nonhole": 22.884
+  },
+  {
+   "scene": "VID_20261019_170758",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s303",
+   "hole_frac": 0.0618,
+   "psnr": 23.341,
+   "ssim": 0.805,
+   "hf_psnr": 34.911,
+   "grad_cos": 0.7371,
+   "lapvar": 18.2,
+   "psnr_hole": 20.941,
+   "psnr_nonhole": 23.571
+  },
+  {
    "scene": "VID_20261019_171408",
    "input": "I_000000",
    "arm": "identity",
@@ -5850,6 +6168,32 @@
    "lapvar": 34.8,
    "psnr_hole": 19.228,
    "psnr_nonhole": 20.686
+  },
+  {
+   "scene": "VID_20261019_171408",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s202",
+   "hole_frac": 0.1119,
+   "psnr": 20.371,
+   "ssim": 0.7003,
+   "hf_psnr": 32.491,
+   "grad_cos": 0.546,
+   "lapvar": 22.1,
+   "psnr_hole": 19.259,
+   "psnr_nonhole": 20.545
+  },
+  {
+   "scene": "VID_20261019_171408",
+   "input": "I_000000",
+   "arm": "dom12_E2-dark14_s303",
+   "hole_frac": 0.1119,
+   "psnr": 20.754,
+   "ssim": 0.71,
+   "hf_psnr": 32.675,
+   "grad_cos": 0.5449,
+   "lapvar": 19.2,
+   "psnr_hole": 19.185,
+   "psnr_nonhole": 21.009
   }
  ]
 }
