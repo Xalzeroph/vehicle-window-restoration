@@ -182,6 +182,35 @@ class S2Dataset(Dataset):
                 torch.tensor([has_R, has_om, C_I, w, float(src)], dtype=torch.float32))
 
 
+_RAND_CNT = [0]
+
+
+def area_matched_random_mask(OM):
+    """Replace each Omega mask with a random disk of (approx.) the same area.
+
+    Fair control for "does the HOLE STRUCTURE matter, or is any region of the same size enough?"
+    """
+    B, _, H, W = OM.shape
+    out = torch.zeros_like(OM)
+    ys = torch.arange(H, device=OM.device, dtype=torch.float32)[:, None]
+    xs = torch.arange(W, device=OM.device, dtype=torch.float32)[None, :]
+    for b in range(B):
+        A = float(OM[b].sum().item())
+        if A < 1.0:
+            continue
+        r = (A / 3.14159265) ** 0.5
+        r = min(r, 0.49 * min(H, W))          # keep the disk fully inside -> equal area
+        cy = r + float(torch.rand(1, device=OM.device).item()) * max(H - 2 * r, 1e-6)
+        cx = r + float(torch.rand(1, device=OM.device).item()) * max(W - 2 * r, 1e-6)
+        m = ((ys - cy) ** 2 + (xs - cx) ** 2) <= (r * r)
+        out[b, 0] = m.to(out.dtype)
+    _RAND_CNT[0] += 1
+    if _RAND_CNT[0] <= 5:
+        ra = float(out.sum().item()) / max(float(OM.sum().item()), 1e-6)
+        print("[omega-random] realized area ratio = %.3f" % ra, flush=True)
+    return out
+
+
 def grad_excl(T_hat, R_hat):
     def gm(x):
         gx = (x[..., :, 1:] - x[..., :, :-1]).abs().mean(1)
@@ -247,6 +276,8 @@ def main():
     ap.add_argument('--lam-recons', type=float, default=0.2)
     ap.add_argument('--lam-excl', type=float, default=0.1)
     ap.add_argument('--lam-om', type=float, default=3.0)
+    ap.add_argument('--omega-mode', choices=['real', 'random'], default='real',
+                    help='real = use the Omega mask; random = area-matched random disk (control)')
     ap.add_argument('--lam-hinge', type=float, default=1.0)
     ap.add_argument('--lam-dists', type=float, default=0.2)
     ap.add_argument('--lam-grad', type=float, default=5.0, help='全图一阶梯度保真（防抹平）')
@@ -409,6 +440,8 @@ def main():
                 L_recons = args.lam_recons * (w_s * (I - T_hat - R_hat).abs()).mean()
                 L_excl = args.lam_excl * grad_excl(T_hat, R_hat)
                 if has_om.max() > 0:
+                    if args.omega_mode == 'random':
+                        OM = area_matched_random_mask(OM)
                     om_sum = OM.sum(dim=(1, 2, 3)) + 1e-6
                     err = (OM * (T_hat - T).abs()).sum(dim=(1, 2, 3)) / om_sum
                     den = ((OM * (I - T).abs()).sum(dim=(1, 2, 3)) / om_sum).clamp(min=1e-3)
