@@ -49,6 +49,22 @@
    "d_gc": -0.0051,
    "d_gap": 1.157
   },
+  "zhu_cvpr24": {
+   "psnr": 20.4997,
+   "ssim": 0.7353,
+   "hf_psnr": 33.8343,
+   "grad_cos": 0.6047,
+   "lapvar": 31.4867,
+   "psnr_hole": 19.2123,
+   "psnr_nonhole": 20.6796,
+   "n": 15,
+   "lapvar_pct": 79.5,
+   "gap": -1.467,
+   "d_psnr": 2.063,
+   "d_hf": 0.879,
+   "d_gc": 0.0055,
+   "d_gap": 2.338
+  },
   "abl_C0_s101": {
    "psnr": 19.9304,
    "ssim": 0.736,
@@ -141,6 +157,19 @@
   {
    "scene": "VID_20261019_164257",
    "input": "I_000000",
+   "arm": "zhu_cvpr24",
+   "hole_frac": 0.0938,
+   "psnr": 21.027,
+   "ssim": 0.7643,
+   "hf_psnr": 33.344,
+   "grad_cos": 0.7773,
+   "lapvar": 53.4,
+   "psnr_hole": 19.427,
+   "psnr_nonhole": 21.234
+  },
+  {
+   "scene": "VID_20261019_164257",
+   "input": "I_000000",
    "arm": "abl_C0_s101",
    "hole_frac": 0.0938,
    "psnr": 20.963,
@@ -215,6 +244,19 @@
    "lapvar": 126.0,
    "psnr_hole": 16.587,
    "psnr_nonhole": 20.284
+  },
+  {
+   "scene": "VID_20261019_164555",
+   "input": "I_000000",
+   "arm": "zhu_cvpr24",
+   "hole_frac": 0.0908,
+   "psnr": 20.393,
+   "ssim": 0.7489,
+   "hf_psnr": 34.1,
+   "grad_cos": 0.8136,
+   "lapvar": 46.5,
+   "psnr_hole": 18.66,
+   "psnr_nonhole": 20.618
   },
   {
    "scene": "VID_20261019_164555",
@@ -297,6 +339,19 @@
   {
    "scene": "VID_20261019_164730",
    "input": "I_000000",
+   "arm": "zhu_cvpr24",
+   "hole_frac": 0.0589,
+   "psnr": 20.159,
+   "ssim": 0.7654,
+   "hf_psnr": 33.848,
+   "grad_cos": 0.7313,
+   "lapvar": 28.7,
+   "psnr_hole": 19.223,
+   "psnr_nonhole": 20.225
+  },
+  {
+   "scene": "VID_20261019_164730",
+   "input": "I_000000",
    "arm": "abl_C0_s101",
    "hole_frac": 0.0589,
    "psnr": 20.957,
@@ -371,6 +426,19 @@
    "lapvar": 59.8,
    "psnr_hole": 16.593,
    "psnr_nonhole": 19.414
+  },
+  {
+   "scene": "VID_20261019_164901",
+   "input": "I_000000",
+   "arm": "zhu_cvpr24",
+   "hole_frac": 0.122,
+   "psnr": 20.259,
+   "ssim": 0.7871,
+   "hf_psnr": 35.5,
+   "grad_cos": 0.8073,
+   "lapvar": 26.3,
+   "psnr_hole": 18.929,
+   "psnr_nonhole": 20.482
   },
   {
    "scene": "VID_20261019_164901",
@@ -453,6 +521,19 @@
   {
    "scene": "VID_20261019_165126",
    "input": "I_000000",
+   "arm": "zhu_cvpr24",
+   "hole_frac": 0.1098,
+   "psnr": 20.537,
+   "ssim": 0.8016,
+   "hf_psnr": 36.474,
+   "grad_cos": 0.7906,
+   "lapvar": 28.3,
+   "psnr_hole": 17.406,
+   "psnr_nonhole": 21.148
+  },
+  {
+   "scene": "VID_20261019_165126",
+   "input": "I_000000",
    "arm": "abl_C0_s101",
    "hole_frac": 0.1098,
    "psnr": 20.646,
@@ -527,6 +608,19 @@
    "lapvar": 54.5,
    "psnr_hole": 16.599,
    "psnr_nonhole": 20.832
+  },
+  {
+   "scene": "VID_20261019_165400",
+   "input": "I_000000",
+   "arm": "zhu_cvpr24",
+   "hole_frac": 0.0951,
+   "psnr": 22.845,
+   "ssim": 0.8279,
+   "hf_psnr": 36.909,
+   "grad_cos": 0.8281,
+   "lapvar": 24.7,
+   "psnr_hole": 21.352,
+   "psnr_nonhole": 23.039
   },
   {
    "scene": "VID_20261019_165400",
@@ -609,6 +703,19 @@
   {
    "scene": "VID_20261019_165530",
    "input": "I_000000",
+   "arm": "zhu_cvpr24",
+   "hole_frac": 0.1197,
+   "psnr": 16.804,
+   "ssim": 0.5526,
+   "hf_psnr": 31.232,
+   "grad_cos": 0.0448,
+   "lapvar": 28.7,
+   "psnr_hole": 17.334,
+   "psnr_nonhole": 16.738
+  },
+  {
+   "scene": "VID_20261019_165530",
+   "input": "I_000000",
    "arm": "abl_C0_s101",
    "hole_frac": 0.1197,
    "psnr": 16.594,
@@ -683,6 +790,19 @@
    "lapvar": 64.2,
    "psnr_hole": 16.297,
    "psnr_nonhole": 19.344
+  },
+  {
+   "scene": "VID_20261019_165652",
+   "input": "I_000000",
+   "arm": "zhu_cvpr24",
+   "hole_frac": 0.1033,
+   "psnr": 21.305,
+   "ssim": 0.7909,
+   "hf_psnr": 35.055,
+   "grad_cos": 0.826,
+   "lapvar": 32.4,
+   "psnr_hole": 18.294,
+   "psnr_nonhole": 21.838
   },
   {
    "scene": "VID_20261019_165652",
@@ -765,6 +885,19 @@
   {
    "scene": "VID_20261019_165849",
    "input": "I_000000",
+   "arm": "zhu_cvpr24",
+   "hole_frac": 0.0567,
+   "psnr": 22.374,
+   "ssim": 0.7959,
+   "hf_psnr": 34.798,
+   "grad_cos": 0.8553,
+   "lapvar": 37.3,
+   "psnr_hole": 20.509,
+   "psnr_nonhole": 22.523
+  },
+  {
+   "scene": "VID_20261019_165849",
+   "input": "I_000000",
    "arm": "abl_C0_s101",
    "hole_frac": 0.0567,
    "psnr": 20.512,
@@ -839,6 +972,19 @@
    "lapvar": 63.9,
    "psnr_hole": 16.984,
    "psnr_nonhole": 21.078
+  },
+  {
+   "scene": "VID_20261019_170033",
+   "input": "I_000000",
+   "arm": "zhu_cvpr24",
+   "hole_frac": 0.0717,
+   "psnr": 22.399,
+   "ssim": 0.8061,
+   "hf_psnr": 34.717,
+   "grad_cos": 0.8037,
+   "lapvar": 29.8,
+   "psnr_hole": 20.639,
+   "psnr_nonhole": 22.573
   },
   {
    "scene": "VID_20261019_170033",
@@ -921,6 +1067,19 @@
   {
    "scene": "VID_20261019_170406",
    "input": "I_000000",
+   "arm": "zhu_cvpr24",
+   "hole_frac": 0.0891,
+   "psnr": 18.542,
+   "ssim": 0.5973,
+   "hf_psnr": 31.238,
+   "grad_cos": 0.0272,
+   "lapvar": 28.1,
+   "psnr_hole": 19.807,
+   "psnr_nonhole": 18.441
+  },
+  {
+   "scene": "VID_20261019_170406",
+   "input": "I_000000",
    "arm": "abl_C0_s101",
    "hole_frac": 0.0891,
    "psnr": 19.496,
@@ -995,6 +1154,19 @@
    "lapvar": 50.8,
    "psnr_hole": 16.741,
    "psnr_nonhole": 17.776
+  },
+  {
+   "scene": "VID_20261019_170621",
+   "input": "I_000000",
+   "arm": "zhu_cvpr24",
+   "hole_frac": 0.1072,
+   "psnr": 18.504,
+   "ssim": 0.6188,
+   "hf_psnr": 32.14,
+   "grad_cos": 0.1144,
+   "lapvar": 24.7,
+   "psnr_hole": 18.371,
+   "psnr_nonhole": 18.521
   },
   {
    "scene": "VID_20261019_170621",
@@ -1077,6 +1249,19 @@
   {
    "scene": "VID_20261019_170758",
    "input": "I_000000",
+   "arm": "zhu_cvpr24",
+   "hole_frac": 0.0618,
+   "psnr": 21.929,
+   "ssim": 0.7847,
+   "hf_psnr": 34.515,
+   "grad_cos": 0.7404,
+   "lapvar": 27.2,
+   "psnr_hole": 19.604,
+   "psnr_nonhole": 22.147
+  },
+  {
+   "scene": "VID_20261019_170758",
+   "input": "I_000000",
    "arm": "abl_C0_s101",
    "hole_frac": 0.0618,
    "psnr": 21.102,
@@ -1155,6 +1340,19 @@
   {
    "scene": "VID_20261019_171126",
    "input": "I_000000",
+   "arm": "zhu_cvpr24",
+   "hole_frac": 0.0826,
+   "psnr": 20.453,
+   "ssim": 0.6935,
+   "hf_psnr": 31.722,
+   "grad_cos": 0.4034,
+   "lapvar": 27.4,
+   "psnr_hole": 20.01,
+   "psnr_nonhole": 20.496
+  },
+  {
+   "scene": "VID_20261019_171126",
+   "input": "I_000000",
    "arm": "abl_C0_s101",
    "hole_frac": 0.0826,
    "psnr": 19.421,
@@ -1229,6 +1427,19 @@
    "lapvar": 60.4,
    "psnr_hole": 17.486,
    "psnr_nonhole": 19.283
+  },
+  {
+   "scene": "VID_20261019_171408",
+   "input": "I_000000",
+   "arm": "zhu_cvpr24",
+   "hole_frac": 0.1119,
+   "psnr": 19.966,
+   "ssim": 0.6939,
+   "hf_psnr": 31.922,
+   "grad_cos": 0.5073,
+   "lapvar": 28.8,
+   "psnr_hole": 18.619,
+   "psnr_nonhole": 20.171
   },
   {
    "scene": "VID_20261019_171408",
