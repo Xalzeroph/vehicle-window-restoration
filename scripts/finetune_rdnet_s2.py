@@ -185,6 +185,15 @@ class S2Dataset(Dataset):
 _RAND_CNT = [0]
 
 
+def grad_mag(x):
+    """Forward-difference gradient magnitude (channel-max), keeps HxW."""
+    gx = (x[:, :, :, 1:] - x[:, :, :, :-1]).abs()
+    gy = (x[:, :, 1:, :] - x[:, :, :-1, :]).abs()
+    gx = F.pad(gx, (0, 1, 0, 0))
+    gy = F.pad(gy, (0, 0, 0, 1))
+    return torch.maximum(gx, gy).mean(dim=1, keepdim=True)
+
+
 def area_matched_random_mask(OM):
     """Replace each Omega mask with a random disk of (approx.) the same area.
 
@@ -279,6 +288,10 @@ def main():
     ap.add_argument('--omega-mode', choices=['real', 'random'], default='real',
                     help='real = use the Omega mask; random = area-matched random disk (control)')
     ap.add_argument('--lam-hinge', type=float, default=1.0)
+    ap.add_argument('--lam-shift', type=float, default=0.0,
+                    help='weight of L_shift (hole-boundary gradient term); 0 = off')
+    ap.add_argument('--alpha-shift', type=float, default=0.25,
+                    help='allowed |grad T| as a fraction of |grad R| on dOmega')
     ap.add_argument('--lam-dists', type=float, default=0.2)
     ap.add_argument('--lam-grad', type=float, default=5.0, help='全图一阶梯度保真（防抹平）')
     ap.add_argument('--lam-lap', type=float, default=2.0, help='全图二阶 Laplacian 保真（防抹平）')
@@ -386,7 +399,7 @@ def main():
 
     logf = open(os.path.join(out, 'train_log.csv'), 'a')
     if start_it == 0:
-        logf.write('iter,seg,L_t,L_r,L_om,L_hinge,L_dists,L_recons,L_excl,L_grad,L_lap,total,sec\n')
+        logf.write('iter,seg,L_t,L_r,L_om,L_hinge,L_shift,L_dists,L_recons,L_excl,L_grad,L_lap,total,sec\n')
     segs = [(224, args.batch), (256, min(args.batch, 6)), (320, min(args.batch, 4))]
     it, t0, prev_seg = start_it, time.time(), None
     while it < args.iters:
@@ -411,7 +424,7 @@ def main():
                 code = net_c(I)
             with torch.cuda.amp.autocast():
                 _, outs = net(I, code, prompt=True)
-                L_t = L_r = L_om = L_hinge = L_dists = torch.zeros((), device=dev)
+                L_t = L_r = L_om = L_hinge = L_dists = L_shift = torch.zeros((), device=dev)
                 wsum = 0.0
                 hw = float(R.shape[2] * R.shape[3])
                 L_grad = L_lap = torch.zeros((), device=dev)
@@ -450,6 +463,16 @@ def main():
                     delta = (torch.clamp(0.5 * C_I, min=4.0) / 255.0)
                     hg = (OM * F.relu(T - delta - T_hat)).sum(dim=(1, 2, 3)) / om_sum
                     L_hinge = args.lam_hinge * (hg / den * m_om).sum() / m_om.sum().clamp(min=1)
+                    # 2026-10-26: L_shift -- the hole boundary is an edge in R but not in T
+                    if args.lam_shift > 0:
+                        OMd = F.max_pool2d(OM, 3, 1, 1)
+                        OMe = -F.max_pool2d(-OM, 3, 1, 1)
+                        bd = (OMd - OMe).clamp(min=0.0)
+                        bd_sum = bd.sum(dim=(1, 2, 3)) + 1e-6
+                        gT = grad_mag(T_hat); gR = grad_mag(R_hat)
+                        num_s = (bd * F.relu(gT - args.alpha_shift * gR)).sum(dim=(1, 2, 3)) / bd_sum
+                        den_s = ((bd * gR).sum(dim=(1, 2, 3)) / bd_sum).clamp(min=1e-3)
+                        L_shift = args.lam_shift * ((num_s / den_s) * m_om).sum() / m_om.sum().clamp(min=1)
                     idxs = (m_om > 0).nonzero().squeeze(-1)
                     dsum = torch.zeros((), device=dev)
                     # 2026-10-21：λ_dists=0 时不再白算 DISTS 前向（原先每 iter 最多 4 次）
@@ -468,7 +491,8 @@ def main():
                                     tb = F.interpolate(tb, scale_factor=sc, mode='bilinear', align_corners=False)
                                 dsum = dsum + args.lam_dists * dists_net(ta, tb)
                         L_dists = dsum / max(1, min(len(idxs), 4))
-                total = L_t + L_r + L_om + L_hinge + L_dists + L_recons + L_excl + L_grad + L_lap
+                total = (L_t + L_r + L_om + L_hinge + L_shift + L_dists + L_recons
+                         + L_excl + L_grad + L_lap)
             opt.zero_grad(set_to_none=True)
             scaler.scale(total).backward()
             scaler.step(opt); scaler.update(); sched.step()
@@ -477,11 +501,11 @@ def main():
                 sec = time.time() - t0
                 g = lambda x: float(x.detach())      # noqa: E731
                 print(f'[s2] it {it:5d} L_t={g(L_t):.4f} L_r={g(L_r):.4f} om={g(L_om):.3f} '
-                      f'hinge={g(L_hinge):.3f} dists={g(L_dists):.3f} rcn={g(L_recons):.4f} '
+                      f'hinge={g(L_hinge):.3f} shift={g(L_shift):.4f} dists={g(L_dists):.3f} rcn={g(L_recons):.4f} '
                       f'excl={g(L_excl):.3f} grad={g(L_grad):.3f} lap={g(L_lap):.3f} total={g(total):.4f} {sec:.0f}s '
                       f'peak={torch.cuda.max_memory_allocated(dev)/2**30:.2f}G', flush=True)
                 logf.write(f'{it},{s},{g(L_t):.5f},{g(L_r):.5f},{g(L_om):.5f},{g(L_hinge):.5f},'
-                           f'{g(L_dists):.5f},{g(L_recons):.5f},{g(L_excl):.5f},{g(L_grad):.5f},{g(L_lap):.5f},{g(total):.5f},'
+                           f'{g(L_shift):.5f},{g(L_dists):.5f},{g(L_recons):.5f},{g(L_excl):.5f},{g(L_grad):.5f},{g(L_lap):.5f},{g(total):.5f},'
                            f'{sec:.0f}\n'); logf.flush()
             if it % args.save_every == 0:
                 torch.save(dict(icnn=net.state_dict(), opt=opt.state_dict(),
