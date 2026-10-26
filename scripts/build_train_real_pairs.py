@@ -161,6 +161,7 @@ def main() -> int:
     ap.add_argument("--max-shift", type=float, default=1.5, help="相位位移上限 px")
     ap.add_argument("--max-gain-dev", type=float, default=0.10, help="逐通道 |g-1| 上限")
     ap.add_argument("--dry-run", action="store_true", help="只统计不写盘")
+    ap.add_argument("--domains", default="apr,may,jun", help="comma separated: apr,may,jun")
     args = ap.parse_args()
 
     for sub in ("I", "T", "R", "omega"):
@@ -179,6 +180,12 @@ def main() -> int:
            f"{'接受':>5}{'位移拒':>7}{'增益拒':>7}{'omega拒':>8}")
     print(hdr); print("-" * len(hdr))
 
+    _want = {d.strip() for d in args.domains.split(",") if d.strip()}
+    def _dom(s):
+        return ("apr" if s.startswith("VID_20260426") else
+                "may" if s.startswith("VID_20260512") else
+                "jun" if s.startswith("VID_20260609") else "other")
+    scenes = [s for s in scenes if _dom(s) in _want]
     for sc in scenes:
         dom = "apr" if sc.startswith("VID_20260426") else (
             "may" if sc.startswith("VID_20260512") else (
