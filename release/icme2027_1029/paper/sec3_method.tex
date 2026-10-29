@@ -1,0 +1,101 @@
+﻿% ==================== 3. Method ====================
+\section{Method}
+\label{sec:method}
+
+\subsection{Imaging model and the occlusion region}
+
+For pixel $x$ and channel $c$, under linear radiance,
+\begin{equation}
+I_c(x)=\alpha_c(x)\,T_c(x)+\beta_c\,R_c(x)+C_{\mathrm{nl}}(T,R),
+\end{equation}
+where $\alpha_c=\tau_c(1-\eta_c)$ is the effective transmission gain ($\tau_c$ the film's transmission factor, $\eta_c$ the occlusion-induced illumination loss) and $\beta_c$ the
+reflection gain. The target is $T_{\mathrm{obs}}=\tau T$: keep the film's transmission, remove
+the reflection. Placing an occluder on the camera side blocks the fraction $c(x)\in[0,1]$ of the
+solid angle converging to $x$, so that
+\begin{equation}
+I_c(x)=\alpha_c T_c+\bigl(1-c(x)\bigr)\beta_c R_c+c(x)\,R_{b,c}+C_{\mathrm{nl}},
+\label{eq:omega}
+\end{equation}
+with $R_{b,c}$ the occluder's own faint diffuse reflection. Because the occluder is a bounded
+solid, $c$ is \emph{piecewise smooth with sharp boundaries}; this is what distinguishes an
+occlusion region from a gradual attenuation. We define the region observably as
+$\Omega_\delta=\{x:c(x)\ge\delta\}$ and estimate it from the dip of
+$\hat R=I-gT$ below its local upper envelope (block 90th percentile, bilinear upsampling),
+with a noise-floor threshold and a minimum component area.
+
+\begin{table}[t]
+\centering
+\caption{Physical decomposition inside $\Omega$, measured on 82 confirmed pairs
+(pixel-domain medians; 82 annotated pairs). The reflection deficit is the larger of the two
+($16.8\%$ against $3.7\%$ of target darkening), and it is what makes
+$I/T|_{\mathrm{in}}\!\approx\!0.87$.}
+\label{tab:terms}
+\small
+\begin{tabular}{@{}p{1.45cm}p{1.45cm}p{3.3cm}@{}}
+\toprule
+Term & Meaning & Measured \\
+\midrule
+$\alpha T$ & transmission & $(I/T)_{\mathrm{in}}=0.887$, out $=1.045$; $g=0.997$ \\
+$(1-c)\beta R$ & unblocked reflection & out-of-$\Omega$ contribution $+4.5\%$ (radiance
+$+11\%$); strong-reflection p90 $+33\%$ \\
+$cR_b$ & occluder reflection & high-pass residual $0.29\%$ of the area \\
+$\eta$ & \textbf{target darkening} & \textbf{$3.7\%$} of $T$ ($T_{\mathrm{in}}/T_{\mathrm{out}}=0.963$) \\
+$\delta_r$ & \textbf{reflection deficit} & \textbf{$16.8\%$} of $r$ ($r_{\mathrm{in}}/r_{\mathrm{out}}=0.832$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Over-correction}
+
+Let a method apply, inside $\Omega$, a correction proportional to the \emph{global} average
+reflection strength, while the correct in-region correction is the local one. With
+$\delta_{\mathrm{obs}}:=1-\mathbb{E}[\hat R\mid\Omega]/\mathbb{E}[b_R\mid\Omega]$ the
+over-correction ratio obeys
+\begin{equation}
+\mathrm{OCR}:=\frac{\mathbb{E}_{x\in\Omega}[\hat T-I]}
+{\mathbb{E}_{x\in\Omega}[T_{\mathrm{obs}}-I]}\approx\frac{1}{1-\delta_{\mathrm{obs}}}.
+\end{equation}
+Because $\Omega$ keeps only about $30\%$ of the local reflection, the predicted ratio is
+large, and an independent evaluation gives $2.7\times$. The failure is therefore
+\emph{structural}, not a tuning issue.
+
+\subsection{Non-identifiability of the global scale}
+
+From $I=\tau T+R$ and a reference $T_{\mathrm{obs}}\approx\tau T$, for any $\lambda>0$ the
+pair $(\lambda T_{\mathrm{obs}},\,R+(1-\lambda)T_{\mathrm{obs}})$ yields a
+\emph{pixel-identical} $I$. Hence
+\begin{equation}
+\rho:=\frac{\mu(T_{\mathrm{obs}})}{\mu(I)}=\frac{1}{1+r},\qquad
+r:=\frac{\mu(R)}{\mu(T_{\mathrm{obs}})},
+\end{equation}
+is not a function of $I$. Two corollaries are testable: (i) a model using scale $\lambda$
+incurs the error $(1-\lambda)\rho\,\mu(I)$, and (ii) when the scale is approximately
+independent of the image, a pixel-wise objective drifts toward the domain-average brightness
+and smooths high frequencies. Both are confirmed in Section~\ref{sec:photom}.
+
+\subsection{Two losses, and where the signal can live}
+
+\textbf{Region loss.} We use $\Omega$ only at training time (detecting it from one frame is
+infeasible: the direct upper bound is IoU $0.494$). With mask $m_\Omega$,
+\begin{equation}
+L^{\mathrm{err}}_\Omega=\frac{\sum_x m_\Omega|\hat T-T|}
+{\sum_x m_\Omega|\hat R|},\qquad
+L^{\mathrm{hinge}}_\Omega=\frac{\sum_x m_\Omega[T-\delta(x)-\hat T]_+}
+{\sum_x m_\Omega|\hat R|},
+\end{equation}
+and $L_\Omega=\sum_c w_c(\lambda_\Omega L^{\mathrm{err}}_\Omega+\lambda_h
+L^{\mathrm{hinge}}_\Omega)$ with $\lambda_\Omega=3$, $\lambda_h=1$. The normalizer is the
+\emph{local reflection amplitude} rather than a constant, which makes pairs with different
+reflection strengths comparable; the hinge is one-sided so that it never rewards smoothing.
+
+\textbf{Why a boundary term cannot be validated by PSNR.} Suppose a regularizer acts only on
+a fraction $f_B$ of the pixels and can at best drive that region's error to zero, the region
+being $r$ times worse than the rest. Then
+\begin{equation}
+\Delta\mathrm{PSNR}\le 10\log_{10}\frac{1+f_B(r-1)}{1-f_B}.
+\label{eq:bound}
+\end{equation}
+For a $2$-pixel band around a $15\%$-area region, $f_B\approx0.28\%$, and with $r=3$ the
+bound is $0.036$~dB --- an order of magnitude below the $0.26$~dB minimum detectable effect of
+our benchmark. Anything that only touches a thin band is therefore \emph{untestable} with a
+global score, however correct its physics.

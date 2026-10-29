@@ -1,0 +1,80 @@
+# ============================================================================
+# 实验配置：aprjun_1028
+#   检验「只保留含遮挡区的月份（apr+jun）」在现行配方下的收益。
+#   对照：10-08 旧臂 mix_m3_aprjun_may = 21.32 dB（单种子 / 旧池 / 白名单 29 层）
+#   本项目目标期刊/会议：ICME 2027（表 IV「微调是否涨点」）
+# ============================================================================
+experiment: aprjun_1028
+date: "2026-10-28"
+owner: zmy
+purpose: >
+  Test whether keeping only the occlusion-bearing months (apr, jun) helps under the
+  current recipe. Previous 10-08 arm (m3, single seed, old pools, 29 R layers) reached
+  21.32 dB, but that mixed four confounds: pool, crop, R-whitelist size, seed count.
+
+data:
+  pool: data/train_sets/real_pairs_1020
+  domains: [apr, jun]          # may has NO occlusion region (confirmed by inspection) -> excluded
+  n_pairs: 170                 # apr 126 + jun 44
+  crop: "1392x774 (re-crop, 1026 pipeline)"
+  r_whitelist_layers: 170      # = n_pairs + 8 opensrc layers
+  t_src_images: 17995
+  opensrc_pairs: 5499
+  sample_p: [0.3, 0.4, 0.3]    # real / online-synth / opensrc
+
+recipe:
+  arm: main
+  backbone: RDNet (FocalNet frozen) + Mona adapters
+  trainable_params: 65.95M
+  iters: 6000
+  batch: 6
+  lr: 1.0e-4
+  mona: both
+  crop_curriculum: [224, 256, 320]
+  seg_iters: 2000
+  loss_weights:
+    lam_r: 1.5
+    lam_recons: 0.2
+    lam_excl: 0.1
+    lam_hinge: 1.0
+    lam_dists: 0.2
+    lam_grad: 5.0
+    lam_lap: 2.0
+  omega:
+    mode: real                 # true-mask region loss
+    lam_om: 3.0
+  s_jitter: 0.0                # exposure jitter OFF (photometric axis studied separately)
+
+arms:
+  - tag: aprjun_s101
+    seed: 101
+    gpu: 4
+    out: runs/aprjun_1028/aprjun_s101
+  - tag: aprjun_s202
+    seed: 202
+    gpu: 5
+    out: runs/aprjun_1028/aprjun_s202
+
+evaluation:
+  panel: data/test_sets/real_pair_1019      # 15 frozen scenes
+  inference: scripts/eval_arm_1019.py
+  table: scripts/table_final_1019.py
+  metrics: [PSNR, SSIM, HF-PSNR, grad-cos, LapVar, hole-PSNR, nonhole-PSNR]
+  baselines:
+    identity: 18.44
+    rdnet_zs: 20.05
+    rrw_zhu: 20.50
+  min_detectable_effect_db: 0.26
+  seed_sd_reference_db: 0.5    # this recipe, observed
+
+verdict_rules:
+  fail: "mean <= 20.0  -> 21.32 was an artifact of old pool / 29-layer whitelist; retract the claim"
+  neutral: "20.0 < mean < 20.5 -> on par with the official zero-shot model; write 'not worse' only"
+  win: "mean >= 20.5  -> beats the strongest public zero-shot method (RRW 20.50)"
+  git_commit_policy: "commit the ICME table row ONLY on 'win'; otherwise commit the experiment record only"
+
+artifacts:
+  config: configs/aprjun_1028.yaml
+  result: runs/aprjun_1028/RESULT.yaml
+  table: eval/table_final_1019_aprjun_1028.md
+  latex_snippet: runs/aprjun_1028/table_iv_rows.tex

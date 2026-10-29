@@ -1,0 +1,24 @@
+﻿% ==================== 5. Conclusion ====================
+\section{Conclusion}
+\label{sec:concl}
+
+We revisited what a real-pair SIRR protocol silently assumes, for the practical case of
+automotive tinted glass. The occlusion region is real, it is measurable, and its dominant
+effect is dominated by the reflection deficit ($16.8\%$) rather than by target darkening ($3.7\%$),
+while the input still falls $13\%$ below its own target inside $\Omega$ --- which is why a globally
+strength-calibrated correction over-corrects inside it. More usefully for practitioners, our
+controlled comparison shows that the benefit of an occlusion-mask loss does \emph{not} come
+from the mask: an area-matched random region is at least as good, and the active ingredient is
+the normalization of the error by the local reflection amplitude. Where the signal is
+demonstrably present --- the reflection layer itself --- replacing a gradient-comparison
+pseudo-label by true supervision triples the usable mask quality for free. We also give a
+closed-form bound that tells, before running anything, whether a region- or boundary-scale
+term can be validated by a global score at all, and an interventional test that exposes
+photometric conditions which do not actually condition. All negative results, the dataset and
+the evaluation protocol are released so that the next attempt can start from the right
+question.
+
+\section*{Reproducibility note}
+This submission extends an anonymized project report; per-arm logs, the frozen split hash and
+the evaluation script are included as supplementary material. Three-seed arms use seeds
+101/202/303.

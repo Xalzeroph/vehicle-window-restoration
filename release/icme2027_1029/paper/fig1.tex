@@ -1,0 +1,48 @@
+﻿% ==================== Figure 1 (schematic + measured numbers) ====================
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[font=\footnotesize,>=Stealth]
+  % ---- left: geometry ----
+  \draw[thick] (0,0) rectangle (0.5,1.9);
+  \node[align=center] at (0.25,2.15) {camera};
+  \draw[thick] (2.0,-0.1) -- (2.0,2.1);
+  \node at (2.0,2.35) {tinted glass};
+  \draw[thick] (4.6,-0.1) -- (4.6,2.1);
+  \node at (4.85,2.35) {scene};
+  % unblocked reflected ray
+  \draw[->,blue] (4.6,1.55) -- (2.0,1.55) -- (0.5,1.55);
+  % blocked reflected ray
+  \draw[->,blue] (4.6,0.55) -- (2.0,0.55) -- (1.6,0.55);
+  \node[fill=white,draw,inner sep=1.5pt] (occ) at (1.15,0.55) {occluder};
+  \draw[red,->] (occ.north) -- (1.15,1.05);
+  \node[red] at (1.15,1.32) {blocks part of $\mathcal{A}(x)$};
+  \node[red] at (1.15,1.06) {and of the light};
+  \node[blue] at (4.0,0.15) {reflected path};
+  % ---- right: measured ----
+  \begin{scope}[xshift=6.4cm]
+    \draw[->] (0,0) -- (2.5,0);
+    \draw[->] (0,0) -- (0,1.9);
+    \node[rotate=90,anchor=south] at (-0.32,0.95) {reflection};
+    \fill[gray!35] (0.25,0) rectangle (0.95,0.57);
+    \fill[gray!70] (1.25,0) rectangle (1.95,1.9);
+    \node[above] at (0.6,0.57) {$\Omega$ ($30\%$)};
+    \node[above] at (1.6,1.9) {outside ($100\%$)};
+  \end{scope}
+\end{tikzpicture}
+
+\vspace{2pt}
+\footnotesize
+\begin{tabular}{@{}c@{}}
+$I=\alpha T+(1-c)\beta R+cR_b+C_{\mathrm{nl}}$ \\
+inside/outside $I/T=0.87$ vs $1.045$ $\Rightarrow$
+\textbf{input $13\%$ below its own target} ($T_{\mathrm{in}}/T_{\mathrm{out}}=0.963$, $r_{\mathrm{in}}/r_{\mathrm{out}}=0.832$)
+\end{tabular}
+
+\caption{On tinted glass the camera-side occluder blocks a fraction $c(x)$ of the reflected
+solid angle \emph{and} part of the illumination, producing a piecewise-smooth region $\Omega$
+with a sharp boundary (left). Measured on 82 confirmed pairs (right): the reflection falls to
+about $30\%$ of the local background and the reflected content is $16.8\%$ weaker, while the
+target itself is only $3.7\%$ darker --- so the input sits $13\%$ below its own target inside
+$\Omega$, which is why a single global correction strength cannot fit both regions.}
+\label{fig:omega}
+\end{figure*}

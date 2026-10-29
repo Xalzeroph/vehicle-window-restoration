@@ -1,0 +1,31 @@
+﻿# 2026-10-28 定稿：may+jun 才是最强池
+experiment: poolcmp_1028
+status: complete
+question: 为什么同一个配方下 may+jun 比 apr+jun 高 1.77 dB
+arms:
+  aprjun:  {pool: [apr, jun],  n: 170, seeds: [101, 202, 303], psnr: [20.75, 21.31, 20.72]}
+  mayjun:  {pool: [may, jun],  n: 174, seeds: [101, 202, 303], psnr: [23.06, 22.86, 22.19]}
+raw_means:        {aprjun: 20.927, mayjun: 22.702}
+affine_corrected: {aprjun: 22.133, mayjun: 23.136}
+affine_gain:      {aprjun: +1.206, mayjun: +0.434}
+baselines:        {identity: 18.41, rdnet_zs: 20.02, rrw: 20.48}
+baselines_affine: {identity: 20.35, rdnet_zs: 21.02, rrw: 21.45}
+paired_3seed_pooled:
+  mayjun_vs_rrw:      {delta: +2.224, ci95: [+1.733, +2.715], wins: "15/15"}
+  mayjun_vs_rdnet_zs: {delta: +2.684, ci95: [+2.002, +3.366], wins: "15/15"}
+  mayjun_vs_identity: {delta: +4.293, ci95: [+3.622, +4.965], wins: "15/15"}
+  aprjun_vs_rrw:      {delta: +0.450, ci95: [-0.029, +0.928], wins: "11/15"}
+regions:
+  mayjun: {hole: 20.67, nonhole: 23.03, gap: -2.36}
+  aprjun: {hole: 18.20, nonhole: 21.39, gap: -3.19}
+  rrw:    {hole: 19.21, nonhole: 20.68, gap: -1.47}
+attribution:
+  photometric_share: "~0.8 dB of the 1.77 dB gap (apr needs +1.21, may only +0.43)"
+  residual_unexplained: "~1.0 dB (23.14 vs 22.13 after affine)"
+leakage_check:
+  byte_identical_gt_in_training_T: 0
+  max_content_correlation: 0.67
+  verdict: clean
+corrections:
+  - "此前'含遮挡月份更好'的解读被三种子数据推翻，已在正文写明更正"
+  - "may+jun 洞区 20.67 反而最好，说明该池不只是光度匹配"

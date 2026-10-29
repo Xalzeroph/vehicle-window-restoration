@@ -1,0 +1,67 @@
+# ============================================================================
+# 实验配置：randfix_1029 —— 复现「固定随机盘」到三种子
+#
+# 背景：标注掩码的真值地位在 2026-10-28 被推翻（自动掩码只部分圈对，人工标注未做）。
+# 因此消融的设计重心从「真掩码 vs 随机盘」挪到**不依赖任何标注**的变量上：
+#   ① 区域是否固定（每步重画 vs 每对固定）  ② 区域面积  ③ 相对归一化
+#
+# 本批只做 ①：把 `randomfixed`（每对固定一个同面积盘）从 1 种子补到 3 种子。
+# 对照：`random`（每步重画，3 种子 19.90）/ `real`（标注掩码，3 种子 19.41）/
+#       `noloss`（λ=0，3 种子 17.76）/ `full`（全图，1 种子 20.05）
+# ============================================================================
+experiment: randfix_1029
+date: "2026-10-29"
+purpose: >
+  Replicate the fixed-random-disk arm to three seeds so that "fixed region vs redrawn
+  region" can be judged (E1_randfix had seed 101 only, 20.48 dB).
+
+reference_arm:
+  tag: E1_randfix
+  dir: runs/abl_om1026/E1_randfix
+  seed: 101
+  psnr: 20.48
+  note: 1 seed only; single-seed effects < 1 dB are not trusted in this project
+
+data:
+  pool: data/train_sets/real_pairs_1026
+  domains: [apr]
+  n_pairs: 82
+  crop: "1392x774 (re-crop)"
+  region_mode: randomfixed      # 每对固定一个同面积圆盘（以掩码内容为种子）
+  region_area: "matched to each pair's annotated-mask area"
+
+recipe:
+  arm: main
+  iters: 6000
+  batch: 6
+  lr: 1.0e-4
+  mona: both
+  lam_om: 3.0
+  omega_mode: randomfixed
+  crop_curriculum: [224, 256, 320]
+  seg_iters: 2000
+  loss_weights:
+    lam_r: 1.5
+    lam_recons: 0.2
+    lam_excl: 0.1
+    lam_hinge: 1.0
+    lam_dists: 0.2
+    lam_grad: 5.0
+    lam_lap: 2.0
+  s_jitter: 0.0
+
+arms:
+  - {tag: E1_randfix_s202, seed: 202, gpu: 0}
+  - {tag: E1_randfix_s303, seed: 303, gpu: 1}
+
+evaluation:
+  panel: data/test_sets/real_pair_1019   # 15 scenes
+  inference: scripts/eval_arm_1019.py
+  table: scripts/table_final_1019.py
+  report_only: [PSNR, SSIM, HF-PSNR, LapVar]   # hole/non-hole 两列已判废（自动掩码非真值）
+
+verdict_rules:
+  fixed_vs_redrawn:
+    claim_ok: "|mean(fixed) - 19.90| > 0.5 且三种子 sd < 0.3"
+    claim_fail: "否则只报「无显著差异」"
+  note: "本批不涉及标注掩码，结论与 Ω 定义之争解耦"

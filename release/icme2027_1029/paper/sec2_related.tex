@@ -1,0 +1,53 @@
+﻿% ==================== 2. Related Work ====================
+\section{Related Work}
+\label{sec:related}
+
+\textbf{Real-pair protocols.} Glass removal~\cite{zhang2018perceptual,wan2017benchmarking,lei2020polarized} and its
+learning-based successors~\cite{wan2022crrn}
+suffers refraction misalignment and an illumination change once the glass is taken away; RAW
+subtraction leaves reflection ghosts; full-coverage black
+cloth~\cite{zhu2024rrw,openrr2025,cai2026ntire} trades that for exposure and white-balance drift
+between the covered and uncovered shots. A fourth protocol is implicit in all of them: the
+photographer must stand \emph{behind the camera}, so neither the occluder nor its illumination
+shadow is ever recorded. Our data is captured the same way as the black-cloth route, but we keep
+and annotate the case in which the occluder covers \emph{only part} of the reflected path ---
+the normal situation when someone shoots through a car window --- and we measure what that
+partial coverage does to the target. Real-pair corpora and challenges have grown quickly
+(RRW~\cite{zhu2024rrw}, OpenRR~\cite{openrr2025}, NTIRE~\cite{cai2026ntire}), and generative
+routes now push synthetic-benchmark PSNR far higher~\cite{hong2024ldiffer,promptrr2024,hu2026dai,li2026gensirr};
+none of them changes what the target means, which is the question we address.
+
+\textbf{Reflection-layer assumptions.} The family $I=\alpha T+\beta R+C_{\mathrm{nl}}(T,R)$
+relaxes additivity through a learned coupling (DSRNet~\cite{hu2023dsrnet}) and relaxes a
+globally constant photometry into a per-pixel gradient field (TAPG in
+RDNet~\cite{zhao2025rdnet}); multi-frame and depth-conditioned variants add further
+priors~\cite{liu2020obstructions,potlapalli2024promptir}, dual-stream designs add cross-layer
+interaction~\cite{hu2024dsit}, and absorption effects have been handled by physical
+synthesis~\cite{zheng2021absorption}. All of these fields remain
+\emph{continuous}. A bounded occluder produces the opposite: a void with a sharp boundary, plus
+an illumination step that no term in these models can represent. We argue that this --- and not
+a lack of capacity --- is why they lose in the occluded region: their correction is calibrated
+globally, which cannot express a defect that is localised and content-dependent --- and
+because the occluded region is not identifiable from one frame, the comparison cannot even
+be scored per region on the test panel.
+
+\textbf{Region conditioning.} Using a region as an extra input has precedents, but all of them
+encode \emph{where reflection exists}: RRW~\cite{zhu2024rrw} regresses a reflection-location map
+from a gradient-comparison pseudo-label ($G_I>G_T$) and feeds it to a second stage, LANet~\cite{lanet2021} and
+RAGNet~\cite{ragnet2023} predict or exploit a location/guidance prior in a similar spirit, and
+open challenges ship reflection-mask annotations~\cite{openrr2025}. Two measurements separate our
+setting from that line. First, the gradient-comparison pseudo-label covers $48.1\%$ of the image
+and agrees with the true reflection energy only at IoU $0.063$; supervising the same head with
+the true reflection layer raises it to $0.376$ at equal cost. Second, a reflection mask is not an
+occlusion region: inside $\Omega$ the two are nearly opposite, because reflection is weak exactly
+where the occluder blocks it. We therefore treat a mask as a training-time-only signal and show
+(Section~\ref{sec:diag}) that even then its \emph{location} is not what carries the gain.
+
+\textbf{Photometric conditioning.} Criterion-based low-light
+methods~\cite{guo2020zerodce,ma2022sci,wu2022uretuinex,cai2023retinexformer} replace paired
+supervision with a physical criterion and are the natural reference for the second axis. We
+complement that line with a negative result and a test: if the conditioning scalar is a
+deterministic function of the input, it carries no information about the global scale, and one
+can detect this without labels by perturbing the scalar and measuring the induced change in the
+output mean (Section~\ref{sec:photom}). State-of-the-art models fail that test.
+

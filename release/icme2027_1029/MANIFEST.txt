@@ -1,0 +1,54 @@
+ICME 2027 复现包 · 文件清单（2026-10-29 快照）
+================================================
+
+paper/                      论文 LaTeX 源码与编译产物
+  main.tex                  主文件（IEEEtran conference, 双盲）
+  sec0_abstract.tex         摘要
+  sec1_intro.tex            引言（含背景段 + A2/A3 两条假设失效）
+  sec2_related.tex          相关工作（5 段）
+  sec3_method.tex           形式化：Ω 分片光滑、ρ 不可辨识性、支撑面积上界
+  sec4_exp.tex              实验（6 张表）
+  sec5_concl.tex            结论
+  fig1.tex                  图 1（成像光路 + 实测数字）
+  refs.bib                  参考文献（26 条被引）
+  TintedGlass_ICME.pdf      编译产物（7 页 = 6 正文 + 1 参考文献）
+
+code/                       复现所需代码（从主仓 scripts/ 等抽出的干净子集）
+  train/finetune_rdnet_s2.py        训练主脚本（RDNet + Mona adapter，含合成/真实/开源三分支）
+  train/synth_occlusion_v2.py       ★ 合成遮挡注入（S1 随机闭曲线 + S2 真实行人剪影；按实测 I/T 标定）
+  train/train_monitor.py            平台期早停 + 定期 eval + ckpt 轮转
+  train/eval_progress.py            训练期指标（PSNR/SSIM/HF-PSNR/LapVar/FPS）
+  infer/eval_arm_1019.py            单臂推理（15 场景面板）
+  eval/table_final_1019.py          ★ 权威评测表（PSNR/SSIM/HF-PSNR/梯度余弦/LapVar）
+  eval/measure_real_darkness_gap.py ★ 量 Ω 内外落差分布（合成器标定用）
+  eval/check_illumination_vs_reflection.py ★ 分解"目标变暗"与"反射削弱"（论文 3.7%/16.8% 的出处）
+  eval/region_gain_omega.py         identity 参照的区域增益（★ 用的 Ω 不可靠，见 LIMITATIONS_OMEGA.md）
+  eval/probe_refl_color_scalar.py   反射层色偏探针
+  data_build/build_r_pool_final.py  ★ 建合成 R 池（SIR² 系，463 张，含色偏过滤）
+  data_build/build_silhouette_lib.py 建 S2 形状先验库（Penn-Fudan 剪影 420 张）
+  omega/                             Ω 判据实现（training-time only）
+
+configs/                    每个实验臂的 yaml（含预登记判据）
+  aprjun_1028.yaml          4+6 月主臂
+  randfix_1029.yaml         固定随机盘 vs 每步重画（判据写死：>0.5 dB 且 sd<0.3 才算结论）
+  RESULT_aprjun_1028.yaml   结果回填
+  RESULT_poolcmp_1028.yaml  池对比结果回填
+
+results/                    论文用的权威结果表
+  table_final_1019_final3_1029.md   四区组合并（identity/RRW/标注/重画/固定/全图/无项）
+  table_final_1019_all_1029.md      含 affine（尺度不变）臂
+  table_final_1019_poolcmp_1028.md  池选择对照（22.70 vs 20.97）
+  sec44_photometric.csv             35 臂光度偏差
+
+根文件
+  README.md                 包结构与结论一览
+  REPRO.md                  ★ 复现步骤（数据 → 训练 → 评测 → 出表）
+  LIMITATIONS_OMEGA.md      ★★ 必读：Ω 掩码不可靠的如实说明
+  MANIFEST.txt              本文件
+
+关键参数速查
+  统一配方        6000 it / bs 6 / lr 1e-4 / Mona adapter / 裁剪 224→256→320
+  单臂耗时        约 127 min（单卡 RTX 3080 10 GB，占用约 7 GB）
+  评测面板        data/test_sets/real_pair_1019（15 场景，1280×832，冻结）
+  必带基线        identity（地板）+ RDNet 官方零样本（现状）
+  统计口径        报 Δ 必带 95% CI；单种子效应 <1 dB 不作结论；本面板 MDE≈0.26 dB

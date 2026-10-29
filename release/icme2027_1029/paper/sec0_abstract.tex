@@ -1,0 +1,35 @@
+﻿% ==================== Abstract ====================
+\begin{abstract}
+Real-pair supervised single-image reflection removal (SIRR) trains on images whose
+reflection-free target is captured under a protocol, and every protocol silently assumes
+something about the reflection layer. We examine those assumptions for \emph{automotive tinted
+glass}, where a camera-side occluder (the photographer) cuts part of the reflected solid angle
+\emph{and} part of the illumination. Measuring 82 human-confirmed pairs, the two effects are \emph{not} the same size and do not even
+point the same way for the two layers: the reflection-free target is only $3.7\%$ darker inside
+$\Omega$, while the reflected content is $16.8\%$ weaker, so the input is $13\%$ darker than its
+own target there ($I/T|_{\mathrm{in}}\!\approx\!0.87$). A correction applied at one global
+strength therefore fails inside the occluded region; the resulting over-correction ratio is
+measured at $2.7\times$. Because the occlusion region
+cannot be localised from a single frame (IoU ceiling $0.494$ in-domain, $0.14$ across
+domains), we do not score methods inside it on the test panel at all
+
+We contribute (i) a tinted-glass benchmark of 631 pairs with four controlled attenuation
+levels, per-frame occlusion masks and a signed reflection layer, plus zero-shot baselines for
+seven public methods; (ii) a formalization of the occlusion region and a proof that the global
+photometric scale is not identifiable from a single frame; (iii) a diagnostic of where
+supervision should be placed: with three seeds, an area-matched \emph{random} region
+($19.90$~dB) matches the true occlusion mask ($19.41$~dB, difference $-0.49$~dB, not
+significant), and a whole-image relative error already reaches $20.05$~dB, so the active
+ingredient is the reflection-normalized error rather than the region identity, while a
+closed-form support-area bound ($0.036$~dB) shows why boundary-scale terms cannot be validated
+at all; and (iv) a transfer study: fine-tuning on our data gains $\mathbf{+2.22}$~dB over the
+best public method on \textbf{15/15} scenes and still $+1.69$~dB after a per-image affine, and
+the gain is largest for the pool that contains \emph{the fewest} occlusion regions --- what
+transfers is the domain, not the occlusion. An interventional protocol shows that
+state-of-the-art photometric conditioning fails its own requirement ($0.02$ vs.\ $0.50$).
+\end{abstract}
+
+\begin{IEEEkeywords}
+single-image reflection removal, tinted glass, occlusion region, identifiability,
+supervision placement, benchmark
+\end{IEEEkeywords}

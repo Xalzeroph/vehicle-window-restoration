@@ -1,0 +1,20 @@
+﻿# auto-filled 2026-10-28 19:55 (2 of 3 seeds; s303 running)
+experiment: aprjun_1028
+status: partial_2of3
+config: configs/aprjun_1028.yaml
+arms:
+  - {tag: aprjun_s101, seed: 101, psnr: 20.78, ssim: 0.7376, hf_psnr: 33.86, hole_psnr: 18.20, nonhole_psnr: 21.17, gap: -2.97}
+  - {tag: aprjun_s202, seed: 202, psnr: 21.35, ssim: 0.7365, hf_psnr: 33.65, hole_psnr: 18.71, nonhole_psnr: 21.75, gap: -3.03}
+aggregate: {mean_psnr: 21.068, seed_sd: 0.401, n_seeds: 2}
+baselines: {identity: 18.44, rdnet_zs: 20.05, rrw_zhu: 20.50}
+paired_tests:
+  s101_vs_rdnet_zs: {delta: "+0.732", ci95: "[+0.274,+1.190]", wins: "12/15"}
+  s101_vs_rrw:      {delta: "+0.285", ci95: "[-0.239,+0.808]", wins: "10/15"}
+  s202_vs_rdnet_zs: {delta: "+1.299", ci95: "[+0.823,+1.774]", wins: "15/15"}
+  s202_vs_rrw:      {delta: "+0.852", ci95: "[+0.340,+1.364]", wins: "12/15"}
+verdict:
+  tier: win_modulo_seed
+  rule: "mean >= 20.5 -> win"
+  measured: "+0.57 vs RRW, +1.02 vs official; 1 of 2 seeds significant vs RRW"
+  caveat: "gain is entirely outside Omega (21.46 vs 20.68); inside Omega WORSE (18.46 vs 19.21/19.25), gap widens -0.94 -> -2.97"
+  next: "seed 303 running (launched 19:50, ETA ~21:50)"

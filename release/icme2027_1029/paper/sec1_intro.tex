@@ -1,0 +1,99 @@
+% ==================== 1. Introduction ====================
+\section{Introduction}
+
+Given one image in which a scene is seen through a reflecting surface, \emph{single-image
+reflection removal} (SIRR) recovers the transmission layer $T$ from the superposition
+$I=T+R$ of the scene and the reflection $R$. The problem is under-determined --- two unknown
+layers through one measurement --- so every method has to supply a prior. Classical approaches
+assume the reflection is smoother, sparser in gradient, or of lower rank than the scene and
+separate the two layers by optimisation~\cite{wan2017benchmarking,wan2022crrn}. Physics-based approaches take additional
+measurements --- polarization at several angles~\cite{lei2020polarized}, or a flash/no-flash
+pair --- and are accurate but need hardware that a single RGB frame does not have. Learning-based methods instead train
+on paired data: synthetically composited pairs dominate (perceptual
+losses~\cite{zhang2018perceptual}, cascaded refinement~\cite{li2020ibcln}, learned non-linear
+coupling~\cite{hu2023dsrnet,zhao2025rdnet}, transformer and diffusion
+priors~\cite{hong2024ldiffer,promptrr2024}), and real-pair corpora --- tens of thousands of
+pairs captured in the wild~\cite{zhu2024rrw,openrr2025,cai2026ntire} --- have made such
+captures trainable. The applications are exactly those
+in which the glass cannot be taken away: photographs shot through car windows and shop
+displays, museum and archive glazing, surveillance and driver-assistance cameras behind
+windscreens, and product photography through protective covers.
+
+Real-pair \emph{supervision} rests on a simple idea: capture an image without reflection and
+use it as a target. The three acquisition routes --- removing the
+glass, subtracting in the RAW domain, or covering the camera side with a black cloth --- were
+all designed to answer \emph{how to obtain the target}, and rarely ask \emph{what properties of
+the reflection layer the target silently assumes}. They also share an unstated requirement:
+the camera-side cover must be \textbf{complete}. We revisit that question for a case that is
+common in practice, poorly represented in existing data, and physically the least friendly to
+those assumptions: \textbf{automotive tinted glass}.
+
+\textbf{Two assumptions break on tinted glass.}
+
+\textbf{(A2) The reflection layer is not a smooth, non-negative film.} When a foreground object
+sits on the camera side --- the photographer, a handheld phone --- it blocks part of the
+reflected solid angle \emph{and} part of the scene illumination. Inside the resulting
+\emph{occlusion region} $\Omega$ the reflection is attenuated to about $30\%$ of its local
+background, the occluder contributes a faint diffuse reflection of its own, and, most
+importantly, the input drops \emph{below its own target}. Measured on our 82 confirmed pairs the two layers part company: the
+reflection-free target is only $3.7\%$ darker inside $\Omega$ ($T_{\mathrm{in}}/T_{\mathrm{out}}=0.963$),
+whereas the reflected content is $16.8\%$ weaker ($r_{\mathrm{in}}/r_{\mathrm{out}}=0.832$), leaving the
+input $13\%$ darker than its own target there ($I/T|_{\mathrm{in}}\!\approx\!0.87$). A correction
+applied at one global strength must therefore over-correct inside $\Omega$, and the effect is
+visible in the errors rather than only in the model: the resulting over-correction ratio is measured at $2.7\times$. This is also why a
+per-region score cannot be used to blame existing methods: their reflection field is
+continuous and has no per-region gain term, so the $13\%$ input deficit has nowhere to go ---
+but the region itself is not identifiable from one frame, which makes the comparison
+unanswerable rather than unfavourable
+
+\textbf{(A3) The global photometric level is not identifiable from one frame.} From
+$I=\tau T+R$, the target $\tau T$ is identifiable only up to one global scale, fixed by
+$\rho=\mu(\tau T)/\mu(I)$, which is not a function of the input. A pixel-wise objective
+therefore degenerates toward the domain-average brightness: all 35 of our arms are
+systematically $6.66$ gray levels too bright, and a closed-form brightness correction recovers
+$+0.63$~dB on average ($\max$ $+1.89$~dB). The \emph{ranking} of $\rho$ within a domain is
+learnable (Spearman $0.60$), its absolute value is not.
+
+\textbf{This paper.} Rather than proposing another removal network we ask a question a
+practitioner can reuse: \emph{given these two non-identifiable quantities, which supervision
+actually transfers?} We answer with a benchmark, controlled arms with three seeds, a closed-form
+bound, and an interventional test, and the answer is more specific than ``add an occlusion
+loss''. Positively, supervised fine-tuning on our domain transfers strongly: $22.70$~dB on a
+frozen 15-scene panel, $\mathbf{+2.22}$~dB over the strongest public method and better on
+\textbf{every one} of the 15 scenes ($+1.69$~dB after a per-image affine, so photometry is only
+about half a decibel of it) --- and the winning pool is the one containing the \emph{fewest}
+occlusion regions. Negatively, the value of
+an occlusion-region loss comes from its \emph{normalization} by the local reflection amplitude,
+not from the region: an area-matched random region matches the true mask, a whole-image relative
+error already beats it, a boundary term confined to two pixels cannot move a global score by
+more than $0.036$~dB, and a mask whose labels are six times better buys no accuracy.
+
+Our contributions are:
+
+\begin{itemize}
+  \item \textbf{A real-paired tinted-glass benchmark} of 631 pairs over 13 training scenes with
+  four controlled attenuation levels, per-frame occlusion-region masks and a signed reflection
+  layer, a zero-shot evaluation of seven public methods, and a controlled fine-tuning study on a
+  frozen 15-scene panel (Sections~\ref{sec:data}, \ref{sec:bench}, \ref{sec:ft}).
+  \item \textbf{A formalization of the occlusion region} --- piecewise smooth with sharp
+  boundaries --- with an over-correction proposition, a measured decomposition of the three
+  physical terms, and the non-identifiability of the global photometric scale
+  (Section~\ref{sec:method}).
+  \item \textbf{A diagnostic of supervision placement}: with three seeds per arm an area-matched
+  random region ($19.90$~dB) matches the true mask ($19.41$~dB, $-0.49$~dB, n.s.), the
+  whole-image relative error reaches $20.05$~dB, and a closed-form support-area bound explains
+  why boundary-scale terms are unmeasurable by global PSNR
+  (Section~\ref{sec:diag}).
+  \item \textbf{Two artifacts and a calibrated negative}: a reflection mask supervised by the
+  true reflection layer (IoU $0.376$ vs.\ $0.063$ for the gradient-comparison pseudo-label of
+  prior work, with \emph{no} claimed downstream gain), and an interventional acceptance protocol
+  under which state-of-the-art photometric conditioning scores $0.02$ against a required $0.50$
+  (Section~\ref{sec:gate}, \ref{sec:photom}).
+\end{itemize}
+
+We do not claim a state-of-the-art PSNR on public benchmarks. We do claim that the two axes
+above are the binding constraints on this data, that the transfer result we report is large and
+reproducible, and that it is \emph{not} evidence for occlusion supervision --- so we report
+every negative result that follows.
+
+\input{fig1}

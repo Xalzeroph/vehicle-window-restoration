@@ -1,0 +1,312 @@
+﻿% ==================== 4. Experiments ====================
+\section{Experiments}
+\label{sec:exp}
+
+\subsection{Dataset and protocol}
+\label{sec:data}
+
+\textbf{Capture.} A tripod fixes the camera; a phone shoots through a tinted car window. For
+each scene a reflection-contaminated sequence is recorded, then the camera side is covered
+with a black velvet cloth and the transmission reference is recorded. We shoot 13 training
+and 12 frozen test scenes (631 pairs in total), at four controlled attenuation levels
+(original plus $8/11/14\%$ manual darkening), and annotate, per frame, the occlusion region
+and a signed reflection layer. Table~\ref{tab:data} summarizes the statistics and the two
+acquisition defects that we disclose rather than hide.
+
+\begin{table}[t]
+\centering
+\caption{Tinted-glass benchmark. Defects are reported, not corrected.}
+\label{tab:data}
+\small
+\begin{tabular}{@{}p{1.9cm}p{5.6cm}@{}}
+\toprule
+Item & Value \\
+\midrule
+Pairs / scenes & 631 pairs; 13 training scenes \\
+Resolution & test panel $1280\times832$; pools $955\times934$ (apr/may/jun), $1392\times774$ (re-crop) \\
+Annotations & $I$, $T$, signed $R$ (uint8$+128$), per-frame $\Omega$ \\
+Attenuation levels & 4 ($\rho$: apr $0.969$, may $0.899$, jun $0.921$, test $0.858$) \\
+Occlusion present? & apr \ding{51}, jun \ding{51}, may \ding{55} (confirmed by inspection) \\
+$\Omega$ area (train pool) & $15.3\%$ (82 new pairs), $20.8\%$ (126 old pairs) \\
+Defect 1 & one GT per scene, median $374$ frames from the input (6\% within 50) \\
+Defect 2 & inside $\Omega$ the input is $13\%$ darker than its own target ($I/T|_{\mathrm{in}}\approx0.87$): a per-region gain is required \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Metrics.} PSNR, SSIM, HF-PSNR and a gradient-cosine term on 15 native-resolution
+scenes; the minimum detectable effect of the paired panel is $0.26$~dB, and for
+brightness-only effects $1.19$--$1.31$~dB.
+
+\subsection{Zero-shot benchmark}
+\label{sec:bench}
+
+Table~\ref{tab:bench} evaluates seven public methods without any training on our data. Two
+observations matter for the rest of the paper. First, the ranking tracks \emph{whether the
+training data is real} rather than publication year: the real-pair method of
+2024~\cite{zhu2024rrw} is first ($20.50$~dB) while synthetic-training methods fall to
+$18.12$--$18.90$~dB, i.e.\ \textbf{below the identity baseline} ($18.44$~dB). Second, the
+hole/non-hole gap is negative for every method, but \emph{its sign depends on the partition
+caliber}: switching from an Otsu-based reflection mask to the training-time $\Omega$
+criterion flips it for all methods. We therefore never use the raw gap as evidence; the
+comparable quantity is the gain relative to identity inside the same region, which is at
+most $+0.56$~dB inside $\Omega$ for every method (versus $+0.5$ to $+2.9$~dB outside).
+
+\begin{table*}[t]
+\centering
+\caption{Gain over the trivial baseline (identity) in the two partitions of the frozen panel.
+The partition used for evaluation is the v13 criterion --- a \emph{reflection} mask
+($r=R/T$ gate $+$ Otsu, median $9.4\%$ of the frame) --- because it is the only criterion that
+stays well behaved on these outdoor scenes; the training-time occlusion criterion is not used
+for evaluation (see the text). Under this partition every method gains \emph{more} inside than
+outside, so the raw negative hole/non-hole gap is a property of the region, not of the method.}
+\label{tab:regiongain}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Method & PSNR & hole & gain in hole & non-hole & gain in non-hole \\
+\midrule
+identity (no processing) & 18.44 & 15.17 & $0$ & 18.97 & $0$ \\
+official RDNet~\cite{zhao2025rdnet} & 20.05 & 19.25 & $+4.08$ & 20.19 & $+1.22$ \\
+RRW~\cite{zhu2024rrw} & 20.50 & 19.21 & $+4.05$ & 20.68 & $+1.71$ \\
+DSRNet~\cite{hu2023dsrnet} & 20.25 & 18.30 & $+3.14$ & 20.53 & $+1.56$ \\
+LightRR & 19.18 & 16.86 & $+1.70$ & 19.51 & $+0.54$ \\
+ERRNet~\cite{wen2019errnet} & 18.90 & 16.10 & $+0.94$ & 19.33 & $+0.36$ \\
+IBCLN~\cite{li2020ibcln} & 18.12 & 15.48 & $+0.31$ & 18.52 & $-0.45$ \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\footnotesize Identity itself scores $-3.81$~dB in this partition, i.e.\ the region is
+intrinsically harder to score; comparing \emph{gains} removes that. This partition is
+\textbf{not} the occlusion region: it marks where reflection is \emph{weak}, while the occlusion
+region marks where reflection was \emph{blocked} --- the two are close to opposite, and the
+training-time criterion degenerates to a $35\%$ field on these scenes. No per-region number in
+this paper is therefore reported under the occlusion criterion on the test panel.
+\end{table*}
+
+\textbf{What the partition can and cannot say.} Table~\ref{tab:regiongain} reports gains
+relative to identity in both partitions. Two facts follow. First, \emph{every} method gains more
+inside the v13 hole ($+0.3$ to $+4.1$~dB) than outside it ($+0.5$ to $+1.7$~dB), so the plain
+negative hole/non-hole gap of Table~\ref{tab:bench} is a property of the region --- identity has
+the same gap ($-3.81$~dB) --- and is not evidence that methods fail there. Second, this
+partition is a \emph{reflection} mask, not the occlusion region, and the occlusion criterion we
+use at training time degenerates on these outdoor scenes (median area $35\%$, against
+$15$--$21\%$ on the training pools). We therefore take a methodological position instead of
+quoting a number: \textbf{there is no reliable way to score a method inside the occlusion region
+of this panel}. That matches the identifiability ceiling of Section~\ref{sec:diag} and is why our
+supervision-placement study is run during \emph{training} rather than from per-region scores.
+
+\subsection{Does fine-tuning on our data help?}
+\label{sec:ft}
+
+The practical question a dataset must answer is whether it transfers. We fine-tune the same
+backbone (RDNet with Mona adapters, frozen FocalNet, $65.95$~M trainable) on our real pairs
+and evaluate on the frozen 15-scene panel; the recipe is 6000 iterations, batch 6,
+$\mathrm{lr}=10^{-4}$, mixed with online synthesis and open-source pairs at $30/40/30\%$.
+
+\begin{table*}[t]
+\centering
+\caption{Fine-tuning on our data, evaluated on the frozen 15-scene panel. Which months the
+pool contains matters far more than whether those months contain occlusion regions.
+$^\ddagger$ rows apply a post-hoc per-image affine (the photometric upper bound of
+Table~\ref{tab:photometric}).}
+\label{tab:ft}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Training data & occlusion in pool & \#real pairs & PSNR$\uparrow$ & hole & non-hole \\
+\midrule
+identity (no training) & --- & 0 & 18.44 & 15.17 & 18.97 \\
+official RDNet, zero-shot & --- & $\sim$10k (SIR2) & 20.05 & 19.25 & 20.19 \\
+RRW, zero-shot & --- & 14{,}952 & 20.50 & 19.21 & 20.68 \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{earlier recipe, single seed, small pools (934$\times$955 crop)}}\\
+ours: may & \ding{55} & 14 & 20.69 & 18.91 & 20.98 \\
+ours: apr & \ding{51} & 16 & 19.26 & 16.26 & 19.72 \\
+ours: apr $+$ may & mixed & 30 & 20.63 & 18.74 & 20.92 \\
+ours: may $+$ jun & mixed & 27 & 20.80 & \textbf{21.44} & 20.76 \\
+ours: apr $+$ jun & \ding{51}\ding{51} & 29 & 21.32 & 20.21 & 21.47 \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{current recipe, three seeds, full pools}}\\
+ours: apr $+$ jun & \ding{51}\ding{51} & 170 & 20.97 & 18.20 & 21.39 \\
+ours: apr $+$ jun$^\ddagger$ & \ding{51}\ding{51} & 170 & 22.13 & --- & --- \\
+\textbf{ours: may $+$ jun} & mixed & \textbf{174} & \textbf{22.70} & \textbf{20.67}
+  & \textbf{23.03} \\
+ours: may $+$ jun$^\ddagger$ & mixed & 174 & \textbf{23.14} & --- & --- \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+\footnotesize \emph{hole / non-hole} is the v13 partition ($r=R/T$ gate $+$ Otsu) computed by the
+evaluation script: a \emph{reflection} mask, not the training-time occlusion region $\Omega$. The
+sign of the gap depends on this partition, which is why we never use it as evidence on its own.
+All rows share the same recipe (6000 iterations, batch 6, $\lambda_\Omega=3$); the two
+three-seed rows differ \emph{only} in which months the pool is drawn from
+(apr $+$ jun: 126$+$44; may $+$ jun: 130$+$44), and their seeds span $0.33$--$0.46$~dB.
+\end{table*}
+
+\textbf{The region term itself is worth $3$--$4$~dB.} Before asking \emph{where} supervision
+should be placed, we measure what the region term is worth at all, by removing it entirely
+($\lambda_{om}=0$) from the same recipe. On the april$+$june pool it costs $3.19$~dB
+($20.96\!\to\!17.77$) and on may$+$june $4.38$~dB ($22.71\!\to\!18.33$); in both cases the
+fine-tuned model ends up \emph{below} the identity baseline ($18.44$), so without this term
+fine-tuning on our data is a net loss. This is the largest effect we measure. It also explains
+the pool gap: it shrinks from $1.73$~dB to $0.56$~dB once the term is removed, i.e.\ most of the
+may$+$june advantage only exists while the term is present.
+
+\textbf{Reading.} Pool choice dominates everything we varied in this section. The
+May-dominant pool reaches $22.70$~dB, i.e.\ $\mathbf{+2.22}$ over the strongest public
+method (per-scene 95\% CI $[+1.73,+2.72]$, winning on \textbf{15/15} scenes) and $+2.68$ over
+the official model, while the April-dominant pool of the same size and recipe reaches only
+$20.97$ ($+0.47$, CI $[-0.03,+0.93]$, 11/15 --- not significant). Unlike every earlier arm,
+the winning pool \emph{also} improves the hole region ($20.67$ vs.\ $19.21$ and $19.25$).
+
+\textbf{How much of that is photometry?} Table~\ref{tab:photometric} supplies the photometric
+upper bound: a post-hoc per-image affine lifts the April pool by $+1.21$~dB and the May pool
+by only $+0.43$~dB, so roughly $0.8$~dB of the $1.77$~dB gap is the April pool's residual
+brightness bias. \textbf{About $1.0$~dB survives that correction} ($23.14$ vs.\
+$22.13$), so pool choice is \emph{not} purely photometric; we do not yet attribute the
+remainder, and we report the raw numbers rather than the corrected ones throughout.
+
+ \textbf{An analytically scale-invariant reconstruction does not help.} We also tried
+replacing the reconstruction term by a per-sample affine-invariant one (closed-form $a,b$,
+$a\!\ge\!0.2$, normalized by $\sqrt{\mathrm{Var}(T)}$). Two seeds give $20.46$ and $17.77$ against
+the $20.96$ linear baseline --- no gain and a $2.7$~dB seed spread --- so the variant was dropped
+and we report it as a negative result rather than a tuning detail.
+
+\textbf{What this corrects in our earlier reading.} We previously reported that the ordering
+follows \emph{whether the training months contain occlusion regions}. With three seeds and
+matched recipes that is false: the pool dominated by the occlusion-free month is the better
+one, by $1.7$~dB, and it is also better inside the hole. The variable that actually moves the
+score is which acquisition month the pool represents, i.e.\ how close its photometry and scene
+statistics are to the evaluation panel --- not the presence of occlusion supervision. We had
+expected the opposite (hole supervision should be what a tinted-glass pool adds); the data say
+otherwise, and we report the correction rather than the original story.
+
+\textbf{The earlier 21.32 does not survive the controlled re-run} ($20.97$), confirming that
+the ordering among the single-seed rows above is dominated by pool, crop and seed rather than
+by whether a month contains occlusion regions.
+
+\subsection{Where should supervision be placed?}
+\label{sec:diag}
+
+We then ask \emph{which part} of a region loss carries the signal. Identical arms differ only
+in what the loss acts on (same pool of 82 human-confirmed pairs, three seeds per arm).
+
+\begin{table*}[t]
+\centering
+\caption{Supervision placement. Means over three seeds; ``random'' is an area-matched disk
+redrawn every iteration. Rows below the rule are single-seed screening runs.}
+\label{tab:placement}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+What the loss acts on & PSNR & seed sd & hole & non-hole & LapVar \\
+\midrule
+no region loss ($\lambda_\Omega=0$) & 17.76 & 0.16 & 14.44 & 18.29 & 34.5 \\
+true $\Omega$ mask & 19.41 & \textbf{0.54} & 16.81 & 19.80 & 40.2 \\
+random disk, redrawn & \textbf{19.90} & \textbf{0.16} & \textbf{17.42} & \textbf{20.26} & 36.1 \\
+\midrule
+whole image, no mask$^\dagger$ & 20.05 & --- & 17.42 & 20.43 & 36.0 \\
+random disk, fixed per pair & 20.25 & --- & 17.70 & 20.62 & 37.2 \\
+true mask $+$ true darkening$^\dagger$ & 20.06 & --- & 17.22 & 20.49 & --- \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\footnotesize $^\dagger$ single seed; screening evidence only.
+\end{table*}
+
+Three findings follow.
+
+\textbf{The region need not be fixed in place either.} A disk fixed per pair scores $20.25\pm0.29$
+over three seeds against $19.90\pm0.16$ for a disk redrawn every iteration --- a gap of $0.35$~dB,
+below the $0.5$~dB threshold we pre-registered, so we report no significant difference. The
+single-seed $20.48$ of an earlier run did not replicate, which is why all placement claims in
+this paper rest on three seeds.
+
+\textbf{(1) The loss works, but not because of the hole.} Removing it costs more than doing
+nothing ($17.76$ versus $18.44$~dB for identity), so the term is load-bearing. Yet an
+area-matched random disk reaches $+2.15$~dB over the no-loss arm while the \emph{true} mask
+reaches $+1.66$~dB; the difference is $-0.49$~dB (1 of 3 seeds positive). The benefit is
+``some region is under supervision'', not ``this region is the occlusion''.
+
+\textbf{(2) Seed variance is itself informative.} The true-mask arm has a seed standard
+deviation of $0.54$~dB while the random-disk and no-loss arms have $0.16$~dB. A mask that
+coincides with real structure admits two nearly equivalent solutions (preserve it, or smooth
+it) and which one is reached depends on initialization; a random disk does not. This is why
+single-seed comparisons below $1$~dB are meaningless here.
+
+\textbf{(3) What carries the signal is the normalization.} Replacing the masked relative error
+by a \emph{whole-image} relative error already gives $20.05$~dB --- more than the true mask
+--- identifying the denominator $\sum|\hat R|$ as the active ingredient. Consistently,
+supplying the true in-region darkening removes the harm of the true mask ($20.06$~dB): the
+mask hurt because it forced the model to guess an illumination level that one frame does not
+contain.
+
+\textbf{The boundary term cannot be judged.} Penalizing $|\nabla\hat T|>\alpha|\nabla\hat R|$
+on $\partial\Omega$ gave $+0.72$~dB on one seed and $-0.37/-0.17$ on two more (mean
+$+0.06$~dB, 1/3 positive), and occupies $0.06$--$0.5\%$ of the total loss. The support-area
+bound of Eq.~\eqref{eq:bound} explains why: a 2-pixel band cannot move a global score by more
+than $0.036$~dB, so the experiment was unidentifiable by construction.
+
+\subsection{The reflection mask: better labels, no downstream gain}
+\label{sec:gate}
+
+Prior work obtains a spatial reflection prior from the gradient comparison $G_I>G_T$. On our
+data that pseudo-label covers $48.1\%$ of the image and agrees with the true reflection energy
+at only IoU $0.063$. Supervising the same head with the \emph{true} reflection layer instead
+raises the mask to IoU $0.376$ (precision $0.739$, recall $0.489$), a $6\times$ improvement at
+equal cost and with the same test-time interface (image only).
+
+\textbf{But better labels do not yet buy accuracy.} Used as a per-pixel loss weight on the
+same base arm, the true-reflection label gives $19.75$~dB while the original
+gradient-comparison label gives $20.36$~dB, and both are below simply using no mask at all
+($20.05$~dB, Table~\ref{tab:placement}). We therefore report the mask as a
+\emph{diagnostic} --- it shows that the widely used pseudo-label is nearly uninformative ---
+and not as a component with a demonstrated gain; closing that gap (e.g.\ as a conditioning
+input rather than a weight) is future work.
+
+\subsection{Photometric axis and an interventional test}
+\label{sec:photom}
+
+\begin{table*}[t]
+\centering
+\caption{Brightness is a large, non-identifiable component of the error. A closed-form
+2-parameter affine per image, fitted post hoc, recovers most of the gap between the official
+model and the trivial baseline. Net gain of the official model over that baseline: $+0.30$~dB
+(apr), $-0.32$~dB (may).}
+\label{tab:photometric}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Test set & $n$ & identity, raw & identity, $+$affine & identity, $+$scalar
+  & official, raw & official, $+$affine \\
+\midrule
+apr (\texttt{bak\_1026}, 16 frames) & 16 & 17.81 & \textbf{20.10} & 19.52
+  & 17.42 & 20.40 \\
+may & 14 & 23.32 & \textbf{25.77} & 25.61 & 23.71 & 25.44 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+On the apr domain a two-parameter global affine applied to the \emph{identity} output reaches
+$20.10$~dB while the official model gives $17.42$~dB; the net gain of the official model over
+that trivial baseline is only $+0.30$~dB (and $-0.32$~dB on may). The bottleneck is therefore
+photometric, not training effort --- what the non-identifiability argument predicts.
+
+Over 35 fine-tuned arms (12-scene held-out panel, which excludes the three scenes used to build one training split), the systematic brightness bias is $6.66$ gray levels on average, and
+a closed-form gain $g=\mu(T)/\mu(\hat T)$ recovers $+0.63$~dB on average ($\max$ $+1.89$~dB)
+without changing the ranking. Since this benchmark's detection floor for brightness-only
+effects is $1.19$--$1.31$~dB, the photometric error alone accounts for a measurable effect
+size, and it is exactly the one global scale that a single frame cannot supply.
+
+To test whether a model really uses a photometric condition, we perturb the conditioning
+scalar $c$ and measure
+$\mathrm{ControlGain}=\bigl(\partial\mu(\hat T)/\partial c\bigr)/\mu(I)$, requiring
+$\ge0.50$. A frozen state-of-the-art model scores $0.02$, an absorption-aware network $0.086$,
+and a model trained with a counterfactually sampled scalar $0.244$; the uninformative-condition
+control scores $0.020$, a factor $12.4$ below the counterfactual arm.
