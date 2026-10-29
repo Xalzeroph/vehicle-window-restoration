@@ -1,0 +1,290 @@
+[
+  {
+    "key": "clear_glass_f2.8_EV-1.0",
+    "material_label": "clear_glass",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.03,
+        0.035,
+        0.04
+      ],
+      "thickness_m": 0.004
+    },
+    "camera_f_number": 2.8,
+    "relative_cabin_radiance_ev_HYPOTHESIS": -1.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "clear_glass_f2.8_EV0.0",
+    "material_label": "clear_glass",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.03,
+        0.035,
+        0.04
+      ],
+      "thickness_m": 0.004
+    },
+    "camera_f_number": 2.8,
+    "relative_cabin_radiance_ev_HYPOTHESIS": 0.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "clear_glass_f2.8_EV1.0",
+    "material_label": "clear_glass",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.03,
+        0.035,
+        0.04
+      ],
+      "thickness_m": 0.004
+    },
+    "camera_f_number": 2.8,
+    "relative_cabin_radiance_ev_HYPOTHESIS": 1.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "clear_glass_f5.6_EV-1.0",
+    "material_label": "clear_glass",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.03,
+        0.035,
+        0.04
+      ],
+      "thickness_m": 0.004
+    },
+    "camera_f_number": 5.6,
+    "relative_cabin_radiance_ev_HYPOTHESIS": -1.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "clear_glass_f5.6_EV0.0",
+    "material_label": "clear_glass",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.03,
+        0.035,
+        0.04
+      ],
+      "thickness_m": 0.004
+    },
+    "camera_f_number": 5.6,
+    "relative_cabin_radiance_ev_HYPOTHESIS": 0.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "clear_glass_f5.6_EV1.0",
+    "material_label": "clear_glass",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.03,
+        0.035,
+        0.04
+      ],
+      "thickness_m": 0.004
+    },
+    "camera_f_number": 5.6,
+    "relative_cabin_radiance_ev_HYPOTHESIS": 1.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "mild_tint_f2.8_EV-1.0",
+    "material_label": "mild_tint",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.12,
+        0.18,
+        0.27
+      ],
+      "thickness_m": 0.0045
+    },
+    "camera_f_number": 2.8,
+    "relative_cabin_radiance_ev_HYPOTHESIS": -1.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "mild_tint_f2.8_EV0.0",
+    "material_label": "mild_tint",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.12,
+        0.18,
+        0.27
+      ],
+      "thickness_m": 0.0045
+    },
+    "camera_f_number": 2.8,
+    "relative_cabin_radiance_ev_HYPOTHESIS": 0.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "mild_tint_f2.8_EV1.0",
+    "material_label": "mild_tint",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.12,
+        0.18,
+        0.27
+      ],
+      "thickness_m": 0.0045
+    },
+    "camera_f_number": 2.8,
+    "relative_cabin_radiance_ev_HYPOTHESIS": 1.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "mild_tint_f5.6_EV-1.0",
+    "material_label": "mild_tint",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.12,
+        0.18,
+        0.27
+      ],
+      "thickness_m": 0.0045
+    },
+    "camera_f_number": 5.6,
+    "relative_cabin_radiance_ev_HYPOTHESIS": -1.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "mild_tint_f5.6_EV0.0",
+    "material_label": "mild_tint",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.12,
+        0.18,
+        0.27
+      ],
+      "thickness_m": 0.0045
+    },
+    "camera_f_number": 5.6,
+    "relative_cabin_radiance_ev_HYPOTHESIS": 0.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "mild_tint_f5.6_EV1.0",
+    "material_label": "mild_tint",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.12,
+        0.18,
+        0.27
+      ],
+      "thickness_m": 0.0045
+    },
+    "camera_f_number": 5.6,
+    "relative_cabin_radiance_ev_HYPOTHESIS": 1.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "dark_tint_f2.8_EV-1.0",
+    "material_label": "dark_tint",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.25,
+        0.45,
+        0.68
+      ],
+      "thickness_m": 0.006
+    },
+    "camera_f_number": 2.8,
+    "relative_cabin_radiance_ev_HYPOTHESIS": -1.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "dark_tint_f2.8_EV0.0",
+    "material_label": "dark_tint",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.25,
+        0.45,
+        0.68
+      ],
+      "thickness_m": 0.006
+    },
+    "camera_f_number": 2.8,
+    "relative_cabin_radiance_ev_HYPOTHESIS": 0.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "dark_tint_f2.8_EV1.0",
+    "material_label": "dark_tint",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.25,
+        0.45,
+        0.68
+      ],
+      "thickness_m": 0.006
+    },
+    "camera_f_number": 2.8,
+    "relative_cabin_radiance_ev_HYPOTHESIS": 1.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "dark_tint_f5.6_EV-1.0",
+    "material_label": "dark_tint",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.25,
+        0.45,
+        0.68
+      ],
+      "thickness_m": 0.006
+    },
+    "camera_f_number": 5.6,
+    "relative_cabin_radiance_ev_HYPOTHESIS": -1.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "dark_tint_f5.6_EV0.0",
+    "material_label": "dark_tint",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.25,
+        0.45,
+        0.68
+      ],
+      "thickness_m": 0.006
+    },
+    "camera_f_number": 5.6,
+    "relative_cabin_radiance_ev_HYPOTHESIS": 0.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  },
+  {
+    "key": "dark_tint_f5.6_EV1.0",
+    "material_label": "dark_tint",
+    "glass": {
+      "n": 1.52,
+      "optical_depth_rgb": [
+        0.25,
+        0.45,
+        0.68
+      ],
+      "thickness_m": 0.006
+    },
+    "camera_f_number": 5.6,
+    "relative_cabin_radiance_ev_HYPOTHESIS": 1.0,
+    "scientific_status": "ILLUSTRATIVE_HYPOTHESIS_NOT_MEASURED"
+  }
+]

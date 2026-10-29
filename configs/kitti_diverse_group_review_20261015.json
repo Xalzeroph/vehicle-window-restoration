@@ -1,0 +1,120 @@
+{
+  "review_date": "2026-10-15",
+  "review_scope": "KITTI_Diverse original day-separated sources; manual image review",
+  "limits": [
+    "Only one representative frame per capture group manually inspected, full video not inspected",
+    "This does not assert real glass reflection calibration or data redistribution rights"
+  ],
+  "capture_groups": {
+    "2011_09_26_drive_0002": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_26_drive_0048": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_26_drive_0052": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_26_drive_0060": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_28_drive_0047": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_28_drive_0128": {
+      "disposition": "exclude_static_calibration",
+      "evidence": "2026-10-15 manual montage inspection: static facade or checkerboard calibration room, not road transit",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_28_drive_0156": {
+      "disposition": "exclude_static_calibration",
+      "evidence": "2026-10-15 manual montage inspection: static facade or checkerboard calibration room, not road transit",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_28_drive_0171": {
+      "disposition": "exclude_static_calibration",
+      "evidence": "2026-10-15 manual montage inspection: static facade or checkerboard calibration room, not road transit",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_28_drive_0225": {
+      "disposition": "exclude_static_calibration",
+      "evidence": "2026-10-15 manual montage inspection: static facade or checkerboard calibration room, not road transit",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_29_drive_0004": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_29_drive_0026": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_29_drive_0071": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_30_drive_0016": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_30_drive_0020": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_30_drive_0027": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_30_drive_0034": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_09_30_drive_0072": {
+      "disposition": "exclude_static_calibration",
+      "evidence": "2026-10-15 manual montage inspection: static facade or checkerboard calibration room, not road transit",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_10_03_drive_0027": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_10_03_drive_0034": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_10_03_drive_0042": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_10_03_drive_0047": {
+      "disposition": "driving_eligible",
+      "evidence": "2026-10-15 manual montage inspection: depicts road and driving-scene content; not an independent car-glass calibration",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    },
+    "2011_10_03_drive_0058": {
+      "disposition": "exclude_static_calibration",
+      "evidence": "2026-10-15 manual montage inspection: static facade or checkerboard calibration room, not road transit",
+      "scene_review_method": "contact sheet all_22_capture_groups_visual.jpg, representative first frame, cross-capture dHash check"
+    }
+  }
+}

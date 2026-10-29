@@ -326,8 +326,6 @@ def main():
     lines.append('## 判据出处\n')
     lines.append('- 旧数据实测（对照基线）: apr `|g−1|` 0.1749 / 逐通道极差 max 0.308 / '
                  '8-11 场景 AE 逐帧追赶')
-    lines.append('- 详见 `docs/2026.10.10_实拍数据诊断与VLM探针_结论.md` 与 '
-                 '`docs/采集方法决策卡_MR相减vs黑布_2026.10.10.md`')
     rep = a.out or (os.path.splitext(src)[0] + '_QA.md')
     with open(rep, 'w', encoding='utf-8') as fh:
         fh.write('\n'.join(lines))
