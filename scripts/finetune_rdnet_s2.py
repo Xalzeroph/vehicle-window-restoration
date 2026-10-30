@@ -25,19 +25,60 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from PIL import Image
+import hashlib
 from torch.utils.data import Dataset, DataLoader
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
-sys.path.insert(0, os.path.join(PROJ, "RDNet"))
+# 2026-10-29: --arch clean1029 时优先用队友的新模型包（独立目录，不改我们的 RDNet）
+ARCH_ENV = os.environ.get("TINTED_ARCH", "mona")
+if ARCH_ENV == "clean1029":
+    sys.path.insert(0, os.path.join(PROJ, "RDNet_clean1029"))
+    sys.path.insert(0, os.path.join(PROJ, "RDNet"))
+else:
+    sys.path.insert(0, os.path.join(PROJ, "RDNet"))
 os.chdir(os.path.join(PROJ, "RDNet"))
 from finetune_rdnet_peft import build, charbonnier      # noqa: E402
+
+
+def build_clean1029():
+    """构造队友的新架构（RDNet-clean-20261029）：返回 net（输出 (out_i, out_j)）与 net_c。
+
+    与我们的 build() 的差别：不 patch Mona；用他的 FullNet_NLP（内部 ratio_head，
+    输出 T=sigmoid(logit(I)+4q)、N=I-T），权重经他的 load_state_dict 迁移钩子从
+    pretrained/rdnet.pth 载入。
+    """
+    from models.arch.RDnet_ import FullNet_NLP as HisFullNet
+    from models.arch.classifier import PretrainedConvNext
+
+    net = HisFullNet(channels=[64, 128, 256, 512], layers=[2, 2, 4, 2],
+                     num_subnet=4, loss_col=4, kernel_size=3, num_classes=1000,
+                     drop_path=0, save_memory=True, inter_supv=True, head_init_scale=None)
+    ck = torch.load(os.path.join(PROJ, "pretrained/rdnet.pth"), map_location="cpu")
+    sd = ck.get("icnn", ck)
+    miss, unex = net.load_state_dict(sd, strict=False)
+    n_par = sum(p.numel() for p in net.parameters())
+    print(f"[clean1029] 参数量 {n_par/1e6:.2f} M | 迁移 rdnet.pth: "
+          f"missing={len(miss)} unexpected={len(unex)}", flush=True)
+    if miss:
+        print(f"[clean1029] missing 前 6: {list(miss)[:6]}", flush=True)
+    net_c = PretrainedConvNext("convnext_small_in22k")
+    net_c.load_state_dict(torch.load(os.path.join(PROJ, "pretrained/cls_model.pth"),
+                                     map_location="cpu")["icnn"])
+    return net, net_c
 
 EPS = 1e-3
 OMEGA_DIR = os.path.join(PROJ, "data/train_sets/train_pairs_omega_0920")
 OPENSRC_META = os.path.join(PROJ, "data/train_sets/train_pairs_opensrc_0920/meta.json")
 RRW_R_DIR = os.path.join(PROJ, "data/pools/r_signed_0920/rrw")
+R_POOL = os.path.join(PROJ, "data/pools/r_final_1029")   # 2026-10-29 新池（SIR² 系）
+try:
+    import synth_occlusion_v2 as _SO
+    _SO_OK = True
+except Exception as _e:  # noqa: BLE001
+    _SO_OK = False
+    print('[s2] 合成遮挡模块不可用:', _e, flush=True)
 T_SRCS = [os.path.join(PROJ, "data/external/VOC2012/VOC2012_s320"),
           "/home/zmy/mycode/datasets/SIR2/SIR/transmission_layer",
           "/home/zmy/mycode/datasets/nature/natural_T",
@@ -65,8 +106,24 @@ def load_rgb(path, size, rng, jitter_crop=None):
     return img[y0:y0 + size, x0:x0 + size].astype(np.float32) / 255., (y0, x0)
 
 
-def synth_R(rng, omega_dir):
-    """从白名单 R 池取一张并解码为有符号 [-0.5,0.5]（uint8=+128 存储）。"""
+def synth_R(rng, omega_dir, r_pool=None):
+    """取一张反射层 R。
+
+    2026-10-29 起优先用新池 data/pools/r_final_1029（SIR² 系：Wildscene 实拍反射
+    + blended-T 残差，逐图归一化到 p95=0.35，已按内容去重 798→463）。
+    新池为普通 0..255 图像 → 直接 /255 得 [0,1]。
+    旧行为（RRW 白名单 + omega 池的有符号 +128 存储）保留为回退分支。
+    """
+    pool = r_pool or R_POOL
+    try:
+        files = sorted(os.listdir(pool)) if os.path.isdir(pool) else []
+    except OSError:
+        files = []
+    if files:
+        f = files[int(rng.integers(len(files)))]
+        img = cv2.imread(os.path.join(pool, f))
+        if img is not None:
+            return img[:, :, ::-1].astype(np.float32) / 255.0
     f = rng.choice(os.listdir(RRW_R_DIR)) if rng.random() < 0.36 else None
     if f is None:
         ids = os.listdir(os.path.join(omega_dir, "R"))
@@ -75,6 +132,14 @@ def synth_R(rng, omega_dir):
     else:
         img = cv2.imread(os.path.join(RRW_R_DIR, f))[:, :, ::-1]
     return img.astype(np.float32) / 255.0 - 128.0 / 255.0
+
+
+def _synth_cov(ds, rng, s):
+    """按 --synth-shape 抽一个覆盖率场 c(x)；mix = S1/S2 各半。"""
+    mode = getattr(ds, "shape_mode", "mix")
+    if mode == "mix":
+        mode = "s2" if rng.random() < 0.5 else "s1"
+    return _SO.coverage(rng, mode, s, s, (0.05, 0.25), lib=getattr(ds, "sil_lib", None))
 
 
 def blur_R(R, rng):
@@ -118,6 +183,11 @@ class S2Dataset(Dataset):
         with open(OPENSRC_META) as fp:
             self.os_pairs = json.load(fp)
         self.rrw_ids = [os.path.join('rrw', f) for f in sorted(os.listdir(RRW_R_DIR))]
+        # 2026-10-29 合成遮挡（默认关，保持旧实验可复现）
+        self.synth_occ = 'none'
+        self.shape_mode = 'mix'
+        self.r_pool = None
+        self.sil_lib = None
 
     def __len__(self):
         return 200000
@@ -168,6 +238,17 @@ class S2Dataset(Dataset):
             R = (j * b * Rn).astype(np.float32)
             om = np.zeros((1, s, s), np.float32)
             has_R = 1.0
+            if self.synth_occ != 'none' and _SO_OK:      # 2026-10-29：注入遮挡 + 精确 Ω
+                cov = _synth_cov(self, rng, s)
+                In, Tn, Reff, _omb = _SO.apply_occlusion(
+                    np.clip(I * 255.0, 0, 255).astype(np.uint8),
+                    np.clip(R * 255.0, 0, 255).astype(np.float32),
+                    cov, rng, b=1.0)
+                I = In.astype(np.float32) / 255.0
+                T = Tn.astype(np.float32) / 255.0
+                R = (Reff / 255.0).astype(np.float32)
+                om = cov[None].astype(np.float32)        # 软覆盖率作区域权重
+                has_om = 1.0
         else:                                           # 开源直督
             p = self.os_pairs[rng.integers(len(self.os_pairs))]
             I, (y0, x0) = load_rgb(p['I'], s, rng)
@@ -194,10 +275,11 @@ def grad_mag(x):
     return torch.maximum(gx, gy).mean(dim=1, keepdim=True)
 
 
-def area_matched_random_mask(OM):
+def area_matched_random_mask(OM, deterministic=False):
     """Replace each Omega mask with a random disk of (approx.) the same area.
 
     Fair control for "does the HOLE STRUCTURE matter, or is any region of the same size enough?"
+    deterministic=True: 每对图固定一个盘（以掩码内容为种子），用于分离"每步重抽"的增强效应。
     """
     B, _, H, W = OM.shape
     out = torch.zeros_like(OM)
@@ -209,8 +291,15 @@ def area_matched_random_mask(OM):
             continue
         r = (A / 3.14159265) ** 0.5
         r = min(r, 0.49 * min(H, W))          # keep the disk fully inside -> equal area
-        cy = r + float(torch.rand(1, device=OM.device).item()) * max(H - 2 * r, 1e-6)
-        cx = r + float(torch.rand(1, device=OM.device).item()) * max(W - 2 * r, 1e-6)
+        if deterministic:
+            key = int(hashlib.md5(OM[b].detach().float().cpu().numpy().tobytes()).hexdigest(), 16) % (2 ** 32)
+            _rng = np.random.default_rng(key)
+            uy, ux = float(_rng.random()), float(_rng.random())
+        else:
+            uy = float(torch.rand(1, device=OM.device).item())
+            ux = float(torch.rand(1, device=OM.device).item())
+        cy = r + uy * max(H - 2 * r, 1e-6)
+        cx = r + ux * max(W - 2 * r, 1e-6)
         m = ((ys - cy) ** 2 + (xs - cx) ** 2) <= (r * r)
         out[b, 0] = m.to(out.dtype)
     _RAND_CNT[0] += 1
@@ -285,9 +374,16 @@ def main():
     ap.add_argument('--lam-recons', type=float, default=0.2)
     ap.add_argument('--lam-excl', type=float, default=0.1)
     ap.add_argument('--lam-om', type=float, default=3.0)
-    ap.add_argument('--omega-mode', choices=['real', 'random'], default='real',
-                    help='real = use the Omega mask; random = area-matched random disk (control)')
+    ap.add_argument('--omega-mode', choices=['real', 'random', 'randomfixed', 'full'], default='real',
+                    help='real = Omega mask; random = area-matched random disk, REDRAWN every iter (control); '
+                         'randomfixed = same disk per pair (drawn once); full = whole-image relative loss (no mask)')
     ap.add_argument('--lam-hinge', type=float, default=1.0)
+    ap.add_argument('--lam-dark', type=float, default=0.0,
+                    help='E3: supervise the MEAN darkening inside Omega (oracle illumination); 0 = off')
+    ap.add_argument('--gate-mode', choices=['none', 'new', 'old'], default='none',
+                    help='reflection-position weighting: new = |R| (true reflection), old = MaxRF (G_I>G_T)')
+    ap.add_argument('--gate-beta', type=float, default=2.0, help='weight strength (w = 1 + beta*label)')
+    ap.add_argument('--gate-tau', type=float, default=0.06, help='|R| normalization scale for --gate-mode new')
     ap.add_argument('--lam-shift', type=float, default=0.0,
                     help='weight of L_shift (hole-boundary gradient term); 0 = off')
     ap.add_argument('--alpha-shift', type=float, default=0.25,
@@ -308,6 +404,14 @@ def main():
                     help='grad/lap 保真项回到 9-21 旧行为（**不乘 w_s**），用于复现旧负结果')
     ap.add_argument('--sample-p', default=None,
                     help='采样比覆盖，如 "0.6,0.2,0.2"（omega,synth,opensrc）；默认由 --arm 决定')
+    ap.add_argument('--arch', choices=['mona', 'clean1029'], default='mona',
+                    help="mona = 我们的 RDNet+Mona；clean1029 = 队友的新架构（无 Mona）")
+    ap.add_argument('--synth-occ', choices=['none', 'exact'], default='none',
+                    help='合成样本是否注入遮挡区并带精确 Ω（none=旧行为）')
+    ap.add_argument('--synth-shape', choices=['s1', 's2', 'mix'], default='mix',
+                    help='S1 随机闭曲线 / S2 真实行人剪影 / mix 各半')
+    ap.add_argument('--r-pool', default=None,
+                    help='反射层池目录（默认 data/pools/r_final_1029）')
     ap.add_argument('--save-every', type=int, default=1000)
     ap.add_argument('--log-every', type=int, default=50)
     ap.add_argument('--seg-iters', type=int, default=2000)
@@ -320,7 +424,11 @@ def main():
     os.makedirs(out, exist_ok=True)
     dev = torch.device(f'cuda:{args.gpu}')
 
-    net, net_c = build(save_memory=True, mona=args.mona, grad_ckpt=True)
+    if args.arch == 'clean1029':
+        os.environ['TINTED_ARCH'] = 'clean1029'
+        net, net_c = build_clean1029()
+    else:
+        net, net_c = build(save_memory=True, mona=args.mona, grad_ckpt=True)
     for n, p in net.named_parameters():
         if n.startswith('baseball.'):
             p.requires_grad_(False)
@@ -341,6 +449,14 @@ def main():
     ds = S2Dataset(arm=args.arm, size=224, s_jitter=args.s_jitter,
                    omega_dir=args.omega_dir, domains=args.omega_domains,
                    sample_p=args.sample_p)
+    ds.synth_occ = args.synth_occ
+    ds.shape_mode = args.synth_shape
+    ds.r_pool = args.r_pool
+    if args.synth_occ != 'none' and _SO_OK:
+        ds.sil_lib = _SO.load_lib()
+        print(f'[s2] 合成遮挡已开: shape={args.synth_shape} r_pool={args.r_pool or R_POOL} 剪影={len(ds.sil_lib)}', flush=True)
+    elif args.synth_occ != 'none':
+        raise SystemExit('--synth-occ 需要 synth_occlusion_v2 可用')
     print(f'[s2] T 源 {len(ds.t_files)} 张 | R 白名单 {len(ds.om_ids)}+{len(ds.rrw_ids)-1} 层 | '
           f'开源 {len(ds.os_pairs)} 对 | p={ds.p}', flush=True)
 
@@ -399,7 +515,7 @@ def main():
 
     logf = open(os.path.join(out, 'train_log.csv'), 'a')
     if start_it == 0:
-        logf.write('iter,seg,L_t,L_r,L_om,L_hinge,L_shift,L_dists,L_recons,L_excl,L_grad,L_lap,total,sec\n')
+        logf.write('iter,seg,L_t,L_r,L_om,L_hinge,L_shift,L_dists,L_recons,L_excl,L_grad,L_lap,L_dark,total,sec\n')
     segs = [(224, args.batch), (256, min(args.batch, 6)), (320, min(args.batch, 4))]
     it, t0, prev_seg = start_it, time.time(), None
     while it < args.iters:
@@ -420,18 +536,29 @@ def main():
             meta = meta.to(dev, non_blocking=True)
             has_R = meta[:, 0].view(-1, 1, 1, 1); has_om = meta[:, 1].view(-1, 1, 1, 1)
             C_I = meta[:, 2].view(-1, 1, 1, 1); w_s = meta[:, 3].view(-1, 1, 1, 1)
+            w_g = torch.ones_like(R[:, :1])     # 反射位置权重（默认 1）
+            if args.gate_mode != 'none':        # 新/旧 MaxRF 标签
+                with torch.no_grad():
+                    if args.gate_mode == 'new':
+                        g_lab = (R.abs().amax(1, keepdim=True) / (args.gate_tau + EPS)).clamp(0.0, 1.0)
+                    else:
+                        gi = grad_mag(I).amax(1, keepdim=True)
+                        gt = grad_mag(T).amax(1, keepdim=True)
+                        g_lab = (gi > gt).float()
+                    w_g = 1.0 + args.gate_beta * g_lab
             with torch.no_grad():
                 code = net_c(I)
             with torch.cuda.amp.autocast():
                 _, outs = net(I, code, prompt=True)
                 L_t = L_r = L_om = L_hinge = L_dists = L_shift = torch.zeros((), device=dev)
+                L_dark = torch.zeros((), device=dev)
                 wsum = 0.0
                 hw = float(R.shape[2] * R.shape[3])
                 L_grad = L_lap = torch.zeros((), device=dev)
                 for ci, out_col in enumerate(outs):
                     R_hat, T_hat = out_col[:, :3], out_col[:, 3:]
                     wc = float(ci + 1); wsum += wc
-                    L_t = L_t + wc * (w_s * charbonnier(T_hat, T)).mean()
+                    L_t = L_t + wc * (w_s * w_g * charbonnier(T_hat, T)).mean()
                     _ws = w_s.reshape(-1)
                     if args.lam_grad > 0:
                         if args.legacy_fidelity:      # 复现 9-21 旧行为（漏乘 w_s）
@@ -444,8 +571,8 @@ def main():
                         else:
                             L_lap = L_lap + args.lam_lap * wc * (_ws * lap_fidelity_elem(T_hat, T)).mean()
                     if has_R.max() > 0:
-                        num = (w_s * charbonnier(R_hat, R) * has_R).sum()
-                        den_r = (w_s * has_R).sum() * hw + EPS
+                        num = (w_s * w_g * charbonnier(R_hat, R) * has_R).sum()
+                        den_r = (w_s * w_g * has_R).sum() * hw + EPS
                         L_r = L_r + args.lam_r * wc * num / den_r
                 L_t = L_t / wsum; L_r = L_r / wsum
                 L_grad = L_grad / wsum; L_lap = L_lap / wsum
@@ -455,6 +582,10 @@ def main():
                 if has_om.max() > 0:
                     if args.omega_mode == 'random':
                         OM = area_matched_random_mask(OM)
+                    elif args.omega_mode == 'randomfixed':
+                        OM = area_matched_random_mask(OM, deterministic=True)
+                    elif args.omega_mode == 'full':
+                        OM = torch.ones_like(OM)
                     om_sum = OM.sum(dim=(1, 2, 3)) + 1e-6
                     err = (OM * (T_hat - T).abs()).sum(dim=(1, 2, 3)) / om_sum
                     den = ((OM * (I - T).abs()).sum(dim=(1, 2, 3)) / om_sum).clamp(min=1e-3)
@@ -463,6 +594,10 @@ def main():
                     delta = (torch.clamp(0.5 * C_I, min=4.0) / 255.0)
                     hg = (OM * F.relu(T - delta - T_hat)).sum(dim=(1, 2, 3)) / om_sum
                     L_hinge = args.lam_hinge * (hg / den * m_om).sum() / m_om.sum().clamp(min=1)
+                    if args.lam_dark > 0:      # E3: oracle illumination (mean darkening inside Omega)
+                        mt = (OM * T).sum(dim=(1, 2, 3)) / om_sum
+                        mh = (OM * T_hat).sum(dim=(1, 2, 3)) / om_sum
+                        L_dark = args.lam_dark * ((((mh - mt).abs()) / (mt.abs() + EPS)) * m_om).sum() / m_om.sum().clamp(min=1)
                     # 2026-10-26: L_shift -- the hole boundary is an edge in R but not in T
                     if args.lam_shift > 0:
                         OMd = F.max_pool2d(OM, 3, 1, 1)
@@ -492,7 +627,7 @@ def main():
                                 dsum = dsum + args.lam_dists * dists_net(ta, tb)
                         L_dists = dsum / max(1, min(len(idxs), 4))
                 total = (L_t + L_r + L_om + L_hinge + L_shift + L_dists + L_recons
-                         + L_excl + L_grad + L_lap)
+                         + L_excl + L_grad + L_lap + L_dark)
             opt.zero_grad(set_to_none=True)
             scaler.scale(total).backward()
             scaler.step(opt); scaler.update(); sched.step()
@@ -502,10 +637,10 @@ def main():
                 g = lambda x: float(x.detach())      # noqa: E731
                 print(f'[s2] it {it:5d} L_t={g(L_t):.4f} L_r={g(L_r):.4f} om={g(L_om):.3f} '
                       f'hinge={g(L_hinge):.3f} shift={g(L_shift):.4f} dists={g(L_dists):.3f} rcn={g(L_recons):.4f} '
-                      f'excl={g(L_excl):.3f} grad={g(L_grad):.3f} lap={g(L_lap):.3f} total={g(total):.4f} {sec:.0f}s '
+                      f'excl={g(L_excl):.3f} grad={g(L_grad):.3f} lap={g(L_lap):.3f} dark={g(L_dark):.4f} total={g(total):.4f} {sec:.0f}s '
                       f'peak={torch.cuda.max_memory_allocated(dev)/2**30:.2f}G', flush=True)
                 logf.write(f'{it},{s},{g(L_t):.5f},{g(L_r):.5f},{g(L_om):.5f},{g(L_hinge):.5f},'
-                           f'{g(L_shift):.5f},{g(L_dists):.5f},{g(L_recons):.5f},{g(L_excl):.5f},{g(L_grad):.5f},{g(L_lap):.5f},{g(total):.5f},'
+                           f'{g(L_shift):.5f},{g(L_dists):.5f},{g(L_recons):.5f},{g(L_excl):.5f},{g(L_grad):.5f},{g(L_lap):.5f},{g(L_dark):.5f},{g(total):.5f},'
                            f'{sec:.0f}\n'); logf.flush()
             if it % args.save_every == 0:
                 torch.save(dict(icnn=net.state_dict(), opt=opt.state_dict(),
@@ -532,7 +667,7 @@ def main():
                    ckpt=os.path.join(out, 'ckpt_final.pth'),
                    loss_last=dict(L_t=g(L_t), L_r=g(L_r), L_om=g(L_om), L_hinge=g(L_hinge),
                                   L_dists=g(L_dists), L_recons=g(L_recons), L_excl=g(L_excl),
-                                  L_grad=g(L_grad), L_lap=g(L_lap), total=g(total)),
+                                  L_grad=g(L_grad), L_lap=g(L_lap), L_dark=g(L_dark), total=g(total)),
                    peak_mem_gb=round(torch.cuda.max_memory_allocated(dev) / 2 ** 30, 2))
         with open(mp, 'w', encoding='utf-8') as fh:
             json.dump(man, fh, ensure_ascii=False, indent=1)

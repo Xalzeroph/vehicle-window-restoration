@@ -64,6 +64,7 @@ def main() -> int:
     ap.add_argument("--pairs", default=PAIR_DIR, help="配对集目录")
     ap.add_argument("--device", default="cuda:0")
     ap.add_argument("--mona", default="auto", choices=["auto", "none", "both", "ffn"])
+    ap.add_argument("--arch", default="mona", choices=["mona", "clean1029"])
     args = ap.parse_args()
 
     ck_path = OFFICIAL if args.ckpt == "official" else (
@@ -75,8 +76,21 @@ def main() -> int:
     print(f"[arm] {args.name}  ckpt={ck_path}  mona={mona}", flush=True)
 
     dev = torch.device(args.device)
-    net, net_c = build_rdnet(mona)
-    load_rdnet(net, ck_path, mona)
+    if args.arch == "clean1029":                      # 2026-10-30: 队友新架构
+        import os as _os, sys as _sys
+        _os.environ["TINTED_ARCH"] = "clean1029"
+        _sys.path.insert(0, _os.path.join(PROJ, "RDNet_clean1029"))
+        _sys.path.insert(0, _os.path.join(PROJ, "scripts"))
+        import finetune_rdnet_s2 as _ft
+        net, net_c = _ft.build_clean1029()
+        ck = torch.load(ck_path, map_location="cpu")
+        sd_ = ck.get("icnn", ck.get("state_dict", ck))
+        miss, unex = net.load_state_dict(sd_, strict=False)
+        print(f"[arm] clean1029 载入: missing={len(miss)} unexpected={len(unex)}", flush=True)
+        mona = "none"
+    else:
+        net, net_c = build_rdnet(mona)
+        load_rdnet(net, ck_path, mona)
     net.to(dev).eval()
     net_c.to(dev).eval()
 
