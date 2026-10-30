@@ -1,5 +1,6 @@
 from pathlib import Path
 from models.arch.focalnet import build_focalnet
+from models.arch.semantic_occlusion import SemanticOcclusion
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -157,9 +158,16 @@ class FullNet_NLP(nn.Module):
         for level, width in enumerate(channels):
             self.baseball_adapter.append(nn.Conv2d(192 * (2 ** level),
                                                     width, kernel_size=1))
+        self.semantic_occlusion = None
         self.baseball.load_state_dict(torch.load(
             Path(__file__).resolve().parents[2] / 'pretrained/focal.pth',
             map_location='cpu', weights_only=True))
+    def enable_semantic_occlusion(self, width=32):
+        if self.semantic_occlusion is not None:
+            raise RuntimeError("Semantic occlusion head already exists")
+        self.semantic_occlusion = SemanticOcclusion(self.channels,width)
+        return self
+
     def train(self, mode=True):
 
 
@@ -207,7 +215,8 @@ class FullNet_NLP(nn.Module):
         signed_nuisance = observed - displayed_transmission
         return torch.cat((signed_nuisance, displayed_transmission), dim=1)
 
-    def forward(self, x_in, alpha, prompt=True):
+    def forward(self, x_in, alpha, prompt=True, return_semantic=False,
+                semantic_gate=True):
 
 
         x_cls_out = []
@@ -233,8 +242,25 @@ class FullNet_NLP(nn.Module):
         for i in range(self.num_subnet):
             c0, c1, c2, c3 = getattr(self, f'subnet{i}')(x, c0, c1, c2, c3)
         contrast = self.decoder(c3, c2, c1, c0)
+        semantics = None
+        blending = None
+        if self.semantic_occlusion is not None:
+            semantics, scale, shift, blending = self.semantic_occlusion(
+                (c0,c1,c2,c3), contrast.shape[-2:])
+            if semantic_gate:
+                contrast = self.semantic_occlusion.restore_correction(
+                    contrast,scale,shift)
+        if return_semantic and semantics is None:
+            raise RuntimeError("Semantic occlusion not enabled")
         output = self.project_layers(x_in, contrast)
-        return x_cls_out, [output]
+        if semantic_gate and blending is not None:
+            # The mature synthetic-data restoration can be worse than the input
+            # on real pairs. Soft blending makes identity a stable default.
+            transmission=x_in+blending*(output[:,3:]-x_in)
+            output=torch.cat((x_in-transmission,transmission),dim=1)
+        if return_semantic:
+            return x_cls_out,[output],semantics
+        return x_cls_out,[output]
 
     def _init_weights(self, module):
         if isinstance(module, nn.Conv2d):

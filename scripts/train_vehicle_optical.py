@@ -224,6 +224,68 @@ class _HFInterventions(Dataset):
         return self.scenes[index // len(self.levels)]['T_key']
 
 
+class _OriginalZhouPairs(Dataset):
+    def __init__(self, manifest, crop, seed, fold):
+        self.root = Path(manifest).parent
+        self.meta = json.loads(Path(manifest).read_text())
+        if not (len(self.meta["samples"]) == 20000 and len(self.meta["scenes"]) == 4000):
+            raise ValueError("Unexpected native Zhoumingyu sample catalog")
+        self.crop = crop
+        self.seed = seed
+        self.paired = True
+        self.response = "published-I-to-original-T"
+        self.fold = fold
+        self.rows = []
+        for row in self.meta["samples"]:
+            identity = row["t_src"]
+            value = int.from_bytes(hashlib.sha256(("T:"+identity).encode()).digest()[:8], "big") / 2**64
+            is_validation = value >= .9
+            if ((fold == "validation") == is_validation
+                    and (self.root/"I"/(row["sid"]+".png")).is_file()
+                    and (self.root/"T"/(row["scene_id"]+".png")).is_file()):
+                self.rows.append(row)
+        if not self.rows:
+            raise ValueError("No available complete native I/T pairs in this source split")
+        print("ZHOU_ORIGINAL_SPLIT", json.dumps({
+            "fold": fold, "pairs": len(self.rows),
+            "transmission_sources": len(set(row["t_src"] for row in self.rows)),
+            "declared_native_pairs":len(self.meta["samples"]),
+            "synthetic_augmentation": False}), flush=True)
+
+    def __len__(self):
+        return len(self.rows)
+
+    def group(self,index):
+        return self.rows[index]["t_src"]
+
+    def __getitem__(self,index):
+        row=self.rows[index]
+        observed=_load_rgb(self.root/"I"/(row["sid"]+".png"))
+        target=_load_rgb(self.root/"T"/(row["scene_id"]+".png"))
+        if observed.shape!=target.shape or min(observed.shape[:2])<self.crop:
+            raise ValueError(f"Native I/T size mismatch: {row['sid']}")
+        h,w=observed.shape[:2]
+        if self.fold=="train":
+            rng=np.random.default_rng(random.getrandbits(64))
+            y=int(rng.integers(h-self.crop+1))
+            x=int(rng.integers(w-self.crop+1))
+            flip=bool(rng.integers(2))
+        else:
+            y=(h-self.crop)//2
+            x=(w-self.crop)//2
+            flip=False
+        observed=observed[y:y+self.crop,x:x+self.crop]
+        target=target[y:y+self.crop,x:x+self.crop]
+        if flip:
+            observed=observed[:,::-1]
+            target=target[:,::-1]
+        cv=lambda x:torch.from_numpy(np.ascontiguousarray(x.transpose(2,0,1)))
+        image=cv(observed)
+        return (image[None,None],cv(target)[None],
+                torch.ones(1,self.crop,self.crop),torch.ones_like(image)[None],
+                torch.ones(1))
+
+
 def _masked_sobolev(error,mask):
 
 
@@ -325,8 +387,20 @@ def _evaluation(model, classifier, dataset, device, limit):
 
 def train(args):
     meta = json.loads(args.train_manifest.read_text())
+    native = 'samples' in meta and 'scenes' in meta and 'n_scenes' in meta
     hf = meta.get('status') == 'RESEARCH_ONLY_TINTED_GLASS_SOURCE_PHOTOGRAPHIC_NOT_AUTOMOTIVE_EXTERIOR_CERTIFIED'
-    if hf:
+    if native:
+        if args.val_manifest and args.val_manifest.resolve() != args.train_manifest.resolve():
+            raise ValueError("Original Zhoumingyu train and validation must use the identical source meta.json")
+        dataset = _OriginalZhouPairs(args.train_manifest,args.crop,args.seed,"train")
+        valid = (_OriginalZhouPairs(args.val_manifest,args.crop,args.seed,"validation")
+                 if args.val_manifest else None)
+        if valid:
+            train_ids={r["t_src"] for r in dataset.rows}
+            valid_ids={r["t_src"] for r in valid.rows}
+            if train_ids & valid_ids:
+                raise ValueError("Train/validation original T source leakage")
+    elif hf:
         if args.val_manifest:
             a = json.loads(args.train_manifest.read_text())
             b = json.loads(args.val_manifest.read_text())
@@ -366,30 +440,50 @@ def train(args):
             raise RuntimeError('Insufficient shared GPU free memory for RDNet weights, gradients and AdamW states')
         model.to(device)
         classifier.to(device)
-    samples = WeightedRandomSampler(_source_weights(dataset),args.steps*args.batch,
-                                    replacement=True,
-                                    generator=torch.Generator().manual_seed(args.seed))
-    loader=DataLoader(dataset,batch_size=args.batch,sampler=samples,num_workers=0)
     optimizer=torch.optim.AdamW((p for p in model.parameters() if p.requires_grad),lr=args.lr)
-    args.out.mkdir(parents=True,exist_ok=False)
-    trace=[];started=time.monotonic()
+    start_step=0
+    trace=[]
+    if args.resume_from:
+        old=torch.load(args.resume_from,map_location="cpu",weights_only=False)
+        if old.get("manifest_sha256")!=hashlib.sha256(args.train_manifest.read_bytes()).hexdigest():
+            raise ValueError("Cannot resume with different source dataset")
+        if old.get("total_steps")!=args.steps:
+            raise ValueError("Cannot resume with different planned step count")
+        model.load_state_dict(old["icnn"],strict=True)
+        optimizer.load_state_dict(old["optimizer"])
+        start_step=int(old["step"])
+        torch.set_rng_state(old["torch_rng"])
+        np.random.set_state(old["numpy_rng"])
+        random.setstate(old["python_rng"])
+        if device.type=="cuda" and "cuda_rng" in old:
+            torch.cuda.set_rng_state(old["cuda_rng"],device)
+        trace=old["trace"]
+    indices=torch.multinomial(_source_weights(dataset),args.steps*args.batch,
+                              replacement=True,
+                              generator=torch.Generator().manual_seed(args.seed)).tolist()
+    loader=DataLoader(dataset,batch_size=args.batch,
+                      sampler=indices[start_step*args.batch:],num_workers=0)
+    args.out.mkdir(parents=True,exist_ok=bool(args.resume_from))
+    started=time.monotonic()
     report={'model':'RDNet FullNet_NLP (original reversible backbone)',
             'method':'full-gamut log-odds RGB restoration with all-label empirical H1 risk',
             'train_sources':len(set(dataset.group(i) for i in range(len(dataset)))),
-            'dataset':'HF research-only photographic synthesis' if hf else 'optical proxy research',
+            'dataset':('Zhoumingyu published I/T original pairs (no regeneration)' if native else
+                       'HF research-only photographic synthesis' if hf else 'optical proxy research'),
             'generator_camera_response':dataset.response,'crossed_camera_reflection_interventions':hf,
+            'original_input_pairs':native,'source_split':'original T identity SHA256 90/10' if native else None,
             'network_output_domain':'display_rgb',
             'architecture_revision':'bounded_logodds_display_v4',
             'trainable_semantic_stage':'baseball.layers.3 + baseball.norm3',
             'reflection_field':args.reflection_field if hf else 'from optical manifest',
-            'display_supervision':'all synthetic pixels, real paired valid ROI',
+            'display_supervision':('published I to published T' if native else 'all synthetic pixels, real paired valid ROI'),
             'steps':args.steps,'batch':args.batch,'crop':args.crop,
             'real_car_exterior_tested':False,
             'train_manifest_sha256':hashlib.sha256(args.train_manifest.read_bytes()).hexdigest()}
-    if valid is not None:
+    if valid is not None and not args.resume_from:
         report['before']=_evaluation(model,classifier,valid,device,args.eval_limit)
         print('RDNET_INITIAL',json.dumps(report['before']),flush=True)
-    for step,(observations,targets,m,_gains,_gammas) in enumerate(loader,1):
+    for step,(observations,targets,m,_gains,_gammas) in enumerate(loader,start_step+1):
 
 
         observations,targets,m=(v.to(device) for v in (observations,targets,m))
@@ -401,7 +495,7 @@ def train(args):
         with torch.no_grad():
             context=classifier(samples)
         _,stages=model(samples,context,prompt=True)
-        supervised = torch.ones_like(m) if hf else m
+        supervised = torch.ones_like(m) if (hf or native) else m
         loss,parts=_risk(stages[-1],observations,targets,supervised)
         if not torch.isfinite(loss):
             raise FloatingPointError('RDNet display-domain restoration risk became nonfinite')
@@ -413,6 +507,19 @@ def train(args):
             item={'step':step,'loss':float(loss.detach()),**parts}
             trace.append(item)
             print('RDNET_STEP',json.dumps(item),flush=True)
+        if args.save_every and step % args.save_every == 0 and step != args.steps:
+            current={name:value.detach().cpu() for name,value in model.state_dict().items()}
+            state={'icnn':current,'optimizer':optimizer.state_dict(),'step':step,
+                   'total_steps':args.steps,
+                   'manifest_sha256':report['train_manifest_sha256'],
+                   'torch_rng':torch.get_rng_state(),'numpy_rng':np.random.get_state(),
+                   'python_rng':random.getstate(),'trace':trace}
+            if device.type=="cuda":
+                state['cuda_rng']=torch.cuda.get_rng_state(device)
+            temp=args.out/'latest.pth.tmp'
+            torch.save(state,temp)
+            temp.replace(args.out/'latest.pth')
+            print('RDNET_CHECKPOINT',json.dumps({'step':step,'path':str(args.out/'latest.pth')}),flush=True)
     report['train_seconds']=time.monotonic()-started
     report['trace']=trace
 
@@ -454,6 +561,8 @@ def main():
     p.add_argument('--lr',type=float,default=1.e-5)
     p.add_argument('--seed',type=int,default=20261029)
     p.add_argument('--log-every',type=int,default=10)
+    p.add_argument('--save-every',type=int,default=0)
+    p.add_argument('--resume-from',type=Path)
     p.add_argument('--eval-limit',type=int,default=0)
     p.add_argument('--cpu-threads',type=int,default=4)
     p.add_argument('--allow-illustrative',action='store_true')
