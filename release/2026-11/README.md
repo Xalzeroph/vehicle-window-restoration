@@ -79,3 +79,7 @@ Research use only. No license is granted for third-party components beyond their
   note   = {Code, protocol and drafts. Branch release/2026-11}
 }
 ```
+
+## Double-blind note
+
+During double-blind review this repository contains no manuscript source or author-identifying information; code and paper will be released after notification.
