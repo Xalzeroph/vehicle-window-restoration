@@ -1,0 +1,76 @@
+% ============================================================================
+% ICME 2027 submission — Plan B (repositioned 2026-11-06)
+% ----------------------------------------------------------------------------
+% Template basis: official ICME 2026 author kit (downloaded 2026-11-06 from
+%   2026.ieeeicme.org/.../IEEE-Conference-Template-ICME-2026.zip)
+%   -> \documentclass[conference]{IEEEtran}, \author{Anonymous ICME submission},
+%      \bibliographystyle{IEEEbib}
+%
+% Page budget (D1=A, frozen by Lead): **6 pages INCLUDING all text, figures and
+%   references** (2024/2025/2026 ICME official wording identical; ICME 2027 CFP
+%   not yet published -> marked "per ICME 2024-2026 official page limit").
+%
+% Plan B positioning (Lead decision 2026-11-06, after the unified-recipe fair
+%   ablation): benchmark + diagnostic study + controlled-intervention protocol.
+%   The regularizer section is a controlled intervention, NOT a proposed method;
+%   no performance claim over identity/hard controls is made.
+% ============================================================================
+\documentclass[conference]{IEEEtran}
+% \IEEEoverridecommandlockouts   % only needed for a funding footnote; unused in the double-blind copy
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{pifont}
+\usepackage[hidelinks]{hyperref}
+
+% ---------------------------------------------------------------------------
+% Project macros — names mirror cvpr2027/preamble.tex (keep identical so that
+% sections migrated from the frozen base compile unchanged).
+% ---------------------------------------------------------------------------
+\newcommand{\Om}{\Omega}
+\newcommand{\dOm}{\partial\Omega}
+\newcommand{\T}{\mathbf{T}}
+\newcommand{\I}{\mathbf{I}}
+\newcommand{\R}{\mathbf{R}}
+\newcommand{\That}{\widehat{\mathbf{T}}}
+\newcommand{\Rhat}{\widehat{\mathbf{R}}}
+\newcommand{\quiet}{\mathcal{L}_{\mathrm{quiet}}}
+\newcommand{\reg}{\mathcal{L}_{\Om}}
+\newcommand{\dBA}{\,\mathrm{dB}}
+\newcommand{\PSNOm}{\mathrm{PSNR}_{\Om}}
+\newcommand{\red}[1]{{\color{red}#1}}
+\newcommand{\todo}[1]{{\color{red}#1}}
+
+% ---------------------------------------------------------------------------
+% Figure path: local fig/ (staged by planB_build.ps1 from the frozen base; the
+% output/ tree is not writable from this shell), then the frozen fig dir.
+% ---------------------------------------------------------------------------
+\graphicspath{{fig/}{../cvpr2027/fig/}}
+
+\title{What Filmed Glass Does to Single-Image Reflection Removal:\\
+A Development Benchmark and a Diagnostic Study}
+
+\author{Anonymous ICME submission}
+
+\begin{document}
+\maketitle
+
+\input{sec0_abstract}
+\input{sec1_intro}
+\input{sec2_related}
+\input{sec3_imaging}
+\input{sec4_diagnosis}
+\input{sec5_method}
+\input{sec6_experiments}
+\input{sec7_discussion}
+\input{sec8_conclusion}
+
+\bibliographystyle{IEEEbib}
+\bibliography{refs}
+
+\end{document}

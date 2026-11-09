@@ -1,0 +1,60 @@
+% ============================================================================
+% 中文注释：第 7 节 讨论与局限（Discussion and Limitations）
+% ----------------------------------------------------------------------------
+% 这一节的作用是"主动交代短板"，比被审稿人问出来好：
+%   ① 面板只有 15 场景、单一地点，而且**开发过程中用过** ⇒ 是开发集，不是确认集。
+%   ② 统计功效：15 场景、种子 sd 0.44 ⇒ 场景轴 MDE≈0.26 dB，种子轴≈1 dB；
+%      所以 +0.50 只能算"场景层面证据"。
+%   ③ 余量在哪：光度已被吃干（0.07）、区域项改进不了（换掩码无效）、L_quiet 只 +0.50；
+%      剩下的全是数据问题（对齐 + 锁曝光 + Ω 标注 + 场景数）。
+%   ④ 六条采集 checklist（这是本文对社区最实用的产出之一）。
+%   ⑤ 诚实声明：不主张 PSNR 胜出；Ω 内的差距可能本质上不可解（拍摄者就是遮挡者）。
+% ============================================================================
+\section{Discussion and Limitations}
+\label{sec:conclusion}
+
+% 中文：面板小、单地点、开发期用过 ⇒ 只能当开发集。给出两条 MDE，说明我们为什么只主张场景层面。
+\paragraph{What the community should measure.}
+Our panel is small ($15$ scenes) and single-site, and it was used during the development of the
+regularizer, so it is a development set, not a confirmatory one. With $15$ scenes and a seed spread
+of $0.44\dBA$, the minimum detectable effect at $95\%$ confidence is about $0.26\dBA$ \emph{per
+scene} but roughly $1\dBA$ at the seed level: any claim below that is a claim about one seed. We
+therefore report the seed interval everywhere and treat our own $+0.50\dBA$ as scene-level evidence.
+
+% 中文：余量盘点——光度 0.07 已饱和、区域项换掩码无效、L_quiet 只 +0.50；
+% 所以"更大的网络/新注意力/新门控"大概率不动这个面板，瓶颈是数据。
+\paragraph{Where the headroom is --- and is not.}
+Photometric headroom is exhausted ($\Delta_{\mathrm{aff}}=0.15$--$0.26$, shared
+$0.07\dBA$), the region term cannot be improved by a better mask, and the change-aware term
+adds $0.50\dBA$. The obvious next lever, data, does not work either: mixing occluder-rich
+frames raises $\mathrm{PSNR}_\Om$ by $+2.84\dBA$ on every scene while $\beta$ degrades from
+$-0.34$ to $-0.47$, because the model simply moves less. What is left is the layer
+ambiguity of Eq.~\eqref{eq:film}: inside $\Om$ the reflection and the scene occupy the same
+frequency band, so restoring the input's high frequencies lowers PSNR and a perceptual
+loss hedges. We see no evidence that a larger network, a new attention block or a new gate
+would move this panel. Faithful recovery of $\Om$ looks like a conditional-completion
+problem and will need semantic priors that are \emph{long-range}, not local or
+statistical---the kind a human uses when reading the continuation of a wall or a railing
+behind an occluder. We state this as an open problem, not as a result.
+
+% 中文：六条采集 checklist——这是本文最可直接复用的产出（锁曝光、相机别动、报对齐分布、
+% 报场景数与 GT 数、标 Ω、说明反射源是"被移走"还是"被遮挡"）。
+\paragraph{A checklist derived from the failures.}
+From the failure modes in Sec.~\ref{sec:benchmark} and Sec.~\ref{sec:negative} we distill a short
+checklist for SIRR data collection: (1)~lock exposure and white balance; (2)~do not move the
+camera between $I$ and $T$---if you must, record a reference frame and align; (3)~report the
+alignment distribution, not only the pair count; (4)~report one ground truth per scene and say how
+many independent scenes the pool has; (5)~annotate the occluder region once per scene and report
+metrics inside it; (6)~state whether the reflection source was physically removed, because that
+changes the illumination of the transmitted layer.
+
+% 中文：诚实声明——本文不主张 PSNR 胜出；Ω 内与 identity 的差距可能本质上不可解
+% （采集者本人就是遮挡者，单帧未必含足够信息把"这块暗是拍摄者"和"这块暗是场景"分开）。
+\paragraph{Honest statement.}
+This paper does not propose a method that wins on average PSNR. It reports that the standard
+protocol hides a systematic failure, supplies a measurement of that failure, and derives a small
+fix which is statistically supported at the scene level and negligible in cost. The remaining
+discrepancy between our models and identity \emph{inside} the occluder region is unexplained and
+may be irreducible: the collector of the data is the occluder, and a single frame arguably does not
+contain the information needed to tell ``this dark patch is the photographer'' from ``this dark
+patch is the scene''.

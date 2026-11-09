@@ -1,0 +1,31 @@
+% ============================================================================
+% sec7_discussion.tex — Discussion and limitations (Plan B, 2026-11-06)
+% Three short paragraphs: scope of evidence, physical boundary, claims/release.
+% ============================================================================
+\section{Discussion and Limitations}
+\label{sec:discussion}
+
+\paragraph{Scope of evidence.} The 15-scene panel was used while the protocol
+and the pilot models were developed, so its numbers are development-set
+evidence, not confirmation. With $15$ paired scenes the panel's minimum
+detectable effect is about $0.26$\,dB, and single-frame localisation of the
+occluder region has an IoU ceiling of $0.494$; both bound what this panel can
+resolve. The unified-recipe control lets a benchmark answer a question it
+usually cannot---whether a training intervention moves the score at all---but
+it does not turn the panel into a leaderboard.
+
+\paragraph{Physical boundary.} The target frame $T$ is a black-cloth frame that
+already contains the film: we measure the film's effect on the two layers under
+this removal protocol, not the pre-film scene, and the layer asymmetry is an
+empirical measurement rather than an MTF claim. The capture protocol itself is
+imperfect by construction: covering the glass changes the illumination and the
+reflection inside the occluder region, and Sec.~\ref{sec:protocol} quantifies
+these three effects instead of assuming them away.
+
+\paragraph{Claims and release.} Occluder-region specificity is withdrawn: an
+equal-area random disk is on par with the hand annotation. We make no
+public-benchmark state-of-the-art claim, and any method-level reading of the
+control differences is excluded by the run-level reproducibility reported in
+Sec.~\ref{sec:runlevel}. Data and code will be released after anonymisation of
+faces and plates; the supplementary material documents the exact arms, the
+re-run protocol, the negative results and the full diagnosis tables.

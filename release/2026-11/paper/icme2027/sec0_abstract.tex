@@ -1,0 +1,22 @@
+﻿% ============================================================================
+% sec0_abstract.tex — Abstract + keywords (Plan B, 2026-11-06)
+% Constraints: 100-150 words; no math/symbols; only Plan B citable numbers;
+% "development benchmark/panel"; no method claim.
+% ============================================================================
+\begin{abstract}
+Single-image reflection removal (SIRR) assumes a friendly photometric regime: a
+bright reflection layered over a well-exposed scene. Automotive window film breaks
+this premise: the film sits on the scene side, so transmitted light is scattered and
+dyed while the reflection comes off the bare surface. Even a recent lightweight
+method fine-tuned in-domain with its official recipe remains 2.2 dB behind our uniform-recipe baseline (22.38\,dB). We present a hand-annotated 15-scene real-pair development
+benchmark for filmed glass and use it to measure two failure axes: transmission
+loses high-frequency content while reflection stays sharp (an empirical layer
+asymmetry), and the global photometric level is not identifiable from a single
+frame. We then report a pre-registered, unified-recipe control experiment that
+bounds what training-time regularization can achieve on this benchmark, and
+quantify the run-level reproducibility that this control must exceed.
+\end{abstract}
+
+\begin{IEEEkeywords}
+single-image reflection removal, filmed glass, real-pair benchmark, diagnostic study, evaluation protocol, run-level reproducibility
+\end{IEEEkeywords}

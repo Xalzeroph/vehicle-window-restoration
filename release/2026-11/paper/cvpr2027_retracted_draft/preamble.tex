@@ -1,0 +1,38 @@
+﻿%% Preamble for the CVPR 2027 submission (based on the official author kit)
+% \usepackage{cuted}  % 不用 strip 环境；cuted 会干扰普通 float 的排版（实测导致表格叠字）
+% \usepackage{currfile}  % 未用 \currfilebase
+\usepackage{caption}
+\usepackage{amsmath,amssymb,amsthm,bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{siunitx}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\newcommand{\Om}{\Omega}
+\newcommand{\dOm}{\partial\Omega}
+\newcommand{\T}{\mathbf{T}}
+\newcommand{\I}{\mathbf{I}}
+\newcommand{\R}{\mathbf{R}}
+\newcommand{\That}{\widehat{\mathbf{T}}}
+\newcommand{\Rhat}{\widehat{\mathbf{R}}}
+\newcommand{\Lhalf}{\mathcal{L}}
+\newcommand{\quiet}{\mathcal{L}_{\mathrm{quiet}}}
+\newcommand{\reg}{\mathcal{L}_{\Om}}
+\newcommand{\dBA}{\,\mathrm{dB}}
+\newcommand{\PSNOm}{\mathrm{PSNR}_{\Om}}
+\newcommand{\PSNOut}{\mathrm{PSNR}_{\bar\Om}}
+
+\newcommand{\red}[1]{{\color{red}#1}}
+\newcommand{\todo}[1]{{\color{red}#1}}
+
+%% Shrink the reference list slightly (does not affect the 8-page body limit,
+%% but keeps the PDF readable while drafting).
+% 不覆盖参考文献字号：CVPR 规定字号由模板控制，手工压缩属拒稿条款

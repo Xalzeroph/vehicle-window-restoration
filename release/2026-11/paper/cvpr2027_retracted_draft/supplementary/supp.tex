@@ -1,0 +1,127 @@
+% ============================================================================
+% 中文注释：CVPR 2027 补充材料骨架（2026-11-04 建；占位用，暂不填内容）
+% ----------------------------------------------------------------------------
+% 定位：独立文档，**不并入 main.tex**、不计入正文 8 页上限（CVPR supplementary 不限页数）。
+% 用途：承接"能说明机制的负结果"与正文放不下的辅助分析。正文已 8 页满
+%       （实测见 reflection_removal/2026.11.03_实验台账.md §0.1 与 §4）。
+% 当前状态：只有标题 + S1–S5 目录占位；内容等 Lead 按台账分流规则定稿后统一分配再填。
+% 编译：pdflatex supp.tex（可独立编译；不依赖 cvpr.sty，也不依赖 main.tex 的引用编号）
+% 纪律：① 本文件不要 \input 进 main.tex；② 占位期间不往正文搬任何内容。
+% ============================================================================
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[hidelinks]{hyperref}
+
+\title{Supplementary Material\\[4pt]
+\large What Single-Image Reflection Removal Does to the Occluder Region:\\
+A Diagnostic Benchmark on Tinted Glass}
+\author{Anonymous submission}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent This document is a placeholder skeleton (2026-11-04). Sections S1--S5 list the
+analyses that the supplementary material will contain once results are frozen and assigned;
+their content is not written yet.
+
+\section{Overview}
+% 中文：目录占位（正文 8 页已满；机制型负结果按台账分流规则进这里，正文只留支持主线且数字干净的）
+\begin{itemize}
+  \item[S1] Dataset statistics
+  \item[S2] Geometry and low-frequency decodability of the annulus
+  \item[S3] Reference-free diffusion filling
+  \item[S4] Descriptor saturation: DINOv2 maximum self-similarity
+  \item[S5] Pseudo-occlusion retrieval test
+\end{itemize}
+
+% ============================================================================
+% 中文：以下各节只留占位注释，不填内容（等 Lead 定稿分配）。
+% ============================================================================
+\section{Dataset statistics}
+\label{supp:data}
+% 占位：面板 15 场景；手标 Ω 面积中位 4.62%（2.86–9.25%）；4/5/6/11 月训练批次与规模；
+% jun 池对齐全分布（88.7% 位移 >3px，中位 8.2px）；AE 锁定与黑布 GT 两个采集陷阱。
+% 出处：实验台账 E01/E05；sec/3_benchmark.tex 的正文口径。
+\emph{To be filled after finalisation.}
+
+\section{Geometry and low-frequency decodability of the annulus}
+\label{supp:ring}
+% 占位：① 15px 环连通块分析（335 碎块、最大块 4.7%、环整体 13.4%、最强碎块在反射树枝上）；
+% ② 低频可解码性探针（σ=2/4/8/16/32，c_T/c_R 与比值、线性外推解码 PSNR 17.15→18.59
+%    vs RDNet 环内 19.44）。出处：实验台账 E04/E05。
+\emph{To be filled after finalisation.}
+
+\section{Reference-free diffusion filling}
+\label{supp:sd}
+% 占位：SD1.5-inpaint 无参考填空两次实验（填补区 5.4%/13.4%）：LapVar ratio vs GT 0.50→1.18、
+% PSNR 21.71→21.49 / 22.25→22.00、目检为颗粒噪声。
+% ⚠️ 口径已按 Astra 复核收紧：只写"该配置失败 + 锐度类代理可被噪声欺骗"，不得写"扩散补全失败"。
+% 出处：实验台账 E07 与 §2-C3。
+\emph{To be filled after finalisation.}
+
+\section{Descriptor saturation: DINOv2 maximum self-similarity}
+\label{supp:dino}
+% 占位：DINOv2-small，448 输入、32×32 token（≈7px/token，原图坐标）、排除自身匹配；
+% 埋区 0.920 vs 对照 0.940，15/15 场景同向（双侧 p≈6e-5）。
+% ⚠️ 口径已按 Astra 复核收紧：不得写"无区分力已证明"；须先补 AUROC / 同覆盖率精度再下结论
+%    （当前判定 = ⚪ 未定）。出处：实验台账 E09 与 §2-C2。
+\emph{To be filled after finalisation.}
+
+\section{Pseudo-occlusion retrieval test}
+\label{supp:retrieval}
+% 占位：可信区（反射弱+清晰+远离 Ω）挖 96×96 伪洞，仅洞外 32px 上下文；V1 像素上下文 / V2 梯度
+% 方向共识 / 随机候选三组；14 场景（1 场景可信区不足）。
+% 关键统计（Astra 复核口径）：V1 PSNR 15.40 vs 随机 12.85，12/14，p=0.01294（显著）；
+% gcos +0.030 vs +0.003，10/14，p=0.1796（不显著）。
+% ⇒ 结论只能是"改善了像素误差，未证明迁移结构/语义"；并写明三条方法学限制（局部上下文不能证否
+% 长程结构、候选池污染、洞内 GT 有效边缘未核查）。出处：实验台账 E10/E11 与 §2-C1。
+\emph{To be filled after finalisation.}
+
+\end{document}
+
+% ============================================================================
+% 中文：备选 §4.4 草稿"单帧信息不可达"（2026-11-04 按 Astra 复核口径更正）
+% ----------------------------------------------------------------------------
+% 状态：**暂存注释，不编译、不进正文**。等分流失效（若正文腾不出页）时整段搬到此补充材料。
+% 已按 §2 更正：不写"无区分力已证明"、不写"扩散补全失败"、不把三条合写成"单帧无法补全"的证明。
+% ============================================================================
+% \subsection*{Why the buried content is not reachable from this frame (draft)}
+%
+% Secs.~4.2--4.3 show that no model we trained recovers the buried transmission, which leaves
+% a prior question: is the missing content present \emph{anywhere} in the frame? Every
+% in-image-reference and completion scheme assumes so; three training-free probes say no.
+%
+% \emph{(a) Retrieval cannot find it.} In content reliable by construction (weak reflection,
+% sharp, far from Omega) we cut a 96x96 hole, expose only a 32px context band, and fill it by
+% copying the best-matching patch from elsewhere in the same image -- nearest-patch retrieval,
+% not generative completion. On 14 scenes (one lacks reliable content), the pixel-context
+% matcher improves PSNR over a random reference (15.40 vs 12.85 dB; 12/14 scenes,
+% two-sided sign test p = 0.01294), but its structure correlation is not significant
+% (gcos +0.030 vs +0.003; 10/14, p = 0.1796); a gradient-consensus matcher does no better
+% (11.53 dB, gcos -0.001). We therefore claim only that pixel error improves, not that
+% transferable structure is recovered. Limitations: 32px context tests local matching, not
+% long-range structure; the candidate pool is contaminated by Occluder/reflection regions;
+% and the number of valid GT edges inside the holes was not audited.
+%
+% \emph{(b) No descriptor flags where filling is valid.} Frozen DINOv2 descriptors (32x32
+% tokens at 448 input, self-matches excluded) give a maximum self-similarity of 0.920 inside
+% buried regions against 0.940 in control regions, with 15/15 scenes in the same direction
+% (two-sided sign test p ~ 6e-5). This is a systematic group difference, but whether it
+% supports pixel-level selection requires AUROC or same-coverage precision, which we have not
+% measured; we do not claim that such descriptors have no discriminative power.
+%
+% \emph{(c) Reference-free generation can be fooled by its own metric.} Off-the-shelf SD1.5
+% inpainting with no reference raises the Laplacian-variance ratio against GT from 0.50 to
+% 1.18, while PSNR decreases by 0.25 dB and inspection shows grain rather than bark. We report
+% a failure of this configuration and of sharpness-like proxies under noise, not a failure of
+% diffusion-based completion.
+%
+% \emph{Boundary.} These probes do not test a generative model trained with in-image reference
+% conditioning; that remains an open question and future work. They also do not, by themselves,
+% prove that a single frame cannot be completed: occluder localisation, photometric
+% identifiability and retrieval-and-paste are different experimental tasks and are not
+% collapsed into one claim.

@@ -1,0 +1,75 @@
+% ============================================================================
+% 中文注释：第 5 节 方法（Method）
+% ----------------------------------------------------------------------------
+% 这一节只讲两件事：① 保留区域相对误差但去掉"硬掩码"；② 引入 L_quiet。
+% 明确不碰架构：底座是强微调的 RDNet（冻结 FocalNet 主干，66M 可训参数，6000 it / bs4）。
+% 数学要点：
+%   n(x) = 逐像素"本来需要改多少"（训练期用 GT，测试期不需要）
+%   w(x) = (1 − n/τ)_+，τ = 0.05
+%   L_quiet = λ·E[ w(x)·|T̂(x) − I(x)| ]，λ=1
+%   性质：w≡0 时严格退化回基线；不加参数、不加推理成本；只作用在最终输出上。
+% 与式 (2) 的关系：两者都是"相对误差 × 需要改动量"；差别是式(2)按区域归一，L_quiet 按像素。
+% 诚实点：§6.2 会说明它的收益**不集中在 Ω**，所以不要在这里暗示它能修好遮挡区。
+% ============================================================================
+\section{Method}
+\label{sec:method}
+
+% 中文：底座与配方一句话交代清楚，避免读者以为我们在卖架构。
+Our model is a strongly fine-tuned RDNet~\cite{rdnet25} (frozen FocalNet backbone, all other
+parameters trainable, $66$M parameters, $6000$ iterations at batch $4$). The contribution of this
+paper is not the architecture but \emph{what the loss should ask for}. We describe the two terms
+that matter and the one we add.
+
+\subsection{Region-relative error (kept, but no longer masked)}
+
+% 中文：式(2) 是功臣，但 §4.3 证明它的力量来自分母归一，不来自 Ω。所以把硬区域换成逐像素权重。
+Eq.~\eqref{eq:lom} is the workhorse. Sec.~\ref{sec:axis3} showed that its power comes from the
+normalization by $\mathbb{E}_{\Om}|T-I|$, not from $\Om$. We therefore replace the hard region by a
+\emph{smooth per-pixel weight} that plays the same role without any annotation.
+
+% 中文：定义"需要的改动量" n(x)（三通道平均绝对差，只在训练期用 GT 算）。
+Define the \emph{needed change}
+\begin{equation}
+n(x) \;=\; \frac{1}{3}\sum_{c}\big|I_c(x)-T_c(x)\big| \quad (\text{training only}),
+\end{equation}
+% 中文：改变化感知权重 w(x)：需要改得越少，权重越大。
+and the change-aware weight
+\begin{equation}
+w(x) \;=\; \Big(1-\frac{n(x)}{\tau}\Big)_{+},\qquad \tau=0.05 .
+\end{equation}
+% 中文：L_quiet 本体——"几乎不需要改的地方，就不要动图像"。
+The regularizer is
+\begin{equation}
+\boxed{\;\quiet=\lambda\,\mathbb{E}\big[\,w(x)\,\big|\That(x)-I(x)\big|\,\big]\;}
+\label{eq:quiet}
+\end{equation}
+% 中文：默认 λ=1；只作用在最终输出上；不加参数、不加推理成本；w≡0 时严格等于基线。
+with $\lambda=1$ by default. Intuitively: \emph{where almost nothing needs to change, do not move
+the image}. This is exactly what Eq.~\eqref{eq:lom} enforces inside $\Om$, but it is expressed
+directly in terms of the supervision signal, so it (a)~needs no mask, (b)~does not assume the
+region is compact, and (c)~is well defined on synthetic pairs and on real pairs alike.
+$\quiet$ is evaluated on the final output $\That$ only; it adds no parameters and no inference
+cost. With $w\equiv0$ the loss reduces exactly to the baseline, so the baseline is a strict special
+case.
+
+\subsection{Why this shape}
+
+% 中文：为什么是这个形状——式(5) 是式(2) 的无掩码极限；§4.3 预测逐像素版本应保留收益，§6.2 验证。
+Eq.~\eqref{eq:quiet} is the mask-free limit of Eq.~\eqref{eq:lom}: both are ``relative error
+weighted by how much change is needed''. The difference is that Eq.~\eqref{eq:lom} measures the
+needed change \emph{inside a region} and multiplies the region's contribution by a constant,
+whereas Eq.~\eqref{eq:quiet} measures it \emph{per pixel}. The diagnosis of
+Sec.~\ref{sec:axis3} predicts that the per-pixel version should retain the benefit, and
+Sec.~\ref{sec:exp:quiet} confirms it.
+
+% 中文：反向论证——没有这种信号的模型会退化成"整体压暗"，对应 β≈−0.29 而 α≈1.0。
+Conversely, a model that receives no such signal collapses to
+``darken everything'', which is what $\beta\approx-0.29$ with $\alpha\approx1.0$ indicates.
+
+\subsection{Full objective}
+
+% 中文：其余 8 项损失保持不动，这样每个对比只隔离一个变量（可复现性）。
+The remaining terms (reconstruction consistency $|I-\That-\Rhat|$, a gradient-exclusion term, a
+one-sided overshoot hinge, first- and second-order fidelity, DISTS, and a reflection-column term)
+are kept unchanged from the baseline for all experiments reported here, so that every comparison
+isolates one factor.

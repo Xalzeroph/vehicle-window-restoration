@@ -1,0 +1,290 @@
+% ============================================================================
+% supplementary/supp.tex — ICME 2027 supplementary material (Plan B version, 2026-11-06)
+% ----------------------------------------------------------------------------
+% Rules (official ICME 2026 kit, re-verified 2026-11-06): supplemental material
+% must be ANONYMIZED, zipped into ONE file; the kit states a 20 MB limit while the
+% website's submission list says 50 MB -> cite both, treat 20 MB as binding until
+% the 2027 rules are published. Reviewers are not obliged to read it.
+% Compile: pdflatex supp.tex (standalone; NOT \input into main.tex).
+%
+% Plan B status (2026-11-06): the paper is repositioned as a development benchmark
+% + diagnostic study + a controlled-intervention protocol. S1-S3 now carry their
+% final numbers; S4-S8 carry the material their results support. The old-script
+% +0.50 dB comparison and its per-scene figure are NOT results: they appear only
+% in S3 as a single historical observation.
+%
+% Main-text migrations (Lead-approved 2026-11-06):
+%   * Table I (layer asymmetry)   -> S2 Table S1
+%   * unified control full grid   -> S3 Tables S2-S3 (main text keeps one compact table)
+%   * old Fig.3 (per-scene dPSNR of the old-script comparison) -> WITHDRAWN
+% ============================================================================
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage[hidelinks]{hyperref}
+\newcommand{\Om}{\Omega}
+\newcommand{\dBA}{\,\mathrm{dB}}
+\newcommand{\quiet}{\mathcal{L}_{\mathrm{quiet}}}
+\title{Supplementary Material for\\
+What Filmed Glass Does to Single-Image Reflection Removal:\\
+A Development Benchmark and a Diagnostic Study}
+\author{Anonymous ICME submission}
+\date{}
+\begin{document}
+\maketitle
+
+\noindent This document accompanies the paper. S1 documents the data and capture
+protocol; S2 the imaging and diagnostic measurements; S3 the unified-recipe control
+experiment, its full table and its run-level reproducibility; S4 the negative results;
+S5 the supervision placement and mask-quality study; S6 the light-weight-method
+motivation; S7 the frozen independent-capture protocol; S8 the reproducibility and
+release boundary. All numbers are reported with the pool and protocol that produced
+them.
+
+% ============================================================================
+\section{Dataset statistics and protocol}\label{supp:data}
+% All numbers carry: pool name / #pairs / #scenes / QC rule.
+\subsection{Pools}
+\begin{itemize}
+\item Training pools: the real branch is drawn from sessions with paired
+  reflection/black-cloth captures; the synthetic branch follows the public SIRR
+  mixture; the public branch uses released paired data. The exact per-pool counts are
+  released with the training code.
+\item The retired June-44 subset (two scenes) is used only in the disclosed
+  configuration; its replacement pool is the rebuilt one, and the main configuration's
+  composition is disclosed (Lead decision D3-a: disclosure-only).
+\item Development panel (DP-15): 15 scenes, $1280{\times}832$, one ground-truth frame
+  per scene, median 374 frames between an input and its ground truth (6\% within 50),
+  hand-annotated occluder region $\Om$ (median 4.6\%, range 2.9--9.2\%, fixed
+  intensity rule, tree-shade blind spot stated in the main text).
+\end{itemize}
+\subsection{Capture defects and the QC protocol}
+\begin{itemize}
+\item Exposure lock: with auto-exposure active, $\mathrm{median}(I/T)=0.99$ and the
+  residual layer correlates with image brightness at $r=0.32$; after locking,
+  $r=-0.01$.
+\item Alignment: on one batch $88.7\%$ of the pairs were shifted by more than 3\,px
+  (median 8.2\,px). Per-pair translation alignment is a single-seed screening result
+  on that pool and is not used for any main-table claim.
+\item Privacy: faces and licence plates are redacted before release; the release is
+  research-only.
+\end{itemize}
+
+% ============================================================================
+\section{Imaging and diagnostic details}\label{supp:diag}
+\subsection{Layer statistics on four datasets (moved Table I)}
+\begin{table}[h]\centering
+\caption{Layer statistics of the transmitted ($T$) and reflected ($R$) layers on
+Real20, SIR$^2$-Obj, SIR$^2$-Wild and the filmed-glass panel. The filmed column is
+measured identically; the public-dataset columns report the observed range across the
+three datasets (per-dataset values in the released measurement script).}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Quantity & public range & Real20--SIR$^2$ & Ours (filmed) \\
+\midrule
+sharp($T$) & 0.041--0.062 & -- & \textbf{0.027} \\
+sharp($R$)/sharp($T$) & 2.51--3.32 & -- & \textbf{6.76} \\
+chroma of $T$ & 0.322--0.393 & -- & \textbf{0.219} \\
+mean brightness & ${}\approx{}$Real20 & -- & ${}\approx{}$Real20 \\
+mean $|R|$ & ${}\approx{}$Real20 & -- & ${}\approx{}$Real20 \\
+HF fraction of $R$ & ${}\approx{}$Real20 & -- & ${}\approx{}$Real20 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Three-band decomposition inside/around $\Om$}
+\begin{table}[h]\centering
+\caption{Three-band decomposition on the development panel. Band values are not
+comparable across bands (PSNR depends on band brightness); only the within-band
+contrast against identity is informative.}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Band & Area & $\mathbb{E}|I-T|$ & Identity PSNR (dB) \\
+\midrule
+$\Om$ (hand) & \textbf{4.6\%} (2.9--9.2) & 10.3 & 24.52 \\
+annulus (15\,px) & 44.4\% & 44.4 & 13.76 \\
+far field & remainder & 16.8 & 19.52 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Structural damage and the content-agnostic ceiling}
+\begin{itemize}
+\item Structure retained relative to ground truth after a per-image affine
+  correction, inside $\Om$: 1.14 (identity), 0.50 (fine-tuned baseline), 0.65
+  (regularizer arm); affine-corrected MAE 10.51, 12.82 and 11.70 gray levels (these
+  are single-seed development measurements).
+\item Content-agnostic ceiling: a Gaussian smoothing of the input is the best a
+  content-blind method can do. On the weakly reflected 59\% of $\Om$ the ceiling is
+  29.50\,dB against identity's 31.45\,dB; on the strongly reflected 7\% it is
+  15.24\,dB against 14.46\,dB. No trained model beats a plain blur in either regime.
+\end{itemize}
+
+\subsection{Frequency overlap and the input-HF splicing test}
+\begin{itemize}
+\item 34.5\% of the reflection energy lies above a $\sigma{=}8$ low-pass, so the
+  reflection is not a veil that can be filtered away.
+\item Replacing the output's high frequencies by those of the input restores
+  structure inside $\Om$ but lowers PSNR: 22.26$\rightarrow$22.04$\rightarrow$21.66\,dB
+  at $\sigma{=}2,4$ (regularized arm), and 23.73$\rightarrow$23.39$\rightarrow$22.97\,dB
+  for a 50:50 mixture.
+\end{itemize}
+
+\subsection{Per-image photometric oracle}
+A per-image affine oracle fitted on each image's ground truth recovers
+0.15--0.26\,dB, whereas a single shared affine fitted on the other 14
+development-panel scenes (leave-one-scene-out) recovers 0.07\,dB. Fine-tuning
+therefore consumes the transferable part of the photometric error and leaves a
+residual that is per-image; any module that estimates a global photometric quantity
+from a single frame is bounded by the shared value.
+
+% ============================================================================
+\section{The unified-recipe control experiment}\label{supp:control}
+\subsection{Protocol}
+\begin{itemize}
+\item One recipe for all arms: same initialization and seeds (101, 202, 303), same
+  data mixture (30\% real / 40\% synthetic / 30\% public), 6000 iterations, learning
+  rate $10^{-4}$, crop curriculum 224$\rightarrow$256$\rightarrow$320; only the
+  regularizer term differs.
+\item Arms: base (no extra term); identity ($\lambda\|\widehat T-I\|_1$,
+  $\lambda=0.409$); identity-m (same, $\lambda=0.085$, magnitude-matched to the
+  change-aware weight); hard (change-aware statistic thresholded at $\tau=0.05$);
+  shuffled (change-aware weights permuted across pixels); full ($\quiet$,
+  $\lambda=1$, $\tau=0.05$).
+\item Evaluation: frozen uint8 script on the 15-scene development panel; scene-level
+  paired differences with 95\% CI over the 15 scenes.
+\end{itemize}
+
+\subsection{Full control table (moved from the main text)}
+\begin{table}[h]\centering
+\caption{Unified-recipe arms on the development panel (three seeds). $\Delta$ is the
+scene-level paired mean against \emph{full}; the last column counts scenes where
+\emph{full} is higher.}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Arm & PSNR (dB) & $\Delta$ vs full (dB) & 95\% CI & scenes \\
+\midrule
+base & $22.38\pm0.23$ & $+0.19$ & $[+0.05,+0.33]$ & 11/15 \\
+identity ($\lambda{=}.409$) & $22.49\pm0.34$ & $+0.079$ & $[+0.021,+0.137]$ & 14/15 \\
+identity-m ($\lambda{=}.085$) & $22.59\pm0.21$ & $-0.014$ & $[-0.215,+0.186]$ & -- \\
+hard ($\tau{=}.05$) & $22.82\pm0.36$ & $-0.246$ & $[-0.355,-0.138]$ & 2/15 \\
+shuffled & $22.36\pm0.39$ & $+0.209$ & $[+0.033,+0.386]$ & -- \\
+full ($\lambda{=}1$, $\tau{=}.05$) & $22.57\pm0.00$ & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two entries in this table look like copying or indexing errors, but both are genuine
+averaging coincidences. The three \emph{full}-arm checkpoints were trained
+independently and have pairwise different SHA-256 fingerprints; their per-seed
+scores are 22.5698, 22.5786 and 22.5721\,dB, which is why the table reports
+$\pm0.00$ (spread $\approx$0.004\,dB). Likewise, the hard-arm seeds 101 and 202
+both average 23.0268\,dB although their per-scene PSNR differs by 0.02--1.12\,dB
+and cancels in the mean; their checkpoints and prediction files also differ
+pairwise. A small seed spread is therefore not evidence of distinguishability:
+the main text reads arm differences against the 0.88\,dB run-level spread (below),
+not against the $\pm0.00$ of a single arm.
+
+\subsection{Run-level reproducibility}
+\begin{itemize}
+\item Same arm, same seed, same script, re-run: base $22.998\rightarrow22.119$
+  ($-0.88$\,dB); full $23.079\rightarrow22.570$ ($-0.51$\,dB).
+\item Cross-date contrasts: $+1.008$\,dB (base) and $+0.369$\,dB (full).
+\item Consequence: run-level uncertainty is at least as large as seed-level
+  uncertainty; differences of $\sim$0.08\,dB cannot be attributed to a regularizer,
+  and the main text uses this bound when interpreting the control.
+\end{itemize}
+
+\subsection{Historical observation from the pre-unified scripts}
+Before the recipes were unified, an earlier comparison of the two training scripts
+produced $+0.50$\,dB. Because the scripts differ in recipe and match, this number is a
+historical observation, not a result, and it is not comparable with the unified table;
+the per-scene figure built from it is withdrawn. Paired differences between
+LightRR's re-evaluation and the old three-seed references of those scripts
+(22.99 / 22.49) are likewise historical and appear only in S6.
+
+\subsection{What the control supports}
+The control bounds what this family of training-time regularizers achieves on the
+development panel (a few tenths of a decibel, within the run-level spread) and shows
+that the specific change-aware shape is not the lever: identity-m is on par with
+full, and hard is significantly better. It supports the benchmark's ability to make
+this comparison controlled; it does not support a performance claim for any arm.
+
+% ============================================================================
+\section{Negative results}\label{supp:negative}
+\begin{itemize}
+\item Perceptual-loss weighting did not close the structural gap; the weighting
+  shifted the trade-off but not the total.
+\item Splicing input high frequencies into the output restored detail and lowered
+  PSNR (S2).
+\item Mixing occluder-region data raised region-restricted PSNR while degrading the
+  residual-reflection coefficient.
+\item Photometric adapters and residual gates were rejected by cheap probes before
+  full training.
+\item Averaging three independently trained models failed because the seeds converge
+  to different basins.
+\end{itemize}
+
+% ============================================================================
+\section{Supervision placement and mask quality}\label{supp:placement}
+\begin{itemize}
+\item 82-pair five-region placement study (three seeds unless noted): no region
+  17.76 / hand-$\Om$ 19.41 / random disk 19.90 / fixed disk 20.25 / whole image 20.05.
+  The hand annotation does not beat an equal-area random disk; occluder-region
+  specificity is therefore withdrawn.
+\item Mask quality: hand annotation vs a supervision-only detector IoU 0.376—0.063;
+  no downstream gain from a better detector, consistent with the region-specificity
+  withdrawal.
+\item $\Om$ annotation rule and blind spot (tree-shade pixels at threshold 15); it is
+  an annotation of where the reflection path was blocked, not a physical ground truth.
+\end{itemize}
+
+% ============================================================================
+\section{Light-weight-method protocol and results}\label{supp:lightrr}
+\begin{itemize}
+\item Protocol: LightRR is fine-tuned in-domain with its official recipe for 102,500
+  iterations (41 epochs; one epoch more than pre-registered, disclosed) on the same
+  training pools and evaluated with the same frozen script on the development panel.
+\item Two learning-rate runs: $10^{-4}\rightarrow20.221$\,dB,
+  $5\times10^{-5}\rightarrow20.198$\,dB; best-of-two $20.221$\,dB; an earlier
+  official-recipe rerun scored 19.175\,dB.
+\item Context: more than 2\,dB below the strongly fine-tuned baseline, winning on no
+  scene (0/15); the residual-reflection coefficient moves from $-0.859$ zero-shot to
+  only $-0.489$/$-0.511$, against $-0.29$ to $-0.34$ for the fine-tuned RDNet.
+\item Historical paired differences against the old three-seed references
+  (22.99\,dB and 22.49\,dB): $-2.766$\,dB (95\% CI $[-3.371,-2.162]$) and
+  $-2.264$\,dB; these are historical and are not results of the unified protocol.
+  Historical reference only; the unified-protocol paired $\Delta$ will be reported in
+  the camera-ready version if available.
+\end{itemize}
+
+% ============================================================================
+\section{Frozen protocol for an independent capture}\label{supp:indep}
+\begin{itemize}
+\item New A/B capture through the same film: 6--8 indoor and 4--6 outdoor scenes at
+  sites disjoint from the development sessions, same camera and film, locked
+  exposure/white balance, black-cloth ground truth, QC $|g-1|\le0.15$ and
+  phase-correlation shift $\le2$\,px.
+\item Frozen before scoring: model checkpoints, baselines, evaluation script, primary
+  contrast and the scene-level paired CI procedure. No tuning on the held-out set.
+\item One-shot evaluation; per-scene results reported; if the primary contrast
+  crosses zero, the claim shrinks instead of being re-tuned (the pre-registered
+  analysis plan is included in the release).
+\end{itemize}
+
+% ============================================================================
+\section{Reproducibility and release boundary}\label{supp:repro}
+\begin{itemize}
+\item Anonymised artifact statement: code, evaluation script, split hashes and the
+  frozen analysis plans are releasable; training data contains faces and plates and
+  is released only after redaction.
+\item Correction log for the 2026-10-29 release package: retracted numbers are listed
+  in the release's correction file; the old-script $+0.50$\,dB comparison and its
+  figure are withdrawn from this paper. No external links appear in the
+  double-blind copy.
+\end{itemize}
+
+\end{document}

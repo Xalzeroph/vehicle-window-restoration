@@ -1,0 +1,276 @@
+% ============================================================
+% refs.bib — ICME 2027 submission bibliography (W1 candidate, 2026-11-06)
+% ----------------------------------------------------------------------------
+% STATUS: 28 entries, ALL VERIFIED (0 UNVERIFIED). Clean-up log: _measure/refs_AUDIT.md
+%   * 20 entries retained from the frozen 2026-10-29 draft (verified 2026-10-28);
+%   * 1 UNVERIFIED stub resolved -> yin2026lightrr (title/authors confirmed from the
+%     official CVF Open Access PDF, local copy: lightrr/LightRR-CVPR26_paper.pdf);
+%   * 6 removed UNVERIFIED stubs (li2020nature, glasspol2026, pstm2026, prism2026,
+%     dirs2022, drr2024) -> the claims they supported are dropped, never fabricated;
+%   * 6 loss-weighting / identity-regulariser precedents added (G3, novelty defence);
+%     all 6 re-verified via the arXiv API on 2026-11-06 (see refs_AUDIT.md);
+%   * 1 recent SIRR method added: xu2026fumo (ECCV 2026, arXiv 2603.19036 verified);
+%   * 7 older entries dropped for the 6-page reference budget (restorable later).
+% Page cost: 27 entries measured 0.89 p with IEEEbib; 28 entries ~0.92 p.
+% RULE: never cite an entry that is not listed here; never compare cross-paper numbers.
+% ============================================================
+
+% ---------------- data protocols / benchmarks ----------------
+@inproceedings{zhang2018perceptual,
+  title     = {Single Image Reflection Separation with Perceptual Losses},
+  author    = {Zhang, Xuaner and Ng, Ren and Chen, Qifeng},
+  booktitle = {Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {4786--4794},
+  year      = {2018}
+}
+
+@inproceedings{wan2017benchmarking,
+  title     = {Benchmarking Single-Image Reflection Removal Algorithms},
+  author    = {Wan, Renjie and Shi, Boxin and Duan, Ling-Yu and Tan, Alex C. and Kot, Alex C.},
+  booktitle = {Proceedings of the IEEE International Conference on Computer Vision (ICCV)},
+  pages     = {3922--3930},
+  year      = {2017}
+}
+
+@article{wan2022crrn,
+  title   = {{CoRRN}: Cooperative Reflection Removal Network},
+  author  = {Wan, Renjie and Shi, Boxin and Li, Haoliang and others},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  volume  = {42},
+  number  = {12},
+  pages   = {2969--2982},
+  year    = {2020},
+  doi     = {10.1109/TPAMI.2019.2921574}
+}
+
+@inproceedings{openrr2025,
+  title     = {{OpenRR-1k}: A Scalable Dataset for Real-World Reflection Removal},
+  author    = {Yang, Kangning and Ouyang, Ling and Sun, Huiming and others},
+  booktitle = {IEEE International Conference on Image Processing (ICIP)},
+  pages     = {839--844},
+  year      = {2025},
+  doi       = {10.1109/ICIP55913.2025.11084433}
+}
+
+@inproceedings{cai2026ntire,
+  title     = {{NTIRE} 2026 Challenge on Single Image Reflection Removal in the Wild:
+               Datasets, Results, and Methods},
+  author    = {Cai, Jie and Yang, Kangning and Li, Zhiyuan and Vasluianu, Florin-Alexandru and
+               Timofte, Radu and others},
+  booktitle = {CVPR Workshops},
+  year      = {2026},
+  eprint    = {2604.10321},
+  archivePrefix = {arXiv}
+}
+
+% ---------------- reflection removal methods ----------------
+@inproceedings{wen2019errnet,
+  title     = {Single Image Reflection Removal Beyond Linearity},
+  author    = {Wen, Qiang and Tan, Yang and Qin, Jing and others},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {3766--3774},
+  year      = {2019},
+  doi       = {10.1109/CVPR.2019.00389}
+}
+
+@inproceedings{li2020ibcln,
+  title     = {Single Image Reflection Removal Through Cascaded Refinement},
+  author    = {Li, Chao and Yang, Yixiao and He, Kun and others},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {3562--3571},
+  year      = {2020},
+  doi       = {10.1109/CVPR42600.2020.00362}
+}
+
+@inproceedings{lei2020polarized,
+  title     = {Polarized Reflection Removal with Perfect Alignment in the Wild},
+  author    = {Lei, Chenyang and Huang, Xuhua and Zhang, Mengdi and others},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {1747--1755},
+  year      = {2020},
+  doi       = {10.1109/CVPR42600.2020.00182}
+}
+
+@inproceedings{zheng2021absorption,
+  title     = {Single Image Reflection Removal with Absorption Effect},
+  author    = {Zheng, Qian and Shi, Boxin and Chen, Jinnan and others},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {13390--13399},
+  year      = {2021},
+  doi       = {10.1109/CVPR46437.2021.01319}
+}
+
+@inproceedings{hu2023dsrnet,
+  title     = {Single Image Reflection Separation via Component Synergy},
+  author    = {Hu, Qiming and Guo, Xiaojie},
+  booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+  pages     = {13092--13101},
+  year      = {2023},
+  doi       = {10.1109/ICCV51070.2023.01208}
+}
+
+@inproceedings{zhu2024rrw,
+  title     = {Revisiting Single Image Reflection Removal in the Wild},
+  author    = {Zhu, Yurui and Fu, Zhenbo and Jiang, Xiaotong and others},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {25468--25478},
+  year      = {2024},
+  doi       = {10.1109/CVPR52733.2024.02406}
+}
+
+@inproceedings{zhao2025rdnet,
+  title     = {Reversible Decoupling Network for Single Image Reflection Removal},
+  author    = {Zhao, Hao and Li, Mingjia and Hu, Qiming and Guo, Xiaojie},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {26430--26439},
+  year      = {2025}
+}
+
+@inproceedings{hu2024dsit,
+  title     = {Single Image Reflection Separation via Dual-Stream Interactive Transformers},
+  author    = {Hu, Qiming and Wang, Hainuo and Guo, Xiaojie},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {37},
+  pages     = {55228--55248},
+  year      = {2024},
+  doi       = {10.52202/079017-1753}
+}
+
+@inproceedings{hong2024ldiffer,
+  title     = {{L-DiffER}: Single Image Reflection Removal with Language-based Diffusion Model},
+  author    = {Hong, Yuchen and Zhong, Haofeng and Weng, Shuchen and others},
+  booktitle = {European Conference on Computer Vision (ECCV)},
+  year      = {2024}
+}
+
+@inproceedings{li2026gensirr,
+  title     = {Rectifying Latent Space for Generative Single-Image Reflection Removal},
+  author    = {Li, Mingjia and Hu, Jin and Wang, Hainuo and Hu, Qiming and Wang, Jiarui and Guo, Xiaojie},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year      = {2026},
+  eprint    = {2512.06358},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{chen2026gfrrn,
+  title     = {{GFRRN}: Explore the Gaps in Single Image Reflection Removal},
+  author    = {Chen, Yu and He, Zewei and Liu, Xingyu and Chen, Zixuan and Lu, Zheming},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year      = {2026},
+  eprint    = {2602.22695},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{hu2026dai,
+  title     = {Dereflection Any Image with Diffusion Priors and Diversified Data},
+  author    = {Hu, Jichen and Yang, Chen and Zhou, Zanwei and Fang, Jiemin and Yang, Xiaokang and
+               Tian, Qi and others},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume    = {40},
+  pages     = {4860--4868},
+  year      = {2026},
+  eprint    = {2503.17347},
+  archivePrefix = {arXiv}
+}
+
+@article{promptrr2024,
+  title   = {{PromptRR}: Diffusion Models as Prompt Generators for Single Image Reflection Removal},
+  author  = {Wang, Tao and Lu, Wanglong and Zhang, Kaihao and Lu, Tong and Yang, Ming-Hsuan},
+  journal = {arXiv preprint arXiv:2402.02374},
+  year    = {2024},
+  eprint  = {2402.02374},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{xu2026fumo,
+  title     = {{FUMO}: Prior-Modulated Diffusion for Single Image Reflection Removal},
+  author    = {Xu, Telang and Zhang, Chaoyang and Zhai, Guangtao and Liu, Xiaohong},
+  booktitle = {European Conference on Computer Vision (ECCV)},
+  year      = {2026},
+  eprint    = {2603.19036},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{lanet2021,
+  title     = {Location-aware Single Image Reflection Removal},
+  author    = {Dong, Zheng and Xu, Ke and Yang, Yin and others},
+  booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+  pages     = {4997--5006},
+  year      = {2021},
+  doi       = {10.1109/ICCV48922.2021.00497}
+}
+
+@inproceedings{yin2026lightrr,
+  title     = {{LightRR}: A Lightweight Network for Single Image Reflection Removal},
+  author    = {Yin, Wenbin and Zhang, Junkang and Yang, Sunzhe and Fang, Faming and Zhang, Guixu},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year      = {2026}
+}
+
+% ---------------- low-light / criterion-based (photometric axis) ----------------
+@inproceedings{cai2023retinexformer,
+  title     = {Retinexformer: One-stage Retinex-based Transformer for Low-light Image Enhancement},
+  author    = {Cai, Yuanhao and Bian, Hao and Lin, Jiawen and others},
+  booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+  year      = {2023}
+}
+
+% ---------------- loss weighting / identity-regulariser precedents (G3) ----------------
+% Verified via the arXiv API on 2026-11-06 (see _measure/refs_AUDIT.md).
+@inproceedings{lin2017focal,
+  title     = {Focal Loss for Dense Object Detection},
+  author    = {Lin, Tsung-Yi and Goyal, Priya and Girshick, Ross and He, Kaiming and Doll{\'a}r, Piotr},
+  booktitle = {Proceedings of the IEEE International Conference on Computer Vision (ICCV)},
+  pages     = {2980--2988},
+  year      = {2017},
+  eprint    = {1708.02002},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{li2019ghm,
+  title     = {Gradient Harmonized Single-stage Detector},
+  author    = {Li, Buyu and Liu, Yu and Wang, Xiaogang},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  pages     = {8577--8584},
+  year      = {2019},
+  eprint    = {1811.05181},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{ren2018reweight,
+  title     = {Learning to Reweight Examples for Robust Deep Learning},
+  author    = {Ren, Mengye and Zeng, Wenyuan and Yang, Bin and Urtasun, Raquel},
+  booktitle = {International Conference on Machine Learning (ICML)},
+  year      = {2018},
+  eprint    = {1803.09050},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{kendall2018uncertainty,
+  title     = {Multi-Task Learning Using Uncertainty to Weigh Losses for Scene Geometry and Semantics},
+  author    = {Kendall, Alex and Gal, Yarin and Cipolla, Roberto},
+  booktitle = {Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {7482--7491},
+  year      = {2018},
+  eprint    = {1705.07115},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{barron2019robust,
+  title     = {A General and Adaptive Robust Loss Function},
+  author    = {Barron, Jonathan T.},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year      = {2019},
+  eprint    = {1701.03077},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{zhu2017cyclegan,
+  title     = {Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks},
+  author    = {Zhu, Jun-Yan and Park, Taesung and Isola, Phillip and Efros, Alexei A.},
+  booktitle = {Proceedings of the IEEE International Conference on Computer Vision (ICCV)},
+  pages     = {2223--2232},
+  year      = {2017},
+  eprint    = {1703.10593},
+  archivePrefix = {arXiv}
+}

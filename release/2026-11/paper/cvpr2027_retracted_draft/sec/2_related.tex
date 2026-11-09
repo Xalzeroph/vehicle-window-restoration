@@ -1,0 +1,55 @@
+% ============================================================================
+% 中文注释：第 2 节 相关工作（Related Work）
+% ----------------------------------------------------------------------------
+% 四段，每段只讲"与我们相关的差异"，不复述别人的方法细节：
+%   ① 经典/深度 SIRR：都按平均 PSNR 报，没人报"Ω 内是否变差"。
+%   ② 基准与盲点：拿 T 的三种做法（移走反射源/偏振/盖布）都会改变采集，
+%      且没有记录"反射在哪里被压掉了"——这是本文补的。
+%   ③ 归纳偏置架构（可逆/提示/频域/prompt）：数据少时容易把先验过拟合；
+%      §6 里两个这类方案是被 CPU 探针在训练前否掉的。
+%   ④ 光度一致性（Retinex/低光）：对应本文的第二条失败轴，§4.2 证明它逐图、不可共享。
+% 注意：引用里 DSRNet / Zhu24 / LightRR / wavelet 目前是占位条目，投稿前必须替换。
+% ============================================================================
+\section{Related Work}
+\label{sec:related}
+
+% 中文：经典方法用梯度稀疏/层先验；深度方法直接回归透射层。
+% 共同点：全部按平均 PSNR/SSIM 在 Real20、SIR² 或自建划分上报。
+\paragraph{Single-image reflection removal.}
+Classical approaches exploit gradient sparsity and layer priors
+\cite{levin04,li13,wan17}; deep methods regress the transmission layer directly
+\cite{fan17,zhang18,wei19,hu20}. ERRNet~\cite{wei19} aligns misaligned training pairs; IBCLN~\cite{li20}
+uses a cascaded bidirectional loop; DSRNet~\cite{dsrnet24} introduces dual-stream interaction; and
+RDNet~\cite{rdnet25}, the NTIRE~2025 challenge winner, replaces U-Net connections by a multi-column
+\emph{reversible} encoder and conditions on an estimated transmission rate. Zhu~\cite{zhu24}
+explores layer-separation priors. All of these are evaluated by average PSNR/SSIM on
+Real20~\cite{zhang18}, SIR$^2$~\cite{wan17} (Objects/Postcard/Wild) or their own splits.
+
+% 中文：真配对数据很贵；拿 T 的三种做法都会改变采集，且都没记录"反射在哪里被压掉"。
+% 指标算全图 ⇒ 紧凑区域的失效被稀释。我们的面板显式标注这个区域并要求分区报告。
+\paragraph{Benchmarks and their blind spots.}
+Real paired SIRR data is expensive: one has to obtain the same scene with and without reflection.
+Existing protocols obtain $T$ by (a)~moving the reflection source out of view, (b)~using a
+polariser, or (c)~covering the glass. Each changes the acquisition, and none of them records
+\emph{where} the reflection was suppressed. Metrics are therefore computed over the whole image,
+which dilutes a spatially compact failure. Our panel explicitly annotates the suppressed region and
+reports it separately.
+
+% 中文：可逆连接、传输率提示、频域分解、prompt 条件化——这些先验在数据充足时有价值；
+% 数据只有几个场景时容易把先验本身过拟合。§6.5 报了两个被探针提前否掉的方案。
+\paragraph{Inductive-bias architectures.}
+A recent trend is to inject structural assumptions: reversible/invertible connections to avoid
+information loss~\cite{revcol,rdnet25}, transmission-rate prompts~\cite{rdnet25}, frequency or
+wavelet decomposition~\cite{wavelet}, and prompt-conditioned multi-task restoration~\cite{promptir}.
+Such priors are valuable when the data regime allows the prior to be identified; with a handful of
+scenes it is easy to over-fit the prior instead. Sec.~\ref{sec:experiments} reports two such
+proposals that our CPU probes rejected before training.
+
+% 中文：Retinex/低光路线会预测逐图增益；在 SIRR 里对应的量是 I 与 T 的全局光度偏移。
+% §4.2 证明：微调后这个量几乎被吃干，且剩余部分逐图、无法用共享规则预测。
+\paragraph{Photometric consistency in restoration.}
+Retinex-style and illumination-aware methods~\cite{retinexformer} model a global light field, and
+low-light work routinely predicts a per-image gain. For SIRR, the analogous quantity is the global
+photometric offset between $I$ and $T$; Sec.~\ref{sec:diagnosis} shows that after fine-tuning this
+quantity is (a)~almost exhausted by training and (b)~per-image, so it cannot be predicted from a
+single frame by any shared rule.

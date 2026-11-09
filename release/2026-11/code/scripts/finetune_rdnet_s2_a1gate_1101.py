@@ -1,0 +1,783 @@
+#!/usr/bin/env python3
+"""S2 训练脚本（"修掉人影"）：RDNet + Mona 适配器，真实 Ω 配对 + 在线合成 + 开源直督。
+
+数据（采样比 3:4:3，--arm b1 时 0:57:43）:
+  omega   data/train_sets/train_pairs_omega_0920   apr 16 对（I/T/R有符号/Ω/C_I）
+  synth   在线合成 T'=j·T, I'=j·(T+b·R)；a≡1 全加性；b~logU[0.4,1.5]；j~U[0.5,1]；
+          R 白名单 = apr16 + RRW9（data/pools/r_signed_0920/rrw）；T 源 = VOC_s320/SIR2/nature/scenes/RRW-GT；
+          R 高斯模糊增广（kernel{5,7,9,11} p=.1/.2/.3/.4，σ∈[2,5]）
+  opensrc data/train_sets/train_pairs_opensrc_0920/meta.json（OpenRR+SIR2 直督，整体 loss×0.5）
+
+损失（4 列输出 w_c=c+1）:
+  L = Σ_c w_c[ w⊙Charb(T̂,T) + 1.5·w⊙Charb(R̂,R)|has_R ] + 0.2·w⊙|I−T̂−R̂| + 0.1·exclusion
+    + omega: 3·w⊙(M_Ω⊙|T̂−T|)/den_Ω + 1.0·w⊙(M_Ω⊙relu(T−δ−T̂))/den_Ω + 0.2·DISTS(T̂,T)|_Ω窗
+    其中 den_Ω = mean(M_Ω⊙|I−T|)（ρ 型归一化），δ = max(4, 0.5|C_I|)/255（过冲 hinge）
+  感知项 DISTS（与判据② pyiqa-LPIPS 异族）；选模以 ①④ 为纲。
+
+用法:
+  CUDA_VISIBLE_DEVICES=1 python3 scripts/finetune_rdnet_s2.py --arm main --seed 101 --gpu 0 \
+      --out runs/ckpt/rdt_s2_main_s101 --iters 10000 --batch 6
+
+================================================================================
+A1 增量（2026-11-01，只新增文件；本文件 = scripts/finetune_rdnet_s2.py 的逐字 fork）
+--------------------------------------------------------------------------------
+唯一改动 = 在最后一列 decoder 输出之后、损失之前，插入 scripts/rdnet_a1gate_1101.py 的
+有界残差倍率门：  T^ = T0 - a(I,T0) * (I - T0),  a in [-1,1]（g=1+a in [0,2]）
+  * 末层零初始化 => 初始化时 a==0 => 输出逐位等于 T0（首个 iter 与基线 A/B 可比）
+  * --a1-gate off 时 gate=None：不构造模块、不消耗 RNG、不增加参数，
+    优化器/保存/日志与基线逐字相同（用于完全匹配的 B 臂）
+  * 门只改最后一列的 transmission 三通道；R 分支与前三列粗监督完全不动
+  * 新增参数 1025（width=32/hid=16）；不改 RDNet 任何文件、不解冻 FocalNet
+================================================================================
+"""
+import argparse, csv, json, math, os, sys, time
+import cv2
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from PIL import Image
+import hashlib
+from torch.utils.data import Dataset, DataLoader
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+PROJ = os.path.dirname(HERE)
+sys.path.insert(0, HERE)
+# 2026-10-29: --arch clean1029 时优先用队友的新模型包（独立目录，不改我们的 RDNet）
+ARCH_ENV = os.environ.get("TINTED_ARCH", "mona")
+if ARCH_ENV == "clean1029":
+    sys.path.insert(0, os.path.join(PROJ, "RDNet_clean1029"))
+    sys.path.insert(0, os.path.join(PROJ, "RDNet"))
+else:
+    sys.path.insert(0, os.path.join(PROJ, "RDNet"))
+os.chdir(os.path.join(PROJ, "RDNet"))
+from finetune_rdnet_peft import build, charbonnier      # noqa: E402
+from rdnet_a1gate_1101 import (                          # noqa: E402
+    DEFAULT_CFG, apply_gate, gate_cfg_of, make_gate, param_report, save_gate_into_ckpt_obj,
+)
+
+
+def build_clean1029():
+    """构造队友的新架构（RDNet-clean-20261029）：返回 net（输出 (out_i, out_j)）与 net_c。
+
+    与我们的 build() 的差别：不 patch Mona；用他的 FullNet_NLP（内部 ratio_head，
+    输出 T=sigmoid(logit(I)+4q)、N=I-T），权重经他的 load_state_dict 迁移钩子从
+    pretrained/rdnet.pth 载入。
+    """
+    from models.arch.RDnet_ import FullNet_NLP as HisFullNet
+    from models.arch.classifier import PretrainedConvNext
+
+    net = HisFullNet(channels=[64, 128, 256, 512], layers=[2, 2, 4, 2],
+                     num_subnet=4, loss_col=4, kernel_size=3, num_classes=1000,
+                     drop_path=0, save_memory=True, inter_supv=True, head_init_scale=None)
+    ck = torch.load(os.path.join(PROJ, "pretrained/rdnet.pth"), map_location="cpu")
+    sd = ck.get("icnn", ck)
+    miss, unex = net.load_state_dict(sd, strict=False)
+    n_par = sum(p.numel() for p in net.parameters())
+    print(f"[clean1029] 参数量 {n_par/1e6:.2f} M | 迁移 rdnet.pth: "
+          f"missing={len(miss)} unexpected={len(unex)}", flush=True)
+    if miss:
+        print(f"[clean1029] missing 前 6: {list(miss)[:6]}", flush=True)
+    net_c = PretrainedConvNext("convnext_small_in22k")
+    net_c.load_state_dict(torch.load(os.path.join(PROJ, "pretrained/cls_model.pth"),
+                                     map_location="cpu")["icnn"])
+    return net, net_c
+
+EPS = 1e-3
+OMEGA_DIR = os.path.join(PROJ, "data/train_sets/train_pairs_omega_0920")
+OPENSRC_META = os.path.join(PROJ, "data/train_sets/train_pairs_opensrc_0920/meta.json")
+RRW_R_DIR = os.path.join(PROJ, "data/pools/r_signed_0920/rrw")
+R_POOL = os.path.join(PROJ, "data/pools/r_final_1029")   # 2026-10-29 新池（SIR² 系）
+try:
+    import synth_occlusion_v2 as _SO
+    _SO_OK = True
+except Exception as _e:  # noqa: BLE001
+    _SO_OK = False
+    print('[s2] 合成遮挡模块不可用:', _e, flush=True)
+# >>> T_SRCS_HOMESAFE_1031
+_T_CAND = [os.path.join(PROJ, "data/external/VOC2012/VOC2012_s320"),
+           os.environ.get("TINTED_SIR2_T",
+                          "/DataDisk/zmy_code/datasets/SIR2/SIR/transmission_layer"),
+           os.environ.get("TINTED_NATURE_T",
+                          "/DataDisk/zmy_code/datasets/nature/natural_T"),
+           os.environ.get("TINTED_SCENES_T",
+                          "/DataDisk/zmy_code/datasets/scenes"),
+           "/DataDisk/zmy_code/datasets/RRWDataset/reflection_camera1/GT_camera1"]
+T_SRCS = [p for p in _T_CAND if os.path.isdir(p)]
+if len(T_SRCS) != len(_T_CAND):
+    print("[s2] T_SRCS missing (skipped): %s" %
+          [p for p in _T_CAND if p not in T_SRCS], flush=True)
+# <<< T_SRCS_HOMESAFE_1031
+
+
+def load_rgb(path, size, rng, jitter_crop=None):
+    """读图 -> [0,1] float32 (3,s,s)。jitter_crop=(y0,x0) 时按指定位置裁（多图同步）。"""
+    img = cv2.imread(path)
+    if img is None:
+        raise IOError(path)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    h, w = img.shape[:2]
+    if min(h, w) < size:
+        sc = size / min(h, w)
+        img = cv2.resize(img, (max(size, round(w * sc)), max(size, round(h * sc))),
+                         interpolation=cv2.INTER_AREA)
+        h, w = img.shape[:2]
+    if jitter_crop is None:
+        y0, x0 = rng.integers(0, h - size + 1), rng.integers(0, w - size + 1)
+    else:
+        y0, x0 = jitter_crop
+    y0, x0 = int(min(y0, h - size)), int(min(x0, w - size))
+    return img[y0:y0 + size, x0:x0 + size].astype(np.float32) / 255., (y0, x0)
+
+
+def synth_R(rng, omega_dir, r_pool=None):
+    """取一张反射层 R。
+
+    2026-10-29 起优先用新池 data/pools/r_final_1029（SIR² 系：Wildscene 实拍反射
+    + blended-T 残差，逐图归一化到 p95=0.35，已按内容去重 798→463）。
+    新池为普通 0..255 图像 → 直接 /255 得 [0,1]。
+    旧行为（RRW 白名单 + omega 池的有符号 +128 存储）保留为回退分支。
+    """
+    pool = r_pool or R_POOL
+    try:
+        files = sorted(os.listdir(pool)) if os.path.isdir(pool) else []
+    except OSError:
+        files = []
+    if files:
+        f = files[int(rng.integers(len(files)))]
+        img = cv2.imread(os.path.join(pool, f))
+        if img is not None:
+            return img[:, :, ::-1].astype(np.float32) / 255.0
+    f = rng.choice(os.listdir(RRW_R_DIR)) if rng.random() < 0.36 else None
+    if f is None:
+        ids = os.listdir(os.path.join(omega_dir, "R"))
+        f2 = rng.choice(ids)
+        img = cv2.imread(os.path.join(omega_dir, "R", f2))[:, :, ::-1]
+    else:
+        img = cv2.imread(os.path.join(RRW_R_DIR, f))[:, :, ::-1]
+    return img.astype(np.float32) / 255.0 - 128.0 / 255.0
+
+
+def _synth_cov(ds, rng, s):
+    """按 --synth-shape 抽一个覆盖率场 c(x)；mix = S1/S2 各半。"""
+    mode = getattr(ds, "shape_mode", "mix")
+    if mode == "mix":
+        mode = "s2" if rng.random() < 0.5 else "s1"
+    return _SO.coverage(rng, mode, s, s, (0.05, 0.25), lib=getattr(ds, "sil_lib", None))
+
+
+def blur_R(R, rng):
+    ks = int(rng.choice([5, 7, 9, 11], p=[0.1, 0.2, 0.3, 0.4]))
+    sigma = float(rng.uniform(2, 5))
+    return cv2.GaussianBlur(R, (ks, ks), sigma)
+
+
+class S2Dataset(Dataset):
+    def __init__(self, arm='main', size=224, s_jitter=0.0, omega_dir=None, domains=None,
+                 sample_p=None):
+        self.omega_dir = omega_dir or OMEGA_DIR
+        self.size = size
+        self.s_jitter = s_jitter
+        self.arm = arm
+        self.p = np.array([0.3, 0.4, 0.3]) if arm == 'main' else np.array([0.0, 0.57, 0.43])
+        if sample_p is not None:
+            p = np.asarray([float(x) for x in str(sample_p).split(',')], dtype=np.float64)
+            if p.size != 3 or p.min() < 0 or p.sum() <= 0:
+                raise SystemExit(f'--sample-p 需 3 个非负数，收到 {sample_p!r}')
+            self.p = p / p.sum()
+            print(f'[s2] 采样比覆盖为 {self.p.tolist()}', flush=True)
+        with open(os.path.join(self.omega_dir, 'meta.json')) as fp:
+            self.om_meta = json.load(fp)
+        # 2026-10-21：按 domain 过滤（消融要钉死数据构成；不改默认行为）
+        if domains:
+            keep = {d.strip().lower() for d in str(domains).split(',') if d.strip()}
+            before = len(self.om_meta)
+            self.om_meta = {k: v for k, v in self.om_meta.items()
+                            if str(v.get('domain', '')).lower() in keep}
+            if not self.om_meta:
+                raise SystemExit(f'[s2] --omega-domains={domains} 过滤后为空（原 {before} 条）')
+            print(f'[s2] domain 过滤 {sorted(keep)}: {before} → {len(self.om_meta)} 条')
+        self.om_ids = sorted(self.om_meta.keys())
+        self.t_files = []
+        for d in T_SRCS:
+            fs = [os.path.join(d, f) for f in os.listdir(d)
+                  if os.path.splitext(f)[1].lower() in ('.jpg', '.png', '.jpeg')]
+            self.t_files += fs
+        self.t_files = sorted(self.t_files)
+        with open(OPENSRC_META) as fp:
+            self.os_pairs = json.load(fp)
+        self.rrw_ids = [os.path.join('rrw', f) for f in sorted(os.listdir(RRW_R_DIR))]
+        # 2026-10-29 合成遮挡（默认关，保持旧实验可复现）
+        self.synth_occ = 'none'
+        self.shape_mode = 'mix'
+        self.r_pool = None
+        self.sil_lib = None
+
+    def __len__(self):
+        return 200000
+
+    def __getitem__(self, idx):
+        rng = np.random.default_rng(torch.initial_seed() % (2 ** 32) + idx)
+        src = int(rng.choice(3, p=self.p))
+        s = self.size
+        has_R, has_om, C_I, w = 0.0, 0.0, 0.0, 1.0
+        if src == 0:                                    # omega 真实配对（裁剪锚定 Ω，保证窗内含人影）
+            case = self.om_ids[rng.integers(len(self.om_ids))]
+            m = self.om_meta[case]
+            omf = cv2.imread(os.path.join(self.omega_dir, 'omega', case + '.png'), 0)
+            H, W = omf.shape
+            ys, xs = np.nonzero(omf > 127)
+            if len(ys):
+                k = rng.integers(len(ys))
+                y0 = int(np.clip(int(ys[k]) - s // 2, 0, max(0, H - s)))
+                x0 = int(np.clip(int(xs[k]) - s // 2, 0, max(0, W - s)))
+            else:
+                y0, x0 = int(rng.integers(0, max(1, H - s + 1))), int(rng.integers(0, max(1, W - s + 1)))
+            I, (y0, x0) = load_rgb(os.path.join(self.omega_dir, 'I', case + '.png'), s, rng, (y0, x0))
+            T, _ = load_rgb(os.path.join(self.omega_dir, 'T', case + '.png'), s, rng, (y0, x0))
+            R, _ = load_rgb(os.path.join(self.omega_dir, 'R', case + '.png'), s, rng, (y0, x0))
+            R = R - 128.0 / 255.0
+            om3, _ = load_rgb(os.path.join(self.omega_dir, 'omega', case + '.png'), s, rng, (y0, x0))
+            om = (om3[:, :, :1] > 0.5).transpose(2, 0, 1).astype(np.float32)
+            has_R, has_om, C_I = 1.0, (1.0 if om.any() else 0.0), float(m['C_I'])
+        elif src == 1:                                  # 在线合成
+            T, _ = load_rgb(self.t_files[rng.integers(len(self.t_files))], s, rng)
+            Rn = synth_R(rng, self.omega_dir)
+            H, W = Rn.shape[:2]
+            if min(H, W) < s:
+                Rn = cv2.resize(Rn, (max(s, round(W * s / min(H, W))),
+                                     max(s, round(H * s / min(H, W)))), interpolation=cv2.INTER_AREA)
+                H, W = Rn.shape[:2]
+            y0, x0 = rng.integers(0, H - s + 1), rng.integers(0, W - s + 1)
+            Rn = Rn[y0:y0 + s, x0:x0 + s]
+            Rn = blur_R(Rn, rng)
+            b = float(np.exp(rng.uniform(np.log(0.4), np.log(1.5))))
+            j = float(rng.uniform(1.0 - self.s_jitter, 1.0))
+            Iv = T + b * Rn
+            hi = float(np.percentile(Iv, 99.5))          # 自适应曝光上限：防高饱和（实拍相机亦自动避过曝）
+            if hi * j > 1.0:
+                j = max(0.4, 0.999 / hi)
+            I = np.clip(j * Iv, 0, 1).astype(np.float32)
+            T = (j * T).astype(np.float32)               # T'=s·T（曝光同时作用于两层，透射零偏移保持）
+            R = (j * b * Rn).astype(np.float32)
+            om = np.zeros((1, s, s), np.float32)
+            has_R = 1.0
+            if self.synth_occ != 'none' and _SO_OK:      # 2026-10-29：注入遮挡 + 精确 Ω
+                cov = _synth_cov(self, rng, s)
+                In, Tn, Reff, _omb = _SO.apply_occlusion(
+                    np.clip(I * 255.0, 0, 255).astype(np.uint8),
+                    np.clip(R * 255.0, 0, 255).astype(np.float32),
+                    cov, rng, b=1.0)
+                I = In.astype(np.float32) / 255.0
+                T = Tn.astype(np.float32) / 255.0
+                R = (Reff / 255.0).astype(np.float32)
+                om = cov[None].astype(np.float32)        # 软覆盖率作区域权重
+                has_om = 1.0
+        else:                                           # 开源直督
+            p = self.os_pairs[rng.integers(len(self.os_pairs))]
+            I, (y0, x0) = load_rgb(p['I'], s, rng)
+            T, _ = load_rgb(p['T'], s, rng, (y0, x0))
+            R = np.zeros_like(I)
+            om = np.zeros((1, s, s), np.float32)
+            w = 0.5
+        if rng.random() < 0.5:                          # 水平翻转
+            I, T, R, om = (x[:, :, ::-1].copy() for x in (I, T, R, om))
+        c = lambda x: torch.from_numpy(np.ascontiguousarray(x.transpose(2, 0, 1)))  # noqa: E731
+        return (c(I), c(T), c(R), torch.from_numpy(np.ascontiguousarray(om)),
+                torch.tensor([has_R, has_om, C_I, w, float(src)], dtype=torch.float32))
+
+
+_RAND_CNT = [0]
+
+
+def grad_mag(x):
+    """Forward-difference gradient magnitude (channel-max), keeps HxW."""
+    gx = (x[:, :, :, 1:] - x[:, :, :, :-1]).abs()
+    gy = (x[:, :, 1:, :] - x[:, :, :-1, :]).abs()
+    gx = F.pad(gx, (0, 1, 0, 0))
+    gy = F.pad(gy, (0, 0, 0, 1))
+    return torch.maximum(gx, gy).mean(dim=1, keepdim=True)
+
+
+def area_matched_random_mask(OM, deterministic=False):
+    """Replace each Omega mask with a random disk of (approx.) the same area.
+
+    Fair control for "does the HOLE STRUCTURE matter, or is any region of the same size enough?"
+    deterministic=True: 每对图固定一个盘（以掩码内容为种子），用于分离"每步重抽"的增强效应。
+    """
+    B, _, H, W = OM.shape
+    out = torch.zeros_like(OM)
+    ys = torch.arange(H, device=OM.device, dtype=torch.float32)[:, None]
+    xs = torch.arange(W, device=OM.device, dtype=torch.float32)[None, :]
+    for b in range(B):
+        A = float(OM[b].sum().item())
+        if A < 1.0:
+            continue
+        r = (A / 3.14159265) ** 0.5
+        r = min(r, 0.49 * min(H, W))          # keep the disk fully inside -> equal area
+        if deterministic:
+            key = int(hashlib.md5(OM[b].detach().float().cpu().numpy().tobytes()).hexdigest(), 16) % (2 ** 32)
+            _rng = np.random.default_rng(key)
+            uy, ux = float(_rng.random()), float(_rng.random())
+        else:
+            uy = float(torch.rand(1, device=OM.device).item())
+            ux = float(torch.rand(1, device=OM.device).item())
+        cy = r + uy * max(H - 2 * r, 1e-6)
+        cx = r + ux * max(W - 2 * r, 1e-6)
+        m = ((ys - cy) ** 2 + (xs - cx) ** 2) <= (r * r)
+        out[b, 0] = m.to(out.dtype)
+    _RAND_CNT[0] += 1
+    if _RAND_CNT[0] <= 5:
+        ra = float(out.sum().item()) / max(float(OM.sum().item()), 1e-6)
+        print("[omega-random] realized area ratio = %.3f" % ra, flush=True)
+    return out
+
+
+def grad_excl(T_hat, R_hat):
+    def gm(x):
+        gx = (x[..., :, 1:] - x[..., :, :-1]).abs().mean(1)
+        gy = (x[..., 1:, :] - x[..., :-1, :]).abs().mean(1)
+        return gx, gy
+    tx, ty = gm(T_hat); rx, ry = gm(R_hat)
+    return (tx * rx).mean() + (ty * ry).mean()
+
+
+def grad_fidelity(T_hat, T):
+    """全图一阶梯度匹配 ‖∇T̂−∇T‖₁（防"抹平"退化；SPSR 梯度损失口径）。"""
+    gxh = (T_hat[..., :, 1:] - T_hat[..., :, :-1]) - (T[..., :, 1:] - T[..., :, :-1])
+    gyh = (T_hat[..., 1:, :] - T_hat[..., :-1, :]) - (T[..., 1:, :] - T[..., :-1, :])
+    return gxh.abs().mean() + gyh.abs().mean()
+
+
+def grad_fidelity_elem(T_hat, T):
+    """逐样本版（返回 [B]），用于乘样本权重 `w_s`。
+
+    2026-10-21 修：原 `grad_fidelity`/`lap_fidelity` **未乘 `w_s`**（见
+    docs/2026.9.21_S2v2修正版_负结果与归因.md §4）—— opensrc 分支像素项半权，
+    而两项保真全权，等于把 opensrc 的梯度压力相对放大。此处改为先取逐样本均值再乘 w_s。
+    """
+    gxh = (T_hat[..., :, 1:] - T_hat[..., :, :-1]) - (T[..., :, 1:] - T[..., :, :-1])
+    gyh = (T_hat[..., 1:, :] - T_hat[..., :-1, :]) - (T[..., 1:, :] - T[..., :-1, :])
+    return gxh.abs().mean(dim=(1, 2, 3)) + gyh.abs().mean(dim=(1, 2, 3))
+
+
+_LAP_K = None
+
+
+def lap_fidelity(T_hat, T):
+    """全图二阶 Laplacian 匹配 ‖ΔT̂−ΔT‖₁（SPSR 二阶项）。"""
+    global _LAP_K
+    if _LAP_K is None:
+        k = torch.tensor([[0., 1., 0.], [1., -4., 1.], [0., 1., 0.]], device=T.device)
+        _LAP_K = k.view(1, 1, 3, 3).repeat(3, 1, 1, 1)
+    f = lambda x: F.conv2d(x, _LAP_K, padding=1, groups=3)   # noqa: E731
+    return (f(T_hat) - f(T)).abs().mean()
+
+
+def lap_fidelity_elem(T_hat, T):
+    """逐样本版（返回 [B]），见 `grad_fidelity_elem` 的说明。"""
+    global _LAP_K
+    if _LAP_K is None:
+        k = torch.tensor([[0., 1., 0.], [1., -4., 1.], [0., 1., 0.]], device=T.device)
+        _LAP_K = k.view(1, 1, 3, 3).repeat(3, 1, 1, 1)
+    f = lambda x: F.conv2d(x, _LAP_K, padding=1, groups=3)   # noqa: E731
+    return (f(T_hat) - f(T)).abs().mean(dim=(1, 2, 3))
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--arm', choices=['main', 'b1'], default='main')
+    ap.add_argument('--out', default=None)
+    ap.add_argument('--iters', type=int, default=10000)
+    ap.add_argument('--batch', type=int, default=6)
+    ap.add_argument('--lr', type=float, default=1e-4)
+    ap.add_argument('--gpu', type=int, default=0)
+    ap.add_argument('--seed', type=int, default=101)
+    ap.add_argument('--mona', default='both')
+    ap.add_argument('--lam-r', type=float, default=1.5)
+    ap.add_argument('--lam-recons', type=float, default=0.2)
+    ap.add_argument('--lam-excl', type=float, default=0.1)
+    ap.add_argument('--lam-om', type=float, default=3.0)
+    ap.add_argument('--omega-mode', choices=['real', 'random', 'randomfixed', 'full'], default='real',
+                    help='real = Omega mask; random = area-matched random disk, REDRAWN every iter (control); '
+                         'randomfixed = same disk per pair (drawn once); full = whole-image relative loss (no mask)')
+    ap.add_argument('--lam-hinge', type=float, default=1.0)
+    ap.add_argument('--lam-dark', type=float, default=0.0,
+                    help='E3: supervise the MEAN darkening inside Omega (oracle illumination); 0 = off')
+    ap.add_argument('--gate-mode', choices=['none', 'new', 'old'], default='none',
+                    help='reflection-position weighting: new = |R| (true reflection), old = MaxRF (G_I>G_T)')
+    ap.add_argument('--gate-beta', type=float, default=2.0, help='weight strength (w = 1 + beta*label)')
+    ap.add_argument('--gate-tau', type=float, default=0.06, help='|R| normalization scale for --gate-mode new')
+    ap.add_argument('--lam-shift', type=float, default=0.0,
+                    help='weight of L_shift (hole-boundary gradient term); 0 = off')
+    ap.add_argument('--alpha-shift', type=float, default=0.25,
+                    help='allowed |grad T| as a fraction of |grad R| on dOmega')
+    ap.add_argument('--lam-dists', type=float, default=0.2)
+    ap.add_argument('--lam-grad', type=float, default=5.0, help='全图一阶梯度保真（防抹平）')
+    ap.add_argument('--lam-lap', type=float, default=2.0, help='全图二阶 Laplacian 保真（防抹平）')
+    ap.add_argument('--s-jitter', type=float, default=0.0, help='合成曝光抖动幅度（0=关闭）')
+    ap.add_argument('--omega-dir', default=None, help='真实 Ω 配对目录（默认 train_pairs_omega_0920；LOVO 子集用）')
+    ap.add_argument('--omega-domains', default=None,
+                    help='逗号分隔，按 meta 的 domain 字段过滤（如 apr）；默认不过滤')
+    ap.add_argument('--manifest', default='',
+                    help='实验清单 JSON 写出路径（配置/环境/可训练参数/数据构成，供消融归档）')
+    ap.add_argument('--assert-under', default='',
+                    help='入口断言：所有 omega case 路径须落在该目录下，否则中止（防手滑混入锁死域）')
+    ap.add_argument('--no-dists', action='store_true', help='不创建 pyiqa DISTS（λ_dists 必须为 0）')
+    ap.add_argument('--legacy-fidelity', action='store_true',
+                    help='grad/lap 保真项回到 9-21 旧行为（**不乘 w_s**），用于复现旧负结果')
+    ap.add_argument('--sample-p', default=None,
+                    help='采样比覆盖，如 "0.6,0.2,0.2"（omega,synth,opensrc）；默认由 --arm 决定')
+    ap.add_argument('--arch', choices=['mona', 'clean1029'], default='mona',
+                    help="mona = 我们的 RDNet+Mona；clean1029 = 队友的新架构（无 Mona）")
+    ap.add_argument('--synth-occ', choices=['none', 'exact'], default='none',
+                    help='合成样本是否注入遮挡区并带精确 Ω（none=旧行为）')
+    ap.add_argument('--synth-shape', choices=['s1', 's2', 'mix'], default='mix',
+                    help='S1 随机闭曲线 / S2 真实行人剪影 / mix 各半')
+    ap.add_argument('--r-pool', default=None,
+                    help='反射层池目录（默认 data/pools/r_final_1029）')
+    ap.add_argument('--save-every', type=int, default=1000)
+    ap.add_argument('--log-every', type=int, default=50)
+    ap.add_argument('--seg-iters', type=int, default=2000)
+    ap.add_argument('--resume', default='')
+    # ---- A1 增量（默认 off = 与基线逐字相同） ----
+    ap.add_argument('--a1-gate', choices=['off', 'on'], default='off',
+                    help='A1: 最后一列 transmission 的有界残差倍率门；off=基线')
+    ap.add_argument('--a1-gate-width', type=int, default=32, help='门隐藏宽度（须偶数；hid=width/2）')
+    ap.add_argument('--a1-gate-clip', type=float, default=1.0, help='a 的 hard clamp 上界（g in [1-c,1+c]）')
+    ap.add_argument('--a1-gate-seed', type=int, default=20261101, help='门初始化的独立 seed（不扰动全局 RNG）')
+    ap.add_argument('--a1-gate-range', choices=['sym', 'cons'], default='sym',
+                    help='sym: a in [-c,c]；cons: a in [-c,0]（只诊断，不用于正式臂）')
+    ap.add_argument('--a1-gradlog-iters', default='1,2,5,10,50,100',
+                    help='在这些 iter 记录门各参数梯度范数（逗号分隔；空=关）')
+    args = ap.parse_args()
+    torch.manual_seed(args.seed); np.random.seed(args.seed)
+    out = args.out or os.path.join(PROJ, f'runs/ckpt/rdt_s2_{args.arm}_s{args.seed}')
+    if not os.path.isabs(out):
+        out = os.path.join(PROJ, out)
+    os.makedirs(out, exist_ok=True)
+    dev = torch.device(f'cuda:{args.gpu}')
+
+    if args.arch == 'clean1029':
+        os.environ['TINTED_ARCH'] = 'clean1029'
+        net, net_c = build_clean1029()
+    else:
+        net, net_c = build(save_memory=True, mona=args.mona, grad_ckpt=True)
+    for n, p in net.named_parameters():
+        if n.startswith('baseball.'):
+            p.requires_grad_(False)
+    from rdnet_peft import set_mona_trainable
+    n_mona = set_mona_trainable(net, True)
+    n_tr = sum(p.numel() for p in net.parameters() if p.requires_grad)
+    print(f'[s2] trainable {n_tr/1e6:.2f}M (mona {n_mona} 个) arm={args.arm}', flush=True)
+    net.to(dev); net_c.to(dev)
+
+    # ---------------- A1 门（off 时完全不构造；不消耗全局 RNG） ----------------
+    gate = None
+    gate_cfg = None
+    a1_stats_path = None
+    a1_grad_records = []
+    a1_gradlog = set()
+    if args.a1_gate == 'on':
+        gate_cfg = dict(DEFAULT_CFG)
+        gate_cfg.update(width=args.a1_gate_width, hid=args.a1_gate_width // 2,
+                        clip=args.a1_gate_clip, seed=args.a1_gate_seed,
+                        mode=args.a1_gate_range, enabled=True)
+        gate = make_gate(gate_cfg, device=dev)
+        rep = param_report(gate_cfg)
+        n_gate = sum(p.numel() for p in gate.parameters())
+        assert gate_cfg['hid'] == gate_cfg['width'] // 2, gate_cfg
+        assert n_gate == rep['n_total'], (n_gate, rep['n_total'])
+        assert rep['n_total'] == 1025 or args.a1_gate_width != 32, rep
+        print(f'[a1] gate on: {n_gate} params (width={gate_cfg["width"]} hid={gate_cfg["hid"]} '
+              f'clip={gate_cfg["clip"]} mode={gate_cfg["mode"]} seed={gate_cfg["seed"]}) '
+              f'| {rep["mac_per_px"]} MAC/px | 320^2 ~ {rep["gmac_at_320"]:.4f} GMAC', flush=True)
+        print('[a1] init: 末层零初始化 -> a==0 -> T^==T0；exactness 由 probe unit 断言', flush=True)
+        a1_gradlog = {int(x) for x in str(args.a1_gradlog_iters).split(',') if x.strip()}
+        a1_stats_path = os.path.join(out, 'a1_gate_log.csv')
+        with open(a1_stats_path, 'w') as _gf:
+            _gf.write('iter,a_mean,a_abs_mean,a_min,a_max,sat_frac,amp_frac,neg_frac,d_abs_mean\n')
+        with open(os.path.join(out, 'a1_gate_info.json'), 'w', encoding='utf-8') as _gf:
+            json.dump(dict(cfg=gate_cfg, param_report=rep, n_param=n_gate,
+                           base_script='scripts/finetune_rdnet_s2.py',
+                           apply='last-column T only (channels 3:6); R branch & cols 0-2 untouched',
+                           exactness='a==0 at init -> T^==T0 bitwise'),
+                      _gf, ensure_ascii=False, indent=1)
+        n_tr += n_gate
+        print(f'[a1] trainable total {n_tr/1e6:.4f}M (含 gate {n_gate})', flush=True)
+
+    import pyiqa
+    if args.no_dists or args.lam_dists <= 0:
+        dists_net = None
+        print('[s2] DISTS 未启用（λ_dists=0 或 --no-dists）', flush=True)
+    else:
+        dists_net = pyiqa.create_metric('dists', device=dev).net
+        dists_net.eval().requires_grad_(False)
+
+    ds = S2Dataset(arm=args.arm, size=224, s_jitter=args.s_jitter,
+                   omega_dir=args.omega_dir, domains=args.omega_domains,
+                   sample_p=args.sample_p)
+    ds.synth_occ = args.synth_occ
+    ds.shape_mode = args.synth_shape
+    ds.r_pool = args.r_pool
+    if args.synth_occ != 'none' and _SO_OK:
+        ds.sil_lib = _SO.load_lib()
+        print(f'[s2] 合成遮挡已开: shape={args.synth_shape} r_pool={args.r_pool or R_POOL} 剪影={len(ds.sil_lib)}', flush=True)
+    elif args.synth_occ != 'none':
+        raise SystemExit('--synth-occ 需要 synth_occlusion_v2 可用')
+    print(f'[s2] T 源 {len(ds.t_files)} 张 | R 白名单 {len(ds.om_ids)}+{len(ds.rrw_ids)-1} 层 | '
+          f'开源 {len(ds.os_pairs)} 对 | p={ds.p}', flush=True)
+
+    # 入口断言：所有 omega case 必须落在 --assert-under 之下（防手滑混入锁死域）
+    if args.assert_under:
+        root = os.path.realpath(args.assert_under)
+        bad = []
+        for case in ds.om_ids:
+            for sub in ('I', 'T', 'R', 'omega'):
+                p = os.path.realpath(os.path.join(ds.omega_dir, sub, case + '.png'))
+                if not p.startswith(root + os.sep):
+                    bad.append(p)
+        if bad:
+            raise SystemExit(f'[s2] 入口断言失败：{len(bad)} 个路径不在 {root} 下，例 {bad[:3]}')
+        print(f'[s2] 入口断言通过：{len(ds.om_ids)} 个 case 全在 {root} 下', flush=True)
+
+    # 实验清单（消融归档用）
+    if args.manifest:
+        import subprocess, socket
+        mp = args.manifest if os.path.isabs(args.manifest) else os.path.join(PROJ, args.manifest)
+        os.makedirs(os.path.dirname(mp), exist_ok=True)
+        try:
+            gitrev = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], cwd=PROJ,
+                                    capture_output=True, text=True).stdout.strip()
+        except Exception:
+            gitrev = '?'
+        man = dict(
+            args=vars(args), git_rev=gitrev, host=socket.gethostname(),
+            cuda_visible_devices=os.environ.get('CUDA_VISIBLE_DEVICES', ''),
+            torch=torch.__version__, cuda=torch.version.cuda,
+            trainable_params=n_tr, mona_keys=n_mona,
+            world_size=1, batch_per_gpu=args.batch, effective_batch=args.batch,
+            omega_dir=ds.omega_dir,
+            n_omega_cases=len(ds.om_ids),
+            omega_domains=sorted({str(v.get('domain', '')) for v in ds.om_meta.values()}),
+            omega_scenes=len({str(v.get('scene', '')) for v in ds.om_meta.values()}),
+            n_t_src=len(ds.t_files), n_opensrc=len(ds.os_pairs), sample_p=ds.p.tolist(),
+            start_time=time.strftime('%Y-%m-%d %H:%M:%S'),
+        )
+        with open(mp, 'w', encoding='utf-8') as fh:
+            json.dump(man, fh, ensure_ascii=False, indent=1)
+        print(f'[s2] manifest -> {mp}', flush=True)
+        args._manifest_path = mp
+    tr_params = [p for p in net.parameters() if p.requires_grad]
+    if gate is not None:
+        tr_params += list(gate.parameters())
+    opt = torch.optim.Adam(tr_params, lr=args.lr)
+    sched = torch.optim.lr_scheduler.LambdaLR(
+        opt, lambda i: min(1.0, (i + 1) / 200) * (0.1 + 0.45 *
+                        (1 + math.cos(math.pi * min(i, args.iters) / args.iters))))
+    scaler = torch.cuda.amp.GradScaler()
+
+    def _a1_ckpt_obj(it_now):
+        """ckpt 字典；gate 关闭时与基线逐字相同（不含任何 a1_* key）。"""
+        return save_gate_into_ckpt_obj(
+            dict(icnn=net.state_dict(), opt=opt.state_dict(), scaler=scaler.state_dict(),
+                 iter=it_now, peft=dict(mode=args.mona), arm=args.arm, args=vars(args)),
+            gate, gate_cfg)
+
+    start_it = 0
+    if args.resume:
+        ck_r = torch.load(args.resume, map_location='cpu')
+        has_gate_sd = isinstance(ck_r, dict) and 'a1_gate_sd' in ck_r
+        if has_gate_sd and gate is None:
+            raise SystemExit('[a1] ckpt 含 a1_gate_sd 但本次 --a1-gate off：拒绝静默丢弃门权重')
+        if gate is not None and not has_gate_sd:
+            raise SystemExit('[a1] --a1-gate on 但 ckpt 不含 a1_gate_sd：拒绝随机初始化续训')
+        net.load_state_dict(ck_r['icnn'])
+        if has_gate_sd:
+            gate.load_state_dict(ck_r['a1_gate_sd'])
+        opt.load_state_dict(ck_r['opt']); scaler.load_state_dict(ck_r['scaler'])
+        start_it = int(ck_r.get('iter', 0)); sched.last_epoch = start_it
+        print(f'[s2] resume @ {start_it} (gate={"on" if gate is not None else "off"})', flush=True)
+
+    logf = open(os.path.join(out, 'train_log.csv'), 'a')
+    if start_it == 0:
+        logf.write('iter,seg,L_t,L_r,L_om,L_hinge,L_shift,L_dists,L_recons,L_excl,L_grad,L_lap,L_dark,total,sec\n')
+    segs = [(224, args.batch), (256, min(args.batch, 6)), (320, min(args.batch, 4))]
+    it, t0, prev_seg = start_it, time.time(), None
+    while it < args.iters:
+        seg_id = it // args.seg_iters
+        s, b = segs[seg_id % len(segs)]
+        if s != prev_seg:
+            torch.cuda.reset_peak_memory_stats(dev)
+            print(f'[s2] seg -> {s}² bs{b} @iter {it}', flush=True)
+            prev_seg = s
+        ds.size = s
+        dl = DataLoader(ds, batch_size=b, shuffle=True, num_workers=4, drop_last=True,
+                        pin_memory=True)
+        for I, T, R, OM, meta in dl:
+            if it >= args.iters or it // args.seg_iters != seg_id:
+                break
+            I = I.to(dev, non_blocking=True); T = T.to(dev, non_blocking=True)
+            R = R.to(dev, non_blocking=True); OM = OM.to(dev, non_blocking=True)
+            meta = meta.to(dev, non_blocking=True)
+            has_R = meta[:, 0].view(-1, 1, 1, 1); has_om = meta[:, 1].view(-1, 1, 1, 1)
+            C_I = meta[:, 2].view(-1, 1, 1, 1); w_s = meta[:, 3].view(-1, 1, 1, 1)
+            w_g = torch.ones_like(R[:, :1])     # 反射位置权重（默认 1）
+            if args.gate_mode != 'none':        # 新/旧 MaxRF 标签
+                with torch.no_grad():
+                    if args.gate_mode == 'new':
+                        g_lab = (R.abs().amax(1, keepdim=True) / (args.gate_tau + EPS)).clamp(0.0, 1.0)
+                    else:
+                        gi = grad_mag(I).amax(1, keepdim=True)
+                        gt = grad_mag(T).amax(1, keepdim=True)
+                        g_lab = (gi > gt).float()
+                    w_g = 1.0 + args.gate_beta * g_lab
+            with torch.no_grad():
+                code = net_c(I)
+            with torch.cuda.amp.autocast():
+                _, outs = net(I, code, prompt=True)
+                if gate is not None:
+                    outs = apply_gate(outs, I, gate)
+                L_t = L_r = L_om = L_hinge = L_dists = L_shift = torch.zeros((), device=dev)
+                L_dark = torch.zeros((), device=dev)
+                wsum = 0.0
+                hw = float(R.shape[2] * R.shape[3])
+                L_grad = L_lap = torch.zeros((), device=dev)
+                for ci, out_col in enumerate(outs):
+                    R_hat, T_hat = out_col[:, :3], out_col[:, 3:]
+                    wc = float(ci + 1); wsum += wc
+                    L_t = L_t + wc * (w_s * w_g * charbonnier(T_hat, T)).mean()
+                    _ws = w_s.reshape(-1)
+                    if args.lam_grad > 0:
+                        if args.legacy_fidelity:      # 复现 9-21 旧行为（漏乘 w_s）
+                            L_grad = L_grad + args.lam_grad * wc * grad_fidelity(T_hat, T)
+                        else:
+                            L_grad = L_grad + args.lam_grad * wc * (_ws * grad_fidelity_elem(T_hat, T)).mean()
+                    if args.lam_lap > 0:
+                        if args.legacy_fidelity:
+                            L_lap = L_lap + args.lam_lap * wc * lap_fidelity(T_hat, T)
+                        else:
+                            L_lap = L_lap + args.lam_lap * wc * (_ws * lap_fidelity_elem(T_hat, T)).mean()
+                    if has_R.max() > 0:
+                        num = (w_s * w_g * charbonnier(R_hat, R) * has_R).sum()
+                        den_r = (w_s * w_g * has_R).sum() * hw + EPS
+                        L_r = L_r + args.lam_r * wc * num / den_r
+                L_t = L_t / wsum; L_r = L_r / wsum
+                L_grad = L_grad / wsum; L_lap = L_lap / wsum
+                R_hat, T_hat = outs[-1][:, :3], outs[-1][:, 3:]
+                L_recons = args.lam_recons * (w_s * (I - T_hat - R_hat).abs()).mean()
+                L_excl = args.lam_excl * grad_excl(T_hat, R_hat)
+                if has_om.max() > 0:
+                    if args.omega_mode == 'random':
+                        OM = area_matched_random_mask(OM)
+                    elif args.omega_mode == 'randomfixed':
+                        OM = area_matched_random_mask(OM, deterministic=True)
+                    elif args.omega_mode == 'full':
+                        OM = torch.ones_like(OM)
+                    om_sum = OM.sum(dim=(1, 2, 3)) + 1e-6
+                    err = (OM * (T_hat - T).abs()).sum(dim=(1, 2, 3)) / om_sum
+                    den = ((OM * (I - T).abs()).sum(dim=(1, 2, 3)) / om_sum).clamp(min=1e-3)
+                    m_om = has_om.squeeze()
+                    L_om = args.lam_om * (err / den * m_om).sum() / m_om.sum().clamp(min=1)
+                    delta = (torch.clamp(0.5 * C_I, min=4.0) / 255.0)
+                    hg = (OM * F.relu(T - delta - T_hat)).sum(dim=(1, 2, 3)) / om_sum
+                    L_hinge = args.lam_hinge * (hg / den * m_om).sum() / m_om.sum().clamp(min=1)
+                    if args.lam_dark > 0:      # E3: oracle illumination (mean darkening inside Omega)
+                        mt = (OM * T).sum(dim=(1, 2, 3)) / om_sum
+                        mh = (OM * T_hat).sum(dim=(1, 2, 3)) / om_sum
+                        L_dark = args.lam_dark * ((((mh - mt).abs()) / (mt.abs() + EPS)) * m_om).sum() / m_om.sum().clamp(min=1)
+                    # 2026-10-26: L_shift -- the hole boundary is an edge in R but not in T
+                    if args.lam_shift > 0:
+                        OMd = F.max_pool2d(OM, 3, 1, 1)
+                        OMe = -F.max_pool2d(-OM, 3, 1, 1)
+                        bd = (OMd - OMe).clamp(min=0.0)
+                        bd_sum = bd.sum(dim=(1, 2, 3)) + 1e-6
+                        gT = grad_mag(T_hat); gR = grad_mag(R_hat)
+                        num_s = (bd * F.relu(gT - args.alpha_shift * gR)).sum(dim=(1, 2, 3)) / bd_sum
+                        den_s = ((bd * gR).sum(dim=(1, 2, 3)) / bd_sum).clamp(min=1e-3)
+                        L_shift = args.lam_shift * ((num_s / den_s) * m_om).sum() / m_om.sum().clamp(min=1)
+                    idxs = (m_om > 0).nonzero().squeeze(-1)
+                    dsum = torch.zeros((), device=dev)
+                    # 2026-10-21：λ_dists=0 时不再白算 DISTS 前向（原先每 iter 最多 4 次）
+                    if args.lam_dists > 0:
+                        with torch.cuda.amp.autocast(enabled=False):
+                            for bi in idxs[:4]:                   # 每 iter 最多 4 张省时
+                                m = OM[bi, 0] > 0.5
+                                ys, xs = m.any(1).nonzero(), m.any(0).nonzero()
+                                y0, y1 = max(0, int(ys.min()) - 10), int(ys.max()) + 11
+                                x0, x1 = max(0, int(xs.min()) - 10), int(xs.max()) + 11
+                                ta = T_hat[bi:bi + 1, :, y0:y1, x0:x1].float()
+                                tb = T[bi:bi + 1, :, y0:y1, x0:x1].float()
+                                sc = 320.0 / max(ta.shape[2], ta.shape[3])
+                                if sc < 1:
+                                    ta = F.interpolate(ta, scale_factor=sc, mode='bilinear', align_corners=False)
+                                    tb = F.interpolate(tb, scale_factor=sc, mode='bilinear', align_corners=False)
+                                dsum = dsum + args.lam_dists * dists_net(ta, tb)
+                        L_dists = dsum / max(1, min(len(idxs), 4))
+                total = (L_t + L_r + L_om + L_hinge + L_shift + L_dists + L_recons
+                         + L_excl + L_grad + L_lap + L_dark)
+            opt.zero_grad(set_to_none=True)
+            scaler.scale(total).backward()
+            scaler.step(opt); scaler.update(); sched.step()
+            if gate is not None and (it + 1) in a1_gradlog:
+                _rec = dict(iter=it + 1)
+                for _n, _p in gate.named_parameters():
+                    _rec[_n] = None if _p.grad is None else float(_p.grad.detach().norm())
+                a1_grad_records.append(_rec)
+                print('[a1] grad @it%d: %s' % (it + 1, ' '.join(
+                    '%s=%.3e' % (k, v) for k, v in _rec.items() if k != 'iter' and v is not None)),
+                    flush=True)
+            it += 1
+            if it % args.log_every == 0 or it == 1:
+                sec = time.time() - t0
+                g = lambda x: float(x.detach())      # noqa: E731
+                print(f'[s2] it {it:5d} L_t={g(L_t):.4f} L_r={g(L_r):.4f} om={g(L_om):.3f} '
+                      f'hinge={g(L_hinge):.3f} shift={g(L_shift):.4f} dists={g(L_dists):.3f} rcn={g(L_recons):.4f} '
+                      f'excl={g(L_excl):.3f} grad={g(L_grad):.3f} lap={g(L_lap):.3f} dark={g(L_dark):.4f} total={g(total):.4f} {sec:.0f}s '
+                      f'peak={torch.cuda.max_memory_allocated(dev)/2**30:.2f}G', flush=True)
+                logf.write(f'{it},{s},{g(L_t):.5f},{g(L_r):.5f},{g(L_om):.5f},{g(L_hinge):.5f},'
+                           f'{g(L_shift):.5f},{g(L_dists):.5f},{g(L_recons):.5f},{g(L_excl):.5f},{g(L_grad):.5f},{g(L_lap):.5f},{g(L_dark):.5f},{g(total):.5f},'
+                           f'{sec:.0f}\n'); logf.flush()
+                if gate is not None and a1_stats_path:
+                    st = gate.last
+                    with open(a1_stats_path, 'a') as _gf:
+                        _gf.write(f"{it},{st['a_mean']:.6f},{st['a_abs_mean']:.6f},"
+                                  f"{st['a_min']:.6f},{st['a_max']:.6f},{st['sat_frac']:.6f},"
+                                  f"{st['amp_frac']:.6f},{st['neg_frac']:.6f},{st['d_abs_mean']:.6f}\n")
+                    _ost = opt.state.get(gate.conv_out.bias) or {}
+                    _step = _ost.get('step', 0)
+                    print(f'[a1] it {it:5d} a_mean={st["a_mean"]:+.4f} |a|={st["a_abs_mean"]:.4f} '
+                          f'min={st["a_min"]:+.3f} max={st["a_max"]:+.3f} sat={st["sat_frac"]:.4f} '
+                          f'amp={st["amp_frac"]:.3f} |D|={st["d_abs_mean"]:.4f} '
+                          f'wmax={float(gate.conv_out.weight.abs().max()):.2e} '
+                          f'opt_step={float(_step):.0f} scale={scaler.get_scale():.0f}', flush=True)
+            if it % args.save_every == 0:
+                torch.save(_a1_ckpt_obj(it), os.path.join(out, f'ckpt_{it}.pth'))
+                torch.save(_a1_ckpt_obj(it), os.path.join(out, 'ckpt_latest.pth'))
+                print(f'[s2] saved ckpt_{it}.pth', flush=True)
+    torch.save(_a1_ckpt_obj(it), os.path.join(out, 'ckpt_final.pth'))
+    print(f'[s2] done {it} iter -> {out}', flush=True)
+    if a1_grad_records:
+        with open(os.path.join(out, 'a1_gate_gradlog.json'), 'w', encoding='utf-8') as _gf:
+            json.dump(a1_grad_records, _gf, ensure_ascii=False, indent=1)
+        print(f'[a1] gradlog -> {os.path.join(out, "a1_gate_gradlog.json")}', flush=True)
+
+    # 清单收尾：补结束时间/时长/末次损失（供消融归档与「干预是否生效」核查）
+    mp = getattr(args, '_manifest_path', '')
+    if mp and os.path.exists(mp):
+        man = json.load(open(mp, encoding='utf-8'))
+        g = lambda x: float(x.detach())          # noqa: E731
+        man.update(end_time=time.strftime('%Y-%m-%d %H:%M:%S'),
+                   wall_sec=round(time.time() - t0, 1), final_iter=it,
+                   ckpt=os.path.join(out, 'ckpt_final.pth'),
+                   loss_last=dict(L_t=g(L_t), L_r=g(L_r), L_om=g(L_om), L_hinge=g(L_hinge),
+                                  L_dists=g(L_dists), L_recons=g(L_recons), L_excl=g(L_excl),
+                                  L_grad=g(L_grad), L_lap=g(L_lap), L_dark=g(L_dark), total=g(total)),
+                   peak_mem_gb=round(torch.cuda.max_memory_allocated(dev) / 2 ** 30, 2))
+        with open(mp, 'w', encoding='utf-8') as fh:
+            json.dump(man, fh, ensure_ascii=False, indent=1)
+        print(f'[s2] manifest 收尾 -> {mp}', flush=True)
+
+
+if __name__ == '__main__':
+    main()
