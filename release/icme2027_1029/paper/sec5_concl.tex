@@ -2,18 +2,20 @@
 \label{sec:concl}
 
 We studied how paired supervision behaves when the reference image is
-acquired through tinted automotive glass. Camera-side occlusion changes
-both reflected content and illumination, producing a local mismatch
-between the recorded mixture and its paired transmission target.
+acquired through tinted automotive glass. Camera-side occlusion can change
+both reflected content and illumination. The observed ratios
+differ inside and outside proposed regions, although these
+annotations do not isolate the two physical mechanisms.
 The additive imaging model also leaves the absolute transmission
 scale ambiguous without additional assumptions or measurements.
 
 Our controlled experiments separate these issues from the benefits
 of training on the target domain. Fine-tuning on the better-matched
 data pool improves restoration on the frozen evaluation panel, but
-the results do not establish a benefit from localizing the loss to
-the true occlusion region: an area-matched random region performs
-similarly across the tested seeds. More accurate reflection-location
+the results do not establish a benefit from localizing the loss
+to the proposed occlusion region: an area-matched random region
+performs similarly across the tested seeds. Annotation noise
+remains a plausible explanation. More accurate reflection-location
 labels likewise fail to improve reconstruction when used only as
 loss weights. A support-area calculation clarifies the limited direct
 effect of corrections restricted to a narrow boundary, while an
@@ -28,6 +30,7 @@ is necessary to determine which components actually account for
 the observed gains.
 
 \section*{Reproducibility note}
-The frozen split, evaluation protocol, and per-run records are
-provided with the submission materials. Multi-seed experiments
-use seeds 101, 202, and 303.
+The reproducibility bundle contains experiment configurations,
+evaluation code, summary tables, and split definitions. The private
+paired images are not redistributed in this snapshot. Multi-seed
+experiments use seeds 101, 202, and 303.
