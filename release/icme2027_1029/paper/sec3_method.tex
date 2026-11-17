@@ -32,26 +32,29 @@ For the training images, we estimate candidate regions from dips in
 the residual $\hat R=I-gT_{\mathrm{obs}}$ relative to a locally
 interpolated upper envelope (blockwise 90th percentile), followed
 by a noise-floor criterion and component-size filtering.
-The resulting masks are acquisition-derived annotations rather than
-single-image ground truth.
+The masks are proposed algorithmically and screened at the pair level.
+Their pixel boundaries are not independently validated. The statistics below
+are conditional on the selected regions rather than direct measurements
+of the latent coverage field $c(x)$.
 
 \begin{table}[t]
 \centering
-\caption{Photometric measurements on 82 annotated pairs.
-The relative transmission and reflection changes refer to different
-components; the ratios should not be interpreted as the same attenuation.}
+\caption{Image-domain measurements on 82 paired frames within
+algorithmically proposed candidate occlusion regions. Here
+$r=I/T$ is a normalized mixture-to-reference ratio,
+\emph{not} an independent observation of reflected radiance.
+Region selection can bias the intensity statistics.}
 \label{tab:terms}
 \small
-\begin{tabular}{@{}p{1.45cm}p{1.45cm}p{3.3cm}@{}}
+\begin{tabular}{@{}p{2.65cm}p{3.5cm}@{}}
 \toprule
-Term & Meaning & Measured \\
+Statistic & Observed value \\
 \midrule
-$\alpha T$ & transmission & $(I/T)_{\mathrm{in}}=0.887$, out $=1.045$; $g=0.997$ \\
-$(1-c)\beta R$ & unblocked reflection & out-of-$\Omega$ contribution $+4.5\%$ (radiance
-$+11\%$); strong-reflection p90 $+33\%$ \\
-$cR_b$ & occluder reflection & high-pass residual $0.29\%$ of the area \\
-$\eta$ & \textbf{target darkening} & \textbf{$3.7\%$} of $T$ ($T_{\mathrm{in}}/T_{\mathrm{out}}=0.963$) \\
-$\delta_r$ & \textbf{reflection deficit} & \textbf{$16.8\%$} of $r$ ($r_{\mathrm{in}}/r_{\mathrm{out}}=0.832$) \\
+$(I/T)_{\mathrm{in}}$ & $0.887$ (photometric factor $g=0.997$) \\
+$(I/T)_{\mathrm{out}}$ & $1.045$ \\
+$T_{\mathrm{in}}/T_{\mathrm{out}}$ & $0.963$ (reference brightness) \\
+$r_{\mathrm{in}}/r_{\mathrm{out}}$ & $0.832$, with $r=I/T$ \\
+Candidate mask coverage & median $15.3\%$ in this pool \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -77,10 +80,10 @@ needed to match the paired target can then be expressed as
 \approx\frac{1}{1-\delta_{\mathrm{obs}}}.
 \end{equation}
 The approximation assumes a nonzero mean target correction and a
-proportional global estimate. Our measured over-correction ratio is
-$2.7\times$. This observation motivates testing spatially restricted
-supervision; it does not imply that every restoration network applies
-an explicit global correction.
+proportional global estimate. An over-correction statistic of $2.7\times$ is reported with
+the proposed region estimator. This motivates testing spatially restricted
+supervision, but is not a direct measurement of physical light loss and
+does not identify the cause of individual reconstruction errors.
 
 \subsection{Ambiguity of the global transmission scale}
 
@@ -107,25 +110,40 @@ brightness bias and post-hoc photometric corrections
 
 \subsection{Supervision objectives and spatial support}
 
-The occlusion mask is used as a training-time signal, not an
-additional input at test time. Writing $T$ for the paired training
-target, a masked reflection-normalized reconstruction term and
-a one-sided hinge term are
+The candidate occlusion mask is a training-time signal and is
+not supplied at inference. For a sample with mask $m_\Omega$,
+define its average paired residual magnitude and normalized error:
 \begin{equation}
-L^{\mathrm{err}}_\Omega
-=\frac{\sum_xm_\Omega(x)|\hat T(x)-T(x)|}
-       {\sum_xm_\Omega(x)|\hat R(x)|},\qquad
-L^{\mathrm{hinge}}_\Omega
-=\frac{\sum_xm_\Omega(x)[T(x)-\delta(x)-\hat T(x)]_+}
-       {\sum_xm_\Omega(x)|\hat R(x)|}.
+\begin{aligned}
+D_\Omega &=
+\max\left(
+\frac{\sum_x m_\Omega(x)|I(x)-T(x)|}
+     {\sum_xm_\Omega(x)+\epsilon},\,10^{-3}
+\right),\\
+L^{\mathrm{err}}_\Omega &=
+\frac{\sum_xm_\Omega(x)|\hat T(x)-T(x)|}
+     {(\sum_xm_\Omega(x)+\epsilon)D_\Omega}.
+\end{aligned}
 \end{equation}
-The complete region objective is
-$L_\Omega=\sum_cw_c(\lambda_\Omega L^{\mathrm{err}}_\Omega+
-\lambda_hL^{\mathrm{hinge}}_\Omega)$, with
-$\lambda_\Omega=3$ and $\lambda_h=1$. The denominator normalizes
-the error by the estimated reflection magnitude in the selected
-region. Our experiments distinguish this normalization from the
-choice of the region itself.
+We similarly normalize a one-sided penalty,
+\begin{equation}
+L^{\mathrm{hinge}}_\Omega =
+\frac{\sum_xm_\Omega(x)[T(x)-\delta(x)-\hat T(x)]_+}
+     {(\sum_xm_\Omega(x)+\epsilon)D_\Omega},
+\end{equation}
+with $\delta(x)=\max(4,0.5|C_I(x)|)/255$ in the
+implementation. The additional region loss, averaged over
+samples with available masks, is
+$L_\Omega=3L^{\mathrm{err}}_\Omega+
+L^{\mathrm{hinge}}_\Omega$.
+Other reconstruction and regularization terms are unchanged
+across the placement comparisons. Unlike an objective normalized
+by the model's predicted reflection, this loss uses the
+\emph{paired training residual} $|I-T|$ and is thus
+not available in the same form without a reference target.
+The denominator controls the influence of samples with
+different residual magnitudes; the subsequent experiment
+asks whether the spatial mask itself adds further value.
 
 Finally, consider the maximum \emph{direct} PSNR improvement
 obtainable when a correction changes only a pixel subset occupying
