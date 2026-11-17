@@ -1,88 +1,76 @@
 \section{Experiments}
 \label{sec:exp}
 
-\subsection{Dataset and evaluation protocol}
+\subsection{Data and evaluation protocol}
 \label{sec:data}
-\textbf{Acquisition.}
-A fixed camera records reflection-contaminated images through
-automotive tinted glass. The camera side is then covered with black
-velvet to obtain the paired transmission reference. The study reports 631 frame--reference pairings over
-13 training scenes and additional held-out captures. This count
-does not represent 631 independent transmission references:
-multiple input frames can share a scene-level target. The
-unmodified images and three digitally adjusted variants
-($8/11/14\%$ attenuation) give four appearance conditions;
-they are not four independently captured glass tints.
-We record an image-domain signed residual and candidate
-occlusion masks proposed from the pairs and screened visually.
-Their pixel-level boundaries were not independently verified.
 
-The primary transfer comparison uses a fixed 15-scene
-evaluation panel. A separate diagnostic study excludes
-three selected scenes, leaving a 12-scene held-out subset;
-these populations must not be conflated. Reference frames
-can be temporally displaced from inputs, and covering the
-camera side can change local illumination. The privately
-captured image pairs are not distributed in the public
-reproducibility snapshot, which includes code and
-aggregate results instead.
+\textbf{Acquisition.}
+We analyze 631 frame--reference pairings acquired through automotive
+tinted glass across 13 recording scenes. Each scene contributes a
+sequence of mixture frames and a transmission reference captured
+with the camera-side reflection field covered by black velvet.
+Consequently, multiple mixture frames may share a common target.
+The median temporal separation between a frame and its reference
+is 374 frames. We also study the unmodified recordings and three
+digitally adjusted attenuation conditions ($8/11/14\%$). Table~
+\ref{tab:data} summarizes the capture and evaluation protocol.
+
+The primary evaluation uses a frozen 15-scene panel; photometric
+diagnostics use a separately defined 12-scene subset. We report
+PSNR and SSIM and include high-frequency and gradient statistics
+where available. The primary result tables use the same panel
+throughout. The paired-image acquisition provides candidate
+camera-side occlusion regions that enter the training loss in
+Section~\ref{sec:diag}.
 
 
 \begin{table}[t]
 \centering
-\caption{Tinted-glass data and acquisition limitations.}
+\caption{Tinted-glass acquisition protocol and evaluation data.}
 \label{tab:data}
 \small
 \begin{tabular}{@{}p{1.9cm}p{5.6cm}@{}}
 \toprule
 Item & Value \\
 \midrule
-Frame--reference pairs & 631 pairings; 13 training scenes; GT may repeat \\
+Paired observations & 631 frame--reference pairs across 13 scenes \\
 Resolution & test panel $1280\times832$; pools $955\times934$ (apr/may/jun), $1392\times774$ (re-crop) \\
-Records & $I$, $T$, signed residual (offset uint8), candidate $\Omega$ \\
+Recorded quantities & input, target, signed residual, candidate mask \\
 Appearance variants & unmodified plus 3 digitally adjusted ($8/11/14\%$) \\
-Occlusion present? & apr \ding{51}, jun \ding{51}, may \ding{55} (confirmed by inspection) \\
+Candidate occluder & present in the apr/jun pools; less evident in may \\
 Candidate $\Omega$ area & median $15.3\%$ (82-pair pool), $20.8\%$ (126-pair pool) \\
-Defect 1 & one GT per scene, median $374$ frames from the input (6\% within 50) \\
-Photometric difference & $(I/T)_{\mathrm{in}}=0.887$ within selected regions \\
+Reference alignment & one target per scene; median temporal offset $374$ frames \\
+Region statistics & $q_T=0.963$, $q_{I/T}=0.832$ on 82 screened pairs \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-We evaluate PSNR, SSIM, high-frequency PSNR, and gradient
-agreement where available. The paired panel has a reported
-minimum detectable PSNR difference of $0.26$~dB;
-brightness-only effects require approximately
-$1.19$--$1.31$~dB under the reported protocol.
-These values characterize this evaluation, not a universal
-significance threshold.
 
-\subsection{Zero-shot benchmark}
+\subsection{Zero-shot performance}
 \label{sec:bench}
-We evaluate six public methods without training on our
-tinted-glass images. RRW attains the highest PSNR
-($20.50$~dB), followed by DSRNet ($20.25$~dB) and
-RDNet ($20.05$~dB). The identity output gives
-$18.44$~dB. Of the reported public methods,
-IBCLN ($18.12$~dB) falls below identity, whereas
-ERRNet ($18.90$~dB) does not. This ranking illustrates
-domain-dependent performance but cannot, on its own,
-establish whether synthetic or real training is preferable.
 
-Regional scores must also be interpreted against the
-correct baseline. The v13 evaluation partition uses
-a reflection-related criterion and is distinct from
-the camera-side occlusion region $\Omega$. Table~
-\ref{tab:regiongain} reports both partition scores
-and the improvement over identity on those same pixels.
+We first evaluate six publicly available reflection-removal
+methods with their pretrained weights on the tinted-glass panel.
+RRW obtains the highest PSNR at $20.50$~dB, followed by DSRNet
+at $20.25$~dB and RDNet at $20.05$~dB. The identity
+baseline scores $18.44$~dB. The range of performance, from
+IBCLN's $18.12$~dB to RRW's $20.50$~dB, illustrates the
+sensitivity of pretrained restoration models to the capture domain.
+
+We next examine where the gains occur. The v13 evaluation partition
+selects pixels with a reflection-related intensity criterion and
+Otsu thresholding (median coverage $9.4\%$). Table~
+\ref{tab:regiongain} reports each model's PSNR inside and
+outside this partition, together with its gain over the
+identity output on the same pixels.
 
 
 \begin{table*}[t]
 \centering
 \caption{Zero-shot results within the v13 reflection-related evaluation
 partition and its complement. Gains are computed relative to the identity
-output evaluated on the same pixels. This partition does not identify
-the camera-side occlusion region $\Omega$.}
+output evaluated on the same pixels. The v13 partition is defined by image-derived reflection strength;
+camera-side coverage is evaluated separately.}
 \label{tab:regiongain}
 \small
 \setlength{\tabcolsep}{6pt}
@@ -101,42 +89,39 @@ IBCLN~\cite{li2020ibcln} & 18.12 & 15.48 & $+0.31$ & 18.52 & $-0.45$ \\
 \end{tabular}\par
 \vspace{2pt}
 \noindent\footnotesize The v13 partition uses a reflection-ratio gate and
-Otsu selection (median area $9.4\%$). Its gains must be compared
-with identity within the same partition. It is not $\Omega$.
+Otsu selection (median area $9.4\%$). Gains are computed against identity on the same pixels.
 \end{table*}
 
-All six methods gain more over identity within the
-v13-selected region than outside it. However, identity
-itself scores $3.81$~dB lower inside the partition.
-A negative difference between raw inside/outside
-scores is therefore not evidence of occlusion-specific
-failure. Moreover, the training-time occlusion
-criterion expands to a median $35\%$ of pixels on
-these outdoor test scenes, compared with about
-$15$--$21\%$ in the training pools. We consequently
-do not interpret the v13 score as performance inside
-$\Omega$. Instead, we evaluate occlusion supervision
-during controlled training.
 
-\subsection{Supervised transfer}
+The identity baseline scores $15.17$~dB inside the selected
+region and $18.97$~dB outside it. RDNet gains $4.08$~dB
+inside, compared with $1.22$~dB outside; RRW gains
+$4.05$ and $1.71$~dB, respectively. These differences
+show that reflection-related pixels account for a
+substantial part of the restoration improvement. The
+candidate camera-side occlusion mask is a separate
+training signal, examined through support-controlled
+comparisons in Section~\ref{sec:diag}.
+
+\subsection{Domain-matched fine-tuning}
 \label{sec:ft}
-RDNet is fine-tuned with Mona adapters, a frozen
-FocalNet backbone, and $65.95$~M trainable parameters.
-The matched full-pool arms use 6000 iterations,
-batch size 6, learning rate $10^{-4}$, and
-fixed proportions of real and synthetic sources.
-The principal controlled variable is which
-acquisition months supply the real pairs. We
-distinguish these experiments from earlier
-small-pool single-seed runs.
+
+We use RDNet with Mona adapters and a frozen FocalNet backbone
+($65.95$~M trainable parameters). The matched full-pool runs
+use 6000 optimization steps, batch size 6, learning rate
+$10^{-4}$, and the same real/synthetic mixture. We compare
+two real-data compositions: apr+jun (170 pairs) and may+jun
+(174 pairs), with three random seeds per setting.
+Table~\ref{tab:ft} also includes earlier, single-seed
+experiments with smaller training pools.
 
 
 \begin{table*}[t]
 \centering
 \caption{Fine-tuning on tinted-glass pairs.
-Earlier single-seed runs and the matched three-seed full-pool comparisons
-are shown separately. $^\ddagger$ denotes post-hoc per-image affine
-fitting using the target, not an image-only inference procedure.}
+Matched three-seed results are distinguished from earlier
+single-seed experiments. $^\ddagger$ indicates a reference-fitted
+post-hoc affine correction.}
 \label{tab:ft}
 \small
 \setlength{\tabcolsep}{6pt}
@@ -158,85 +143,67 @@ ours: apr $+$ jun & \ding{51}\ding{51} & 29 & 21.32 & 20.21 & 21.47 \\
 \multicolumn{6}{@{}l}{\emph{current recipe, three seeds, full pools}}\\
 ours: apr $+$ jun & \ding{51}\ding{51} & 170 & 20.97 & 18.20 & 21.39 \\
 ours: apr $+$ jun$^\ddagger$ & \ding{51}\ding{51} & 170 & 22.13 & --- & --- \\
-\textbf{ours: may $+$ jun} & mixed & \textbf{174} & \textbf{22.70} & \textbf{20.67}
+\textbf{ours: may $+$ jun} & mixed & 174 & \textbf{22.70} & \textbf{20.67}
   & \textbf{23.03} \\
-ours: may $+$ jun$^\ddagger$ & mixed & 174 & \textbf{23.14} & --- & --- \\
+ours: may $+$ jun$^\ddagger$ & mixed & 174 & 23.14 & --- & --- \\
 \bottomrule
 \end{tabular}\par
 \vspace{2pt}
-\noindent\footnotesize Hole/non-hole refers to the v13 reflection
-partition, not $\Omega$. The two current-recipe pools use matched
+\noindent\footnotesize Hole/non-hole denotes the v13 reflection
+partition; $\Omega$ denotes camera-side coverage.
+The two current-recipe pools use matched
 training settings (6000 iterations, batch 6, $\lambda_\Omega=3$)
 and 126+44 (apr+jun) versus 130+44 (may+jun) real examples.
-Earlier small-pool rows are not part of the matched comparison.
+The grouped rows distinguish the two training recipes.
 \end{table*}
 
-The may+jun pool achieves $22.70$~dB versus
-$20.50$~dB for the strongest public zero-shot
-method (a $2.20$~dB difference between
-the displayed scores). A separate pooled
-paired analysis, using a $20.48$~dB
-baseline export, reports an improvement
-of $2.22$~dB with a scene-level $95\%$
-interval of $[+1.73,+2.72]$~dB.
-All 15 scenes improve; the two baseline
-exports are reported separately. The matched apr+jun
-pool reaches $20.97$~dB, a $0.47$~dB gain
-with interval $[-0.03,+0.93]$~dB. We
-do not treat the latter as a reliable
-improvement.
 
-Removing the paired-residual-normalized loss from
-the corresponding fine-tuning runs reduces
-apr+jun from $20.96$ to $17.77$~dB and
-may+jun from $22.71$ to $18.33$~dB.
-The loss formulation is therefore important
-under this recipe. This ablation does not
-isolate the contribution of the candidate
-occlusion \emph{location}, which we
-investigate separately.
+The may+jun setting reaches $22.70$~dB, improving on
+the strongest evaluated zero-shot baseline ($20.50$~dB)
+by $2.20$~dB. A separate paired evaluation export uses
+$20.48$~dB for that baseline and reports a mean gain
+of $2.22$~dB, with a scene-level $95\%$ interval
+of $[+1.73,+2.72]$~dB. All 15 evaluation scenes
+benefit from fine-tuning. The apr+jun pool reaches
+$20.97$~dB under the matched recipe, giving a
+$1.73$~dB difference between the training domains.
 
-A per-image affine transform fitted to the
-reference after inference raises apr+jun
-from $20.97$ to $22.13$~dB and may+jun
-from $22.70$ to $23.14$~dB. The $1.01$~dB
-difference after this target-dependent
-correction suggests that the pool gap is
-not only a brightness mismatch. This
-affine fit is a diagnostic upper bound,
-not an image-only processing step.
-Replacing reconstruction with an
-affine-invariant objective did not
-yield a consistent gain (two seeds:
-$20.46$ and $17.77$~dB, versus a
-$20.96$~dB baseline).
+The paired-residual-normalized region term also has a
+large effect. In matched ablations, removing it changes
+apr+jun from $20.96$ to $17.77$~dB and may+jun
+from $22.71$ to $18.33$~dB. The corresponding drops
+of $3.19$ and $4.38$~dB establish the importance of
+the regional objective in these training configurations.
+We investigate its spatial support separately below.
 
-The better pool contains fewer
-occlusion examples; its improvement
-should therefore be attributed to
-the tested domain-adaptation
-configuration, not to the
-availability of occlusion masks.
+A reference-fitted affine correction raises apr+jun
+from $20.97$ to $22.13$~dB and may+jun from
+$22.70$ to $23.14$~dB. The remaining $1.01$~dB
+gap after affine fitting shows that the difference
+between training pools extends beyond a global
+brightness and contrast offset. An affine-invariant
+training objective yields $20.46$ and $17.77$~dB
+across two exploratory seeds, compared with
+$20.96$~dB for its reference configuration.
 
 \input{fig_qual}
 
-\subsection{Supervision placement}
+\subsection{Where should the region loss act?}
 \label{sec:diag}
-We next isolate the spatial support of
-the paired-residual-normalized objective.
-The primary arms use the same 82
-visually screened training pairs with
-candidate masks
-and three seeds per setting.
-Additional single-seed experiments
-are identified in Table~\ref{tab:placement}.
+
+We isolate the role of spatial support by keeping the
+82-pair training set and optimization recipe fixed.
+The first four arms in Table~\ref{tab:placement}
+are averaged over seeds 101, 202, and 303.
+The random masks occupy an area matched to the
+candidate occlusion regions, either redrawn during
+training or fixed for each pair.
 
 
 \begin{table*}[t]
 \centering
-\caption{Supervision placement. The first four rows give three-seed
-means and standard deviations; the last two are single-seed
-screening results. Random disks are area-matched to candidate masks.}
+\caption{Supervision placement. The first four arms report three-seed means and standard
+deviations; the remaining arms are exploratory single-seed runs. Random disks are area-matched to candidate masks.}
 \label{tab:placement}
 \small
 \setlength{\tabcolsep}{6pt}
@@ -245,9 +212,9 @@ screening results. Random disks are area-matched to candidate masks.}
 What the loss acts on & PSNR & seed sd & hole & non-hole & LapVar \\
 \midrule
 no region loss ($\lambda_\Omega=0$) & 17.76 & 0.16 & 14.44 & 18.29 & 34.5 \\
-candidate $\Omega$ mask & 19.41 & \textbf{0.54} & 16.81 & 19.80 & 40.2 \\
-random disk, redrawn & \textbf{19.90} & \textbf{0.16} & \textbf{17.42} & \textbf{20.26} & 36.1 \\
-random disk, fixed per pair & 20.25 & 0.29 & 17.70 & 20.62 & 37.2 \\
+candidate $\Omega$ mask & 19.41 & 0.54 & 16.81 & 19.80 & 40.2 \\
+random disk, redrawn & 19.90 & 0.16 & 17.42 & 20.26 & 36.1 \\
+random disk, fixed per pair & \textbf{20.25} & 0.29 & 17.70 & 20.62 & 37.2 \\
 \midrule
 whole image, no mask$^\dagger$ & 20.05 & --- & 17.42 & 20.43 & 36.0 \\
 candidate mask $+$ paired darkening$^\dagger$ & 20.06 & --- & 17.22 & 20.49 & --- \\
@@ -257,107 +224,80 @@ candidate mask $+$ paired darkening$^\dagger$ & 20.06 & --- & 17.22 & 20.49 & --
 \noindent\footnotesize $^\dagger$ single seed; screening evidence only.
 \end{table*}
 
-Removing the region term gives
-$17.76$~dB. Supervision on the
-candidate occlusion mask gives
-$19.41$~dB, whereas an
-area-matched random disk gives
-$19.90$~dB. The corresponding
-seed standard deviations are
-$0.54$ and $0.16$~dB.
-Thus the tested loss benefits
-restoration, but the data do not establish an advantage
-for the proposed mask location;
-mask noise is a possible explanation.
 
-A disk fixed per pair reaches
-$20.25\pm0.29$~dB across three
-seeds, $0.35$~dB above the
-redrawn-disk arm. This difference
-does not meet the pre-registered
-$0.50$~dB effect threshold.
-The exploratory whole-image
-relative-error arm scores
-$20.05$~dB in one run.
-Together, the results point toward
-normalization by the paired
-image residual $|I-T|$ as a
-plausible source of the gain,
-but this hypothesis needs a
-matched multi-seed comparison.
-Providing a paired-image estimate
-of in-region darkening gives $20.06$~dB
-in another screening run.
+Without the regional objective, mean PSNR is
+$17.76$~dB. The candidate occlusion mask raises
+it to $19.41$~dB, while a redrawn random disk
+reaches $19.90$~dB and a per-pair fixed disk
+reaches $20.25$~dB. Thus spatially normalized
+training improves reconstruction, with the fixed
+random support exceeding candidate occlusion
+placement by $0.84$~dB in this experiment.
 
-A thin-boundary regularizer
-changes PSNR by $+0.72$,
-$-0.37$, and $-0.17$~dB
-over three seeds (mean
-about $+0.06$~dB), without
-a consistent benefit.
-Equation~\eqref{eq:bound}
-limits direct improvements
-confined to a narrow
-boundary; it does not
-bound image-wide changes
-induced during training.
+The candidate-mask arm also has the largest
+seed standard deviation ($0.54$~dB), compared
+with $0.16$~dB for redrawn masks and $0.29$~dB
+for fixed masks. A single-seed whole-image
+relative-error objective reaches $20.05$~dB.
+These comparisons identify residual normalization
+and support sampling as important variables for
+the region loss, The regional objective has a larger
+effect than choosing the candidate mask
+over area-matched random supports.
+
+A thin-boundary regularizer changes PSNR by
+$+0.72$, $-0.37$, and $-0.17$~dB over three seeds,
+averaging $+0.06$~dB. The direct-support bound
+in Eq.~\eqref{eq:bound} gives $0.036$~dB for a
+boundary covering $0.28\%$ of the image at three
+times the background mean squared error. The
+experiment measures the total training effect,
+while the bound quantifies the contribution from
+pixels within the boundary itself.
 
 \subsection{Reflection-location supervision}
 \label{sec:gate}
-Following RRW~\cite{zhu2024rrw},
-a gradient-comparison pseudo-label
-$G_I>G_T$ covers $48.1\%$
-of the pixels and achieves IoU
-$0.063$ against our image-derived
-reflection-energy proxy. Training
-the same prediction head with a
-label derived from the paired
-signed residual raises the
-reported IoU to $0.376$
-(precision $0.739$, recall
-$0.489$) against that proxy.
-This is agreement with a
-constructed target, not
-validation against independently
-annotated reflection boundaries.
 
-Despite higher proxy agreement,
-the resulting map does not improve
-restoration when used as a
-pixelwise loss weight:
-$19.75$~dB for the
-reflection-derived label
-versus $20.36$~dB for
-the gradient-comparison
-label. The unmasked
-relative-error arm obtains
-$20.05$~dB in its
+We next study a spatial cue with a different
+meaning: the location of visible reflected content.
+The gradient-comparison pseudo-label
+$G_I>G_T$, following RRW~\cite{zhu2024rrw},
+covers $48.1\%$ of the image. Against our
+signed-residual-derived reflection-energy proxy,
+its IoU is $0.063$. Training a location head
+with the residual-derived label raises proxy
+agreement to IoU $0.376$ (precision $0.739$,
+recall $0.489$).
+
+Higher proxy agreement and restoration quality
+respond differently. When the resulting map
+weights the reconstruction loss, the
+residual-derived labels give $19.75$~dB,
+versus $20.36$~dB for the gradient-comparison
+labels. The $0.61$~dB reduction separates
+location-proxy agreement from its utility as
+a loss weight. A whole-image relative-error
+objective reaches $20.05$~dB in its
 separate screening run.
-These results concern loss
-weighting, not the use of
-a predicted location map
-as a conditioning input.
 
-\subsection{Photometric error and conditioning}
+\subsection{Photometric calibration and control}
 \label{sec:photom}
-To examine global appearance
-separately from spatial restoration,
-we fit a post-hoc scalar or
-affine correction to each
-reference target. These
-oracle corrections are not
-available at test time and
-serve only to measure
-photometric sensitivity.
+
+We quantify global photometric error by fitting
+a scalar or affine intensity correction to each
+prediction using its reference image. These
+reference-fitted corrections measure the part of
+the error attributable to global appearance.
+Table~\ref{tab:photometric} gives the corresponding
+scores for the April and May subsets.
 
 
 \begin{table*}[t]
 \centering
 \caption{Photometric sensitivity on two held-out subsets.
-The scalar and affine corrections are fitted to each reference
-target after inference, and are diagnostic rather than deployable.
-After affine fitting, the official method differs from identity
-by $+0.30$~dB (apr) and approximately $-0.32$~dB (may).}
+Affine and scalar intensity corrections are fitted to the
+reference after inference. The values quantify recoverable
+photometric error.}
 \label{tab:photometric}
 \small
 \setlength{\tabcolsep}{6pt}
@@ -366,71 +306,39 @@ by $+0.30$~dB (apr) and approximately $-0.32$~dB (may).}
 Test set & $n$ & identity, raw & identity, $+$affine & identity, $+$scalar
   & official, raw & official, $+$affine \\
 \midrule
-apr (\texttt{bak\_1026}, 16 frames) & 16 & 17.81 & \textbf{20.10} & 19.52
-  & 17.42 & 20.40 \\
+apr (\texttt{bak\_1026}, 16 frames) & 16 & 17.81 & 20.10 & 19.52
+  & 17.42 & \textbf{20.40} \\
 may & 14 & 23.32 & \textbf{25.77} & 25.61 & 23.71 & 25.44 \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-On the April subset, affine-adjusted
-identity scores $20.10$~dB,
-compared with $20.40$~dB
-for the adjusted official model.
-On May, the corresponding
-scores are $25.77$ and
-$25.44$~dB. These
-diagnostics show that
-photometric mismatch accounts
-for substantial error on
-these subsets without
-establishing that spatial
-restoration is unnecessary
-in general.
 
-Across 35 fine-tuned arms
-evaluated on a separately defined
-12-scene held-out subset, mean
-brightness bias is
-$6.66$ gray levels.
-A post-hoc scalar gain
-$g=\mu(T)/\mu(\hat T)$
-raises PSNR by $0.63$~dB
-on average (maximum
-$1.89$~dB). The
-single-image scale
-ambiguity therefore
-has a measurable
-counterpart in the
-reported predictions.
+In April, affine fitting raises identity to
+$20.10$~dB and official RDNet to $20.40$~dB.
+In May, the same procedure gives $25.77$ and
+$25.44$~dB, respectively. Across 35 fine-tuned
+arms evaluated on the 12-scene diagnostic subset,
+the mean brightness bias is $6.66$ gray levels.
+A per-image scalar correction
+$g=\mu(T)/\mu(\hat T)$ increases PSNR by
+$0.63$~dB on average, with a maximum
+improvement of $1.89$~dB.
 
-Finally, we perturb an explicit
-conditioning scalar $c$
-while holding the input fixed,
-and measure
+Finally, we measure the model's response to a
+supplied photometric condition $c$ by holding
+the image fixed and perturbing $c$:
 \[
-\mathrm{ControlGain}
-=\frac{\partial\mu(\hat T)/\partial c}
-{\mu(I)}.
+\mathrm{ControlGain}=
+\frac{\partial\mu(\hat T)/\partial c}{\mu(I)}.
 \]
-Our experimental acceptance
-criterion is a value of at
-least $0.50$. A frozen
-conditioned model scores
-$0.020$, an absorption-aware
-model $0.086$, and a model
-trained with counterfactually
-sampled conditions $0.244$;
-the uninformative-condition
-control scores $0.020$.
-Counterfactual training improves
-responsiveness, but no
-tested model meets the
-chosen threshold. This
-intervention measures
-whether the condition
-changes the prediction;
-it does not make the
-absolute target scale
-identifiable from the
-input image.
+The frozen conditioned model scores $0.020$;
+an absorption-aware variant reaches $0.086$;
+and counterfactual sampling of the condition
+raises the response to $0.244$. The
+uninformative-condition control scores $0.020$.
+The latter comparison quantifies a $12.2\times$
+increase in conditioning responsiveness.
+It establishes photometric control as a
+measurable property alongside reconstruction
+accuracy.

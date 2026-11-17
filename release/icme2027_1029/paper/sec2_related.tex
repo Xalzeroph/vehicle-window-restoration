@@ -41,12 +41,11 @@ $|\nabla I|>|\nabla T|$ to derive local-reflection targets
 from paired images and subsequently conditions the removal network
 on a predicted map~\cite{zhu2024rrw}. LANet similarly uses a learned
 reflection-confidence map as an input to restoration~\cite{lanet2021}.
-Our candidate occlusion region is a different quantity: it describes
-where the proposed acquisition model includes camera-side coverage,
-not where visible reflection content is present. We test loss
-placement separately from location prediction, using a residual-derived
-reflection-energy \emph{proxy} rather than independently annotated
-reflection locations. Finally, intensity-control approaches to
+The candidate camera-side occlusion region describes a change
+in acquisition geometry, whereas reflection-location maps describe
+visible reflected content. We evaluate mask placement and
+location prediction separately, using a paired-residual-derived
+reflection-energy \emph{proxy} to quantify agreement. Finally, intensity-control approaches to
 image enhancement illustrate the importance of distinguishing a
 predicted photometric condition from a separately measured
 one~\cite{guo2020zerodce,cai2023retinexformer}. We evaluate

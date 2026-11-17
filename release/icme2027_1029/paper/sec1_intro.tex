@@ -1,83 +1,76 @@
 \section{Introduction}
 \label{sec:intro}
 
-Single-image reflection removal (SIRR) aims to recover the scene transmitted through a
-reflecting surface from a single photograph. Even under the simplified additive model
-$I=T+R$, one observation must determine two overlapping layers. Learning-based methods
-therefore rely heavily on training pairs and on the assumptions used to construct them.
-Recent architectures have improved layer separation through iterative refinement,
-cross-layer interaction, and learned image priors~\cite{li2020ibcln,hu2023dsrnet,zhao2025rdnet}.
-At the same time, real-pair datasets have become central to evaluation and adaptation,
-particularly when synthetic reflections fail to reproduce real imaging
-conditions~\cite{zhu2024rrw,openrr2025,cai2026ntire}.
-
-A paired reference is not, however, a direct measurement of an abstract reflection-free
-scene. It is an image acquired under a specific procedure. Removing the glass changes
-the optical path; capturing an additional image with a black cover changes the light
-arriving at the camera-side surface; and exposure or camera processing may differ between
-captures. These effects are particularly relevant for automotive tinted glass, where
-transmission is attenuated and colored before the camera records it. The desired output
-is the transmission \emph{as observed through the glass}, not the unfiltered scene behind
-the window.
-
-We examine two ambiguities that arise in such pairs. The first is \emph{local}: a
-camera-side occluder, such as the photographer, reduces part of the reflected
-illumination and can also alter the light reaching the transmitted scene. The resulting
-occlusion region $\Omega$ should not be confused with a reflection-location map.
-The former describes where an occluder changes the imaging process; the latter
-describes where reflected content is visible. A location may belong to one without
-belonging to the other. In 82 visually screened pairs, the mean reference intensity
-within algorithmically proposed occlusion regions is $0.963$ of that outside.
-The inside/outside ratio for $r=I/T$ is $0.832$. Since $r$ includes
-transmitted as well as reflected content, these statistics cannot
-separately identify illumination and reflection losses. They nevertheless
-reveal a photometric difference that a global correction may not describe.
-The masks are not pixel-accurate ground truth and may select darker scene content.
-
-The second ambiguity is \emph{global}. In the additive model, changing the scale of the
-transmitted layer and compensating in the residual can leave the observed image
-unchanged. Thus the absolute transmission scale cannot be inferred from one frame
-without further restrictions on the residual or an external photometric reference.
-This is a property of the inverse problem, not a claim that an image cannot provide
-useful statistical cues about exposure or transmission. Indeed, our experiments
-find a systematic brightness bias even when the spatial restoration is useful.
-
-These observations motivate a question about supervision rather than a new backbone:
-\emph{does a carefully localized occlusion loss improve restoration, or does its benefit
-come from another aspect of the training objective?} We test this question with
-matched fine-tuning runs, alternative region placements, reflection-location labels,
-and a separate intervention on photometric conditioning. The results caution
-against attributing improvements to the most visually distinctive component of a
-training procedure. On our 15-scene evaluation panel, a domain-adapted model reaches
-$22.70$~dB, compared with $20.50$~dB for the strongest evaluated public method.
-The pool with fewer candidate occlusion examples performs better. In a three-seed comparison,
-an area-matched random region also performs at least as well as the annotated
-occlusion region.
-
-Our contributions are as follows:
-\begin{itemize}
-  \item We assemble a real-pair tinted-glass benchmark with 631 paired observations,
-  controlled attenuation variants, a frozen evaluation panel, and explicit
-  pair-level-screened candidate masks for camera-side occlusion. We report acquisition
-  limitations alongside zero-shot and fine-tuned results
-  (Sections~\ref{sec:data}--\ref{sec:ft}).
-  \item We distinguish camera-side occlusion from reflection location and formulate
-  the resulting local photometric discrepancy. We also characterize the
-  ambiguity of the global transmission scale under a single-image mixture model
-  (Section~\ref{sec:method}).
-  \item We isolate supervision placement in controlled comparisons. The results
-  support paired-residual-normalized reconstruction but do not show an additional
-  benefit from using the candidate occlusion mask rather than an area-matched random
-  one (Section~\ref{sec:diag}).
-  \item We evaluate reflection-location supervision and a perturbation-based
-  test of photometric conditioning. Higher agreement with a
-  residual-derived location proxy does not imply better reconstruction
-  when the map is used as a loss weight
-  (Sections~\ref{sec:gate} and~\ref{sec:photom}).
-\end{itemize}
-
-Our aim is to establish which conclusions these experiments support, including
-the negative results, rather than to claim a new network or state-of-the-art
-performance on established public benchmarks.
+A photograph taken through glass contains both the scene behind the
+surface and light reflected toward the camera. Recovering the transmitted
+scene from a single image is underdetermined, and modern reflection
+removal systems learn the separation from paired observations
+\cite{li2020ibcln,hu2023dsrnet,zhao2025rdnet}. The quality of these
+observations depends on the capture procedure as much as on the number
+of training examples. Recent real-image benchmarks have therefore
+placed increasing emphasis on data acquisition and reflection
+localization~\cite{zhu2024rrw,openrr2025}.
 
 \input{fig1}
+
+Automotive tinted glass introduces a particular form of mismatch.
+Tint attenuates and colors the transmitted scene, while camera-side
+objects generate structured reflections. To obtain a reference,
+the reflecting side may be covered with a dark material. This
+procedure suppresses reflected content and changes the local
+lighting conditions during capture. Moreover, a sequence of input
+frames can share a single transmission reference, introducing
+temporal differences between the two images. The learning target
+in our study is the scene \emph{as transmitted through the tinted
+glass}, including its tint and attenuation.
+
+These acquisition effects connect two distinct spatial quantities.
+Camera-side \emph{occlusion} describes where an object modifies the
+reflected light field. \emph{Reflection location} describes where
+reflected content is visible in the observed image. A reflected
+tree can extend across a window without a corresponding occluder;
+conversely, an occluder can produce a weak or dark reflection.
+Both phenomena affect paired supervision, but they imply different
+forms of spatial guidance. In 82 screened image pairs, the mean
+reference-intensity ratio between candidate occlusion regions and
+their complements is $0.963$. The corresponding normalized
+mixture-to-reference ratio is $0.832$. These measurements establish
+a substantial difference in local image statistics and motivate
+an explicit comparison of spatial loss supports.
+
+A second issue concerns global appearance. In an additive image
+model, a change in transmission scale can be compensated by the
+reflection residual while preserving the input. The ambiguity
+persists when the desired output includes the tint of the glass.
+It is therefore useful to separate spatial restoration accuracy
+from photometric calibration and to test the actual response of
+a model to any supplied photometric condition.
+
+We study these questions using the same RDNet backbone across
+matched fine-tuning runs. The experiments vary the acquisition
+domain of real training pairs, the presence of a paired-residual
+region loss, the placement of that loss, and the type of
+reflection-location supervision. On the frozen 15-scene panel,
+the best-matched data pool reaches $22.70$~dB, compared with
+$20.50$~dB for the strongest zero-shot method. Across three
+seeds, an area-matched random disk achieves $19.90$~dB,
+compared with $19.41$~dB for the candidate occlusion mask.
+These comparisons separate the effectiveness of a relative-error
+objective from the information carried by its spatial support.
+
+Our study makes three contributions:
+\begin{itemize}
+  \item We characterize paired supervision through tinted automotive
+  glass using 631 frame--reference pairings, a frozen evaluation
+  panel, and measurements of local photometric differences
+  (Section~\ref{sec:data}).
+  \item We distinguish candidate occlusion regions, reflection
+  locations, and the global transmission scale, and formulate
+  their roles in the paired training objective
+  (Section~\ref{sec:method}).
+  \item We conduct matched comparisons of training domains,
+  region-loss placement, reflection-location proxies, and
+  photometric conditioning. The results quantify their
+  respective effects on restoration
+  (Sections~\ref{sec:ft}--\ref{sec:photom}).
+\end{itemize}

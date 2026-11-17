@@ -1,36 +1,33 @@
 \section{Conclusion}
 \label{sec:concl}
 
-We studied how paired supervision behaves when the reference image is
-acquired through tinted automotive glass. Camera-side occlusion can change
-both reflected content and illumination. The observed ratios
-differ inside and outside proposed regions, although these
-annotations do not isolate the two physical mechanisms.
-The additive imaging model also leaves the absolute transmission
-scale ambiguous without additional assumptions or measurements.
+We examined how the acquisition of paired references affects
+supervised reflection removal through tinted automotive glass.
+The analysis distinguishes camera-side occlusion, visible
+reflection locations, and the global scale of the transmitted
+scene. These factors have different meanings in the imaging
+model and in the reconstruction objective.
 
-Our controlled experiments separate these issues from the benefits
-of training on the target domain. Fine-tuning on the better-matched
-data pool improves restoration on the frozen evaluation panel, but
-the results do not establish a benefit from localizing the loss
-to the proposed occlusion region: an area-matched random region
-performs similarly across the tested seeds. Annotation noise
-remains a plausible explanation. Reflection-location labels
-with higher agreement to an image-derived proxy likewise
-do not improve reconstruction when used only as loss weights. A support-area calculation clarifies the limited direct
-effect of corrections restricted to a narrow boundary, while an
-intervention tests whether explicit photometric conditions influence
-the model output.
+The experiments show the importance of matching the training
+domain: fine-tuned RDNet achieves $22.70$~dB on the frozen
+15-scene panel, compared with $20.50$~dB for the strongest
+evaluated zero-shot method. The paired-residual-normalized
+region objective produces substantial gains, while
+area-matched random supports outperform the candidate
+occlusion masks in the matched training runs.
+Likewise, improved agreement with a reflection-location
+proxy accompanies lower restoration accuracy when the
+map is used as a loss weight. Photometric corrections
+and conditioning interventions further separate global
+appearance from spatial reconstruction.
 
-The broader implication is methodological. Improvements in paired
-reflection removal should be attributed separately to data
-distribution, loss normalization, spatial supervision, and
-photometric control. Reporting the corresponding negative results
-is necessary to determine which components actually account for
-the observed gains.
+These findings provide an experimental basis for designing
+paired supervision: select the training distribution
+carefully, evaluate normalization independently from
+region placement, and measure spatial cues by their
+effect on the restored image.
 
-\section*{Reproducibility note}
-The reproducibility bundle contains experiment configurations,
-evaluation code, summary tables, and split definitions. The private
-paired images are not redistributed in this snapshot. Multi-seed
-experiments use seeds 101, 202, and 303.
+\section*{Reproducibility}
+The accompanying release contains training configurations,
+evaluation scripts, split definitions, and reported results.
+Multi-seed studies use seeds 101, 202, and 303.

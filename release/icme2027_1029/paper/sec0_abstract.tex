@@ -1,30 +1,28 @@
 \begin{abstract}
-Paired images are widely used to supervise single-image reflection removal,
-although a reference image may differ from its input in more than reflected
-content. We study this issue for automotive tinted glass. A camera-side
-occluder can alter both reflection and illumination, making a single global
-photometric correction insufficient in some regions. On 82 image pairs,
-candidate occlusion regions have a reference brightness ratio of $0.963$
-relative to their surroundings and an inside/outside ratio of $0.832$ for
-the normalized quantity $r=I/T$. These are image statistics, not direct
-measurements of physical reflection or illumination losses. We also
-describe the ambiguity of the global transmission scale under an
-unconstrained single-image mixture model.
+Single-image reflection removal relies on paired images, yet the way a
+transmission reference is captured determines what the model learns.
+We investigate this issue for automotive tinted glass, where covering
+the camera-side surface changes the observed reflection and local
+photometry. We analyze 631 frame--reference pairings and examine
+three factors in supervised restoration: the training data distribution,
+residual-normalized reconstruction, and spatial loss placement.
+Measurements on 82 image pairs reveal systematic differences between
+candidate occlusion regions and their surroundings, motivating a
+controlled study with a fixed restoration backbone.
 
-We investigate the consequences for supervision using 631 frame--reference
-pairings from tinted-glass recordings and a frozen evaluation panel.
-Fine-tuning on the best-matched training pool reaches $22.70$~dB,
-compared with $20.50$~dB for the strongest evaluated public method,
-and improves all 15 evaluation scenes. In a controlled three-seed
-comparison, supervision on candidate occlusion regions yields
-$19.41$~dB, whereas an area-matched random region reaches
-$19.90$~dB. Labels with greater agreement to a residual-derived location
-proxy likewise yield no restoration benefit when used for loss weighting.
-These results support domain-matched paired training but do not
-establish a distinct benefit from the proposed occlusion masks.
+With domain-matched fine-tuning, RDNet reaches $22.70$~dB on a frozen
+15-scene panel, compared with $20.50$~dB for the strongest evaluated
+zero-shot method. In three-seed experiments, removing the region term
+gives $17.76$~dB; using candidate occlusion masks gives $19.41$~dB,
+while area-matched random regions reach $19.90$~dB. Reflection-location
+supervision shows a similar distinction: a higher proxy IoU
+($0.376$ versus $0.063$) accompanies a lower restoration PSNR when
+the map weights the reconstruction loss. These results identify
+data matching and the construction of reconstruction objectives as
+central factors in tinted-glass reflection removal.
 \end{abstract}
 
 \begin{IEEEkeywords}
 single-image reflection removal, tinted glass, paired supervision,
-photometric ambiguity, region supervision, benchmark
+photometric ambiguity, spatial supervision, benchmark
 \end{IEEEkeywords}

@@ -1,50 +1,77 @@
-% ==================== Figure 1 (schematic + measured numbers) ====================
 \begin{figure*}[t]
 \centering
-\begin{tikzpicture}[font=\footnotesize,>=Stealth]
-  % ---- left: geometry ----
-  \draw[thick] (0,0) rectangle (0.5,1.9);
-  \node[align=center] at (0.25,2.15) {camera};
-  \draw[thick] (2.0,-0.1) -- (2.0,2.1);
-  \node at (2.0,2.35) {tinted glass};
-  \draw[thick] (4.6,-0.1) -- (4.6,2.1);
-  \node at (4.85,2.35) {scene};
-  % transmitted path, shown schematically
-  \draw[->,blue] (4.6,1.55) -- (2.0,1.55) -- (0.5,1.55);
-  % a partially obscured camera-side path
-  \draw[->,blue] (4.6,0.55) -- (2.0,0.55) -- (1.6,0.55);
-  \node[fill=white,draw,inner sep=1.5pt] (occ) at (1.15,0.55) {occluder};
-  \draw[red,->] (occ.north) -- (1.15,1.05);
-  \node[red] at (1.15,1.32) {changes reflected light};
-  \node[red] at (1.15,1.06) {and illumination};
-  \node[blue] at (4.0,0.15) {transmission};
-  % ---- right: measured ----
-  \begin{scope}[xshift=6.4cm]
-    \draw[->] (0,0) -- (2.5,0);
-    \draw[->] (0,0) -- (0,1.9);
-    \node[rotate=90,anchor=south] at (-0.32,0.95) {$r=I/T$};
-    \fill[gray!35] (0.25,0) rectangle (0.95,1.58);
-    \fill[gray!70] (1.25,0) rectangle (1.95,1.9);
-    \node[above] at (0.6,1.58) {$\Omega$ ($83.2\%$)};
-    \node[above] at (1.6,1.9) {outside ($100\%$)};
-  \end{scope}
+\begin{tikzpicture}[>=Stealth,font=\footnotesize]
+
+% Schematic of the acquisition geometry.
+\begin{scope}
+  \fill[blue!8] (3.03,0.15) rectangle (3.28,2.22);
+  \draw[blue!65!black,thick] (3.03,0.15) rectangle (3.28,2.22);
+  \node[above] at (3.155,2.28) {Tinted glass};
+
+  \draw[thick] (0.15,0.85) rectangle (0.75,1.51);
+  \fill (0.75,1.11) circle (0.06);
+  \node[below] at (0.45,0.78) {Camera};
+
+  \draw[thick] (5.45,0.23) rectangle (6.70,2.20);
+  \draw[gray] (5.55,0.35)--(5.55,2.06);
+  \draw[gray] (5.62,0.35)--(6.57,1.80);
+  \node[above] at (6.07,2.26) {Transmitted scene};
+
+  \draw[blue!75!black,very thick,->]
+       (5.43,1.77)--(3.28,1.48)--(0.77,1.18);
+  \node[blue!75!black,above] at (4.50,1.74) {$T$};
+
+  \draw[orange!85!black,thick,->] (1.40,0.25)--(3.03,1.06);
+  \draw[orange!85!black,thick,->] (3.03,1.06)--(0.77,1.35);
+  \node[orange!85!black,above] at (2.58,1.13) {$R$};
+
+  \draw[red!70!black,fill=red!20,thick] (1.88,0.39)
+      rectangle (2.28,0.92);
+  \node[red!65!black,below,align=center] at (2.08,0.34)
+      {Camera-side\\cover};
+
+  \node[below,align=center] at (3.45,-0.39)
+      {(a) Paired-image capture};
+\end{scope}
+
+% Two independent summary ratios, each normalized by its outside region.
+\begin{scope}[xshift=8.45cm]
+  \draw[->,thick] (0.00,0.05)--(5.14,0.05);
+  \draw[->,thick] (0.00,0.05)--(0.00,2.58);
+  \draw[gray!55,densely dashed] (0,2.29)--(5.04,2.29);
+  \node[left] at (-0.02,2.28) {$1.0$};
+  \node[left] at (-0.02,1.15) {$0.5$};
+  \node[left] at (-0.02,0.06) {$0$};
+  \node[above] at (2.56,2.57) {Inside/outside ratios};
+
+  % First measure: reference brightness.
+  \fill[blue!65] (0.75,0.06) rectangle (1.44,2.203);
+  \fill[gray!43] (1.53,0.06) rectangle (2.22,2.29);
+  \node[above] at (1.095,2.203) {$0.963$};
+
+  % Second measure: relative mixture/reference.
+  \fill[orange!75] (3.02,0.06) rectangle (3.71,1.906);
+  \fill[gray!43] (3.80,0.06) rectangle (4.49,2.29);
+  \node[above] at (3.365,1.906) {$0.832$};
+
+  \node[below] at (1.48,0.0) {$q_T$};
+  \node[below] at (3.75,0.0) {$q_{I/T}$};
+
+  \fill[blue!65] (0.75,-0.52) rectangle (0.94,-0.36);
+  \node[anchor=west] at (1.0,-0.44) {Inside $\tilde\Omega$};
+  \fill[gray!43] (3.0,-0.52) rectangle (3.19,-0.36);
+  \node[anchor=west] at (3.25,-0.44) {Outside};
+
+  \node[below] at (2.52,-0.73)
+      {(b) Regional image statistics};
+\end{scope}
 \end{tikzpicture}
-
-\vspace{2pt}
-\footnotesize
-\begin{tabular}{@{}c@{}}
-$I=\alpha T+(1-c)\beta R+cR_b+C_{\mathrm{nl}}$ \\
-Measured image ratios: $T_{\mathrm{in}}/T_{\mathrm{out}}=0.963$ and
-$r_{\mathrm{in}}/r_{\mathrm{out}}=0.832$; see Table~\ref{tab:terms}.
-\end{tabular}
-
-\caption{Schematic of a camera-side occluder on automotive tinted glass.
-It changes the reflected light field and may perturb local illumination
-(left). The bar chart shows the in/out ratio of $r=I/T$ within
-candidate regions on 82 paired images (right; outside normalized
-to $100\%$). This ratio is not a direct measurement of
-reflected radiance. Occlusion and reflection location are distinct,
-and candidate pixel boundaries have not been independently verified.
-The geometry is schematic.}
+\caption{Tinted-glass pair acquisition and regional image statistics.
+(a) Camera-side covering modifies the reflection field while the
+transmitted scene remains behind the glass.
+(b) Mean regional ratios on 82 paired frames, normalized to the
+complement of each candidate region $\tilde\Omega$:
+reference intensity $q_T=0.963$ and mixture-to-reference intensity
+$q_{I/T}=0.832$.}
 \label{fig:omega}
 \end{figure*}
