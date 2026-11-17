@@ -26,11 +26,13 @@ illumination and can also alter the light reaching the transmitted scene. The re
 occlusion region $\Omega$ should not be confused with a reflection-location map.
 The former describes where an occluder changes the imaging process; the latter
 describes where reflected content is visible. A location may belong to one without
-belonging to the other. In 82 visually confirmed pairs, the transmission reference is
-$3.7\%$ darker inside $\Omega$, whereas the reflected content is $16.8\%$ weaker.
-The recorded mixture can consequently be darker than its own paired target in that region.
-These measurements expose a mismatch that a correction calibrated to a single
-global reflection strength need not handle correctly.
+belonging to the other. In 82 visually screened pairs, the mean reference intensity
+within algorithmically proposed occlusion regions is $0.963$ of that outside.
+The inside/outside ratio for $r=I/T$ is $0.832$. Since $r$ includes
+transmitted as well as reflected content, these statistics cannot
+separately identify illumination and reflection losses. They nevertheless
+reveal a photometric difference that a global correction may not describe.
+The masks are not pixel-accurate ground truth and may select darker scene content.
 
 The second ambiguity is \emph{global}. In the additive model, changing the scale of the
 transmitted layer and compensating in the residual can leave the observed image
@@ -47,8 +49,8 @@ matched fine-tuning runs, alternative region placements, reflection-location lab
 and a separate intervention on photometric conditioning. The results caution
 against attributing improvements to the most visually distinctive component of a
 training procedure. On our 15-scene evaluation panel, a domain-adapted model reaches
-$22.70$~dB, $2.22$~dB above the strongest evaluated public method, yet the training
-pool with fewer occlusion examples performs better. In a three-seed comparison,
+$22.70$~dB, compared with $20.50$~dB for the strongest evaluated public method.
+The pool with fewer candidate occlusion examples performs better. In a three-seed comparison,
 an area-matched random region also performs at least as well as the annotated
 occlusion region.
 
@@ -56,7 +58,7 @@ Our contributions are as follows:
 \begin{itemize}
   \item We assemble a real-pair tinted-glass benchmark with 631 paired observations,
   controlled attenuation variants, a frozen evaluation panel, and explicit
-  annotations of the camera-side occlusion phenomenon. We report acquisition
+  pair-level-screened candidate masks for camera-side occlusion. We report acquisition
   limitations alongside zero-shot and fine-tuned results
   (Sections~\ref{sec:data}--\ref{sec:ft}).
   \item We distinguish camera-side occlusion from reflection location and formulate
@@ -64,8 +66,8 @@ Our contributions are as follows:
   ambiguity of the global transmission scale under a single-image mixture model
   (Section~\ref{sec:method}).
   \item We isolate supervision placement in controlled comparisons. The results
-  support reflection-normalized reconstruction but do not show an additional
-  benefit from using the true occlusion region rather than an area-matched random
+  support paired-residual-normalized reconstruction but do not show an additional
+  benefit from using the candidate occlusion mask rather than an area-matched random
   one (Section~\ref{sec:diag}).
   \item We evaluate reflection-location supervision and a perturbation-based
   test of photometric conditioning. Better location labels do not, by
