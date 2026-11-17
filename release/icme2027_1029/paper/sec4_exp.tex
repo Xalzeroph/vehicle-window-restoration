@@ -6,16 +6,26 @@
 \textbf{Acquisition.}
 A fixed camera records reflection-contaminated images through
 automotive tinted glass. The camera side is then covered with black
-velvet to obtain the paired transmission reference. The benchmark
-contains 631 pairs over 13 training scenes and separate held-out
-captures. Four attenuation conditions comprise the unmodified
-image and adjustments of $8/11/14\%$. We retain the signed
-image-domain residual and candidate occlusion annotations.
-The 15-scene evaluation panel is fixed across the model
-comparisons. The protocol also has limitations: reference frames
-can be temporally displaced from the inputs, and covered captures
-can change illumination. We report these rather than assuming
-perfectly identical acquisition conditions.
+velvet to obtain the paired transmission reference. The study reports 631 frame--reference pairings over
+13 training scenes and additional held-out captures. This count
+does not represent 631 independent transmission references:
+multiple input frames can share a scene-level target. The
+unmodified images and three digitally adjusted variants
+($8/11/14\%$ attenuation) give four appearance conditions;
+they are not four independently captured glass tints.
+We record an image-domain signed residual and candidate
+occlusion masks proposed from the pairs and screened visually.
+Their pixel-level boundaries were not independently verified.
+
+The primary transfer comparison uses a fixed 15-scene
+evaluation panel. A separate diagnostic study excludes
+three selected scenes, leaving a 12-scene held-out subset;
+these populations must not be conflated. Reference frames
+can be temporally displaced from inputs, and covering the
+camera side can change local illumination. The privately
+captured image pairs are not distributed in the public
+reproducibility snapshot, which includes code and
+aggregate results instead.
 
 
 \begin{table}[t]
@@ -27,14 +37,14 @@ perfectly identical acquisition conditions.
 \toprule
 Item & Value \\
 \midrule
-Pairs / scenes & 631 pairs; 13 training scenes \\
+Frame--reference pairs & 631 pairings; 13 training scenes; GT may repeat \\
 Resolution & test panel $1280\times832$; pools $955\times934$ (apr/may/jun), $1392\times774$ (re-crop) \\
-Annotations & $I$, $T$, signed $R$ (uint8$+128$), per-frame $\Omega$ \\
-Attenuation levels & 4 ($\rho$: apr $0.969$, may $0.899$, jun $0.921$, test $0.858$) \\
+Records & $I$, $T$, signed residual (offset uint8), candidate $\Omega$ \\
+Appearance variants & unmodified plus 3 digitally adjusted ($8/11/14\%$) \\
 Occlusion present? & apr \ding{51}, jun \ding{51}, may \ding{55} (confirmed by inspection) \\
-$\Omega$ area (train pool) & $15.3\%$ (82 new pairs), $20.8\%$ (126 old pairs) \\
+Candidate $\Omega$ area & median $15.3\%$ (82-pair pool), $20.8\%$ (126-pair pool) \\
 Defect 1 & one GT per scene, median $374$ frames from the input (6\% within 50) \\
-Defect 2 & inside $\Omega$, $I/T|_{\mathrm{in}}\approx0.87$; global correction can be inaccurate locally \\
+Photometric difference & $(I/T)_{\mathrm{in}}=0.887$ within selected regions \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -162,23 +172,28 @@ and 126+44 (apr+jun) versus 130+44 (may+jun) real examples.
 Earlier small-pool rows are not part of the matched comparison.
 \end{table*}
 
-The may+jun pool achieves $22.70$~dB, exceeding
-the strongest evaluated public zero-shot model
-by $2.22$~dB and improving all 15 scenes
-(reported scene-level $95\%$ interval:
-$[+1.73,+2.72]$~dB). The matched apr+jun
+The may+jun pool achieves $22.70$~dB versus
+$20.50$~dB for the strongest public zero-shot
+method (a $2.20$~dB difference between
+the displayed scores). A separate pooled
+paired analysis, using a $20.48$~dB
+baseline export, reports an improvement
+of $2.22$~dB with a scene-level $95\%$
+interval of $[+1.73,+2.72]$~dB.
+All 15 scenes improve; the two baseline
+exports are reported separately. The matched apr+jun
 pool reaches $20.97$~dB, a $0.47$~dB gain
 with interval $[-0.03,+0.93]$~dB. We
 do not treat the latter as a reliable
 improvement.
 
-Removing the region-normalized loss from
+Removing the paired-residual-normalized loss from
 the corresponding fine-tuning runs reduces
 apr+jun from $20.96$ to $17.77$~dB and
 may+jun from $22.71$ to $18.33$~dB.
 The loss formulation is therefore important
 under this recipe. This ablation does not
-isolate the contribution of the true
+isolate the contribution of the candidate
 occlusion \emph{location}, which we
 investigate separately.
 
@@ -207,9 +222,10 @@ availability of occlusion masks.
 \subsection{Supervision placement}
 \label{sec:diag}
 We next isolate the spatial support of
-the region-normalized objective.
+the paired-residual-normalized objective.
 The primary arms use the same 82
-visually confirmed training pairs
+visually screened training pairs with
+candidate masks
 and three seeds per setting.
 Additional single-seed experiments
 are identified in Table~\ref{tab:placement}.
@@ -217,10 +233,9 @@ are identified in Table~\ref{tab:placement}.
 
 \begin{table*}[t]
 \centering
-\caption{Supervision placement. Primary arms above the rule
-report three-seed means and standard deviations. The area-matched
-random disk is redrawn during training; rows below the rule are
-single-seed exploratory results.}
+\caption{Supervision placement. The first four rows give three-seed
+means and standard deviations; the last two are single-seed
+screening results. Random disks are area-matched to candidate masks.}
 \label{tab:placement}
 \small
 \setlength{\tabcolsep}{6pt}
@@ -229,12 +244,12 @@ single-seed exploratory results.}
 What the loss acts on & PSNR & seed sd & hole & non-hole & LapVar \\
 \midrule
 no region loss ($\lambda_\Omega=0$) & 17.76 & 0.16 & 14.44 & 18.29 & 34.5 \\
-true $\Omega$ mask & 19.41 & \textbf{0.54} & 16.81 & 19.80 & 40.2 \\
+candidate $\Omega$ mask & 19.41 & \textbf{0.54} & 16.81 & 19.80 & 40.2 \\
 random disk, redrawn & \textbf{19.90} & \textbf{0.16} & \textbf{17.42} & \textbf{20.26} & 36.1 \\
+random disk, fixed per pair & 20.25 & 0.29 & 17.70 & 20.62 & 37.2 \\
 \midrule
 whole image, no mask$^\dagger$ & 20.05 & --- & 17.42 & 20.43 & 36.0 \\
-random disk, fixed per pair & 20.25 & --- & 17.70 & 20.62 & 37.2 \\
-true mask $+$ true darkening$^\dagger$ & 20.06 & --- & 17.22 & 20.49 & --- \\
+candidate mask $+$ paired darkening$^\dagger$ & 20.06 & --- & 17.22 & 20.49 & --- \\
 \bottomrule
 \end{tabular}
 \vspace{2pt}
@@ -243,31 +258,34 @@ true mask $+$ true darkening$^\dagger$ & 20.06 & --- & 17.22 & 20.49 & --- \\
 
 Removing the region term gives
 $17.76$~dB. Supervision on the
-true occlusion mask gives
+candidate occlusion mask gives
 $19.41$~dB, whereas an
 area-matched random disk gives
 $19.90$~dB. The corresponding
 seed standard deviations are
 $0.54$ and $0.16$~dB.
 Thus the tested loss benefits
-restoration, but the data do
-not establish a further advantage
-from its precise occlusion
-placement.
+restoration, but the data do not establish an advantage
+for the proposed mask location;
+mask noise is a possible explanation.
 
+A disk fixed per pair reaches
+$20.25\pm0.29$~dB across three
+seeds, $0.35$~dB above the
+redrawn-disk arm. This difference
+does not meet the pre-registered
+$0.50$~dB effect threshold.
 The exploratory whole-image
 relative-error arm scores
-$20.05$~dB, and a disk fixed
-per pair scores $20.25$~dB
-in the reported single-seed
-run. The result points toward
-normalization by estimated
-reflection amplitude as a
+$20.05$~dB in one run.
+Together, the results point toward
+normalization by the paired
+image residual $|I-T|$ as a
 plausible source of the gain,
 but this hypothesis needs a
 matched multi-seed comparison.
-Providing the observed in-region
-darkening gives $20.06$~dB
+Providing a paired-image estimate
+of in-region darkening gives $20.06$~dB
 in another screening run.
 
 A thin-boundary regularizer
@@ -367,8 +385,8 @@ restoration is unnecessary
 in general.
 
 Across 35 fine-tuned arms
-evaluated on a 12-scene
-held-out subset, mean
+evaluated on a separately defined
+12-scene held-out subset, mean
 brightness bias is
 $6.66$ gray levels.
 A post-hoc scalar gain
