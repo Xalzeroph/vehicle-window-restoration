@@ -22,7 +22,7 @@
   \begin{scope}[xshift=6.4cm]
     \draw[->] (0,0) -- (2.5,0);
     \draw[->] (0,0) -- (0,1.9);
-    \node[rotate=90,anchor=south] at (-0.32,0.95) {reflection};
+    \node[rotate=90,anchor=south] at (-0.32,0.95) {$r=I/T$};
     \fill[gray!35] (0.25,0) rectangle (0.95,1.58);
     \fill[gray!70] (1.25,0) rectangle (1.95,1.9);
     \node[above] at (0.6,1.58) {$\Omega$ ($83.2\%$)};
@@ -34,15 +34,17 @@
 \footnotesize
 \begin{tabular}{@{}c@{}}
 $I=\alpha T+(1-c)\beta R+cR_b+C_{\mathrm{nl}}$ \\
-Measured component ratios: $T_{\mathrm{in}}/T_{\mathrm{out}}=0.963$ and
+Measured image ratios: $T_{\mathrm{in}}/T_{\mathrm{out}}=0.963$ and
 $r_{\mathrm{in}}/r_{\mathrm{out}}=0.832$; see Table~\ref{tab:terms}.
 \end{tabular}
 
 \caption{Schematic of a camera-side occluder on automotive tinted glass.
 It changes the reflected light field and may perturb local illumination
-(left). The bar chart visualizes the measured in/out ratio of reflected
-content on 82 annotated pairs (right; normalized outside to $100\%$).
-This spatial occlusion region is not equivalent to a reflection-location
-mask. Geometry is schematic and not drawn to scale.}
+(left). The bar chart shows the in/out ratio of $r=I/T$ within
+candidate regions on 82 paired images (right; outside normalized
+to $100\%$). This ratio is not a direct measurement of
+reflected radiance. Occlusion and reflection location are distinct,
+and candidate pixel boundaries have not been independently verified.
+The geometry is schematic.}
 \label{fig:omega}
 \end{figure*}
