@@ -218,6 +218,8 @@ the tested domain-adaptation
 configuration, not to the
 availability of occlusion masks.
 
+\input{fig_qual}
+
 \subsection{Supervision placement}
 \label{sec:diag}
 We next isolate the spatial support of
@@ -302,21 +304,25 @@ induced during training.
 
 \subsection{Reflection-location supervision}
 \label{sec:gate}
-A gradient-comparison pseudo-label
-$G_I>G_T$ occupies $48.1\%$
-of pixels on our data and
-achieves IoU $0.063$ against
-the reflection-energy target.
-Supervising the same head
-using a location target derived
-from the signed reflection
-layer raises its IoU to
-$0.376$ (precision $0.739$,
-recall $0.489$) with the
-same image-only test interface.
+Following RRW~\cite{zhu2024rrw},
+a gradient-comparison pseudo-label
+$G_I>G_T$ covers $48.1\%$
+of the pixels and achieves IoU
+$0.063$ against our image-derived
+reflection-energy proxy. Training
+the same prediction head with a
+label derived from the paired
+signed residual raises the
+reported IoU to $0.376$
+(precision $0.739$, recall
+$0.489$) against that proxy.
+This is agreement with a
+constructed target, not
+validation against independently
+annotated reflection boundaries.
 
-However, the more accurate
-location map does not improve
+Despite higher proxy agreement,
+the resulting map does not improve
 restoration when used as a
 pixelwise loss weight:
 $19.75$~dB for the
@@ -327,11 +333,10 @@ label. The unmasked
 relative-error arm obtains
 $20.05$~dB in its
 separate screening run.
-These results apply to
-loss weighting and do
-not assess the learned
-map as a conditioning
-input.
+These results concern loss
+weighting, not the use of
+a predicted location map
+as a conditioning input.
 
 \subsection{Photometric error and conditioning}
 \label{sec:photom}

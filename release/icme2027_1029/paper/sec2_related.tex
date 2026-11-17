@@ -1,56 +1,53 @@
 \section{Related Work}
 \label{sec:related}
 
-\textbf{Paired supervision and data acquisition.}
-Early reflection-removal benchmarks and perceptual training methods emphasized
-the difficulty of separating overlapping layers from a single
-image~\cite{wan2017benchmarking,zhang2018perceptual}. More recent real-image
-collections, including RRW and OpenRR, improve the relevance of training
-data to photographs captured outside synthetic compositing
-pipelines~\cite{zhu2024rrw,openrr2025,cai2026ntire}.
-Their construction also highlights the importance of how a clean reference
-is acquired. Removing a reflecting surface can change refraction and alignment,
-whereas covering it can change illumination and camera response.
-RAW-domain acquisition offers another route to reducing image-processing
-mismatch~\cite{kee2025raw}. Our study focuses on a related but distinct failure of pairing:
-partial camera-side occlusion on tinted automotive glass.
-We retain the optical tint in the target and examine where changes introduced
-by the acquisition procedure affect the loss.
+\textbf{Paired reflection data.}
+The SIR$^2$ benchmark established controlled and in-the-wild
+reflection evaluation~\cite{wan2017benchmarking}. Subsequent
+collections such as RRW and OpenRR-1k improved the quantity and
+alignment of real image pairs~\cite{zhu2024rrw,openrr2025}.
+Their acquisition protocols also illustrate why a clean reference
+must be defined carefully: removing glass changes the refracted
+view, while changing illumination between exposures introduces
+another source of error. Kee \emph{et al.}~\cite{kee2025raw} use linear
+RAW images and a photometrically calibrated reflection simulator
+to address these differences at the capture and synthesis stages.
+We instead examine a recorded RGB target acquired \emph{through}
+tinted automotive glass. Multiple inputs may share the same
+scene-level reference, and camera-side covering can change the
+photometric conditions between captures.
 
-\textbf{Reflection models and restoration networks.}
-Classical methods constrain the two layers through image
-statistics~\cite{wan2017benchmarking,wan2022crrn}.
-Learning-based work extends the model with cascaded
-refinement~\cite{li2020ibcln}, non-additive interactions~\cite{hu2023dsrnet},
-absorption-aware imaging~\cite{zheng2021absorption}, and reversible
-feature separation~\cite{zhao2025rdnet,hu2024dsit}.
-Recent diffusion-based approaches provide stronger image
-priors~\cite{hong2024ldiffer,promptrr2024,li2026gensirr},
-while lightweight architectures address inference
-cost~\cite{lightrr2026}.
-These methods seek improved restoration under their respective training
-distributions. Our question is complementary: when a paired target
-has local and global photometric ambiguities, which aspects of the
-supervision remain useful under a fixed restoration architecture?
+\textbf{Image formation and restoration.}
+Absorption-aware restoration explicitly models the attenuation of
+transmitted light~\cite{zheng2021absorption}. More recently,
+Wang \emph{et al.}~\cite{wang2026pstm} formulated wavelength-selective
+absorption and multiple reflection paths for colored glass using
+four polarization observations. Their goal is color-consistent
+reconstruction of the background scene; ours is to assess paired
+supervision for recovering the glass-transmitted appearance from
+a single RGB input. The two tasks therefore differ in both
+available measurements and target definition.
+Among RGB methods, IBCLN refines predictions in a cascade,
+DSRNet models interactions between the layers, and RDNet uses
+reversible feature decoupling~\cite{li2020ibcln,hu2023dsrnet,zhao2025rdnet}.
+Other recent work introduces stronger diffusion priors or
+smaller architectures~\cite{hong2024ldiffer,li2026gensirr,lightrr2026}.
+Our study fixes a restoration backbone and examines the
+supervision rather than proposing another layer-separation network.
 
-\textbf{Spatial priors and photometric conditions.}
-Reflection-location predictors guide restoration by estimating where
-reflected content is present. RRW uses a gradient-comparison pseudo-label
-and a learned guidance map~\cite{zhu2024rrw}; location-aware and
-reflection-guided methods explore related spatial
-signals~\cite{lanet2021,ragnet2023}.
-A camera-side occlusion map is different: it describes a change in
-the reflection-generating process, not the support of the visible
-reflection. We compare these signals and separately test whether
-more accurate reflection-location labels translate into a better
-reconstruction objective.
-
-Photometric conditioning has close parallels in image
-enhancement, where learned curves, reflectance--illumination
-decompositions, and restoration prompts provide ways to control
-appearance~\cite{guo2020zerodce,ma2022sci,wu2022uretuinex,cai2023retinexformer}.
-Such methods motivate an operational question: does changing an
-explicit condition actually change the output as intended?
-We use an intervention on the conditioning value to measure this
-response directly, without treating a predicted brightness scalar
-as an independent observation.
+\textbf{Location cues and photometric guidance.}
+RRW's maximum reflection filter (MaxRF) uses the comparison
+$|\nabla I|>|\nabla T|$ to derive local-reflection targets
+from paired images and subsequently conditions the removal network
+on a predicted map~\cite{zhu2024rrw}. LANet similarly uses a learned
+reflection-confidence map as an input to restoration~\cite{lanet2021}.
+Our candidate occlusion region is a different quantity: it describes
+where the proposed acquisition model includes camera-side coverage,
+not where visible reflection content is present. We test loss
+placement separately from location prediction, using a residual-derived
+reflection-energy \emph{proxy} rather than independently annotated
+reflection locations. Finally, intensity-control approaches to
+image enhancement illustrate the importance of distinguishing a
+predicted photometric condition from a separately measured
+one~\cite{guo2020zerodce,cai2023retinexformer}. We evaluate
+conditioning by intervening on its value at fixed input.
