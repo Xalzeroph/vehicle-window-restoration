@@ -1,34 +1,45 @@
-﻿% ==================== 3. Method ====================
-\section{Method}
+\section{Imaging Model and Supervision}
 \label{sec:method}
 
-\subsection{Imaging model and the occlusion region}
+\subsection{A local mismatch in paired acquisition}
 
-For pixel $x$ and channel $c$, under linear radiance,
+Let $T$ and $R$ denote the scene and camera-side reflection before
+attenuation. In a linearized image domain, a useful model for pixel $x$
+and color channel $c$ is
 \begin{equation}
-I_c(x)=\alpha_c(x)\,T_c(x)+\beta_c\,R_c(x)+C_{\mathrm{nl}}(T,R),
+I_c(x)=\alpha_c(x)T_c(x)+\beta_cR_c(x)+C_{\mathrm{nl},c}(T,R),
 \end{equation}
-where $\alpha_c=\tau_c(1-\eta_c)$ is the effective transmission gain ($\tau_c$ the film's transmission factor, $\eta_c$ the occlusion-induced illumination loss) and $\beta_c$ the
-reflection gain. The target is $T_{\mathrm{obs}}=\tau T$: keep the film's transmission, remove
-the reflection. Placing an occluder on the camera side blocks the fraction $c(x)\in[0,1]$ of the
-solid angle converging to $x$, so that
+where $\alpha_c(x)=\tau_c(1-\eta_c(x))$ contains the
+glass transmittance $\tau_c$ and a local illumination change
+$\eta_c(x)$. The residual $C_{\mathrm{nl}}$ accounts for departures
+from additive layer formation. The intended target,
+$T_{\mathrm{obs}}=\tau T$, retains the appearance induced by the
+tinted glass while excluding the reflection.
+
+Consider a camera-side object that obscures part of the reflected
+light field. Writing $c(x)\in[0,1]$ for its local coverage gives
 \begin{equation}
-I_c(x)=\alpha_c T_c+\bigl(1-c(x)\bigr)\beta_c R_c+c(x)\,R_{b,c}+C_{\mathrm{nl}},
+I_c(x)=\alpha_c(x)T_c(x)
+ +(1-c(x))\beta_cR_c(x)+c(x)R_{b,c}(x)+C_{\mathrm{nl},c},
 \label{eq:omega}
 \end{equation}
-with $R_{b,c}$ the occluder's own faint diffuse reflection. Because the occluder is a bounded
-solid, $c$ is \emph{piecewise smooth with sharp boundaries}; this is what distinguishes an
-occlusion region from a gradual attenuation. We define the region observably as
-$\Omega_\delta=\{x:c(x)\ge\delta\}$ and estimate it from the dip of
-$\hat R=I-gT$ below its local upper envelope (block 90th percentile, bilinear upsampling),
-with a noise-floor threshold and a minimum component area.
+where $R_b$ represents light reflected by the occluder itself.
+We define the \emph{occlusion region}
+$\Omega_\delta=\{x:c(x)\geq\delta\}$ for a chosen threshold
+$\delta$. This is a region in which the acquisition geometry changes;
+it need not coincide with the support of visible reflected objects.
+For the training images, we estimate candidate regions from dips in
+the residual $\hat R=I-gT_{\mathrm{obs}}$ relative to a locally
+interpolated upper envelope (blockwise 90th percentile), followed
+by a noise-floor criterion and component-size filtering.
+The resulting masks are acquisition-derived annotations rather than
+single-image ground truth.
 
 \begin{table}[t]
 \centering
-\caption{Physical decomposition inside $\Omega$, measured on 82 confirmed pairs
-(pixel-domain medians; 82 annotated pairs). The reflection deficit is the larger of the two
-($16.8\%$ against $3.7\%$ of target darkening), and it is what makes
-$I/T|_{\mathrm{in}}\!\approx\!0.87$.}
+\caption{Photometric measurements on 82 annotated pairs.
+The relative transmission and reflection changes refer to different
+components; the ratios should not be interpreted as the same attenuation.}
 \label{tab:terms}
 \small
 \begin{tabular}{@{}p{1.45cm}p{1.45cm}p{3.3cm}@{}}
@@ -45,57 +56,88 @@ $\delta_r$ & \textbf{reflection deficit} & \textbf{$16.8\%$} of $r$ ($r_{\mathrm
 \end{tabular}
 \end{table}
 
-\subsection{Over-correction}
+\subsection{Local over-correction}
 
-Let a method apply, inside $\Omega$, a correction proportional to the \emph{global} average
-reflection strength, while the correct in-region correction is the local one. With
-$\delta_{\mathrm{obs}}:=1-\mathbb{E}[\hat R\mid\Omega]/\mathbb{E}[b_R\mid\Omega]$ the
-over-correction ratio obeys
+A correction calibrated using the reflection strength outside
+$\Omega$ can be too strong where camera-side coverage has attenuated
+the reflection. Under a proportional-correction approximation, let
+$\delta_{\mathrm{obs}}$ denote the local relative deficit,
+\[
+\delta_{\mathrm{obs}}
+=1-\frac{\mathbb{E}[\hat R\mid\Omega]}
+         {\mathbb{E}[b_R\mid\Omega]},
+\]
+where $b_R$ is the local unoccluded reflection estimate.
+The ratio between an applied correction and the in-region correction
+needed to match the paired target can then be expressed as
 \begin{equation}
-\mathrm{OCR}:=\frac{\mathbb{E}_{x\in\Omega}[\hat T-I]}
-{\mathbb{E}_{x\in\Omega}[T_{\mathrm{obs}}-I]}\approx\frac{1}{1-\delta_{\mathrm{obs}}}.
+\mathrm{OCR}
+:=\frac{\mathbb{E}_{x\in\Omega}[\hat T-I]}
+        {\mathbb{E}_{x\in\Omega}[T_{\mathrm{obs}}-I]}
+\approx\frac{1}{1-\delta_{\mathrm{obs}}}.
 \end{equation}
-Because $\Omega$ keeps only about $30\%$ of the local reflection, the predicted ratio is
-large, and an independent evaluation gives $2.7\times$. The failure is therefore
-\emph{structural}, not a tuning issue.
+The approximation assumes a nonzero mean target correction and a
+proportional global estimate. Our measured over-correction ratio is
+$2.7\times$. This observation motivates testing spatially restricted
+supervision; it does not imply that every restoration network applies
+an explicit global correction.
 
-\subsection{Non-identifiability of the global scale}
+\subsection{Ambiguity of the global transmission scale}
 
-From $I=\tau T+R$ and a reference $T_{\mathrm{obs}}\approx\tau T$, for any $\lambda>0$ the
-pair $(\lambda T_{\mathrm{obs}},\,R+(1-\lambda)T_{\mathrm{obs}})$ yields a
-\emph{pixel-identical} $I$. Hence
+For the simplified mixture $I=T_{\mathrm{obs}}+R$, consider any
+positive $\lambda$ for which the corresponding layers remain
+admissible. The alternative decomposition
+\[
+T'_{\mathrm{obs}}=\lambda T_{\mathrm{obs}},\qquad
+R'=R+(1-\lambda)T_{\mathrm{obs}}
+\]
+produces exactly the same $I$. Without an additional constraint on
+$R$ or a photometric measurement, the observed image alone does
+not uniquely specify the global scale
 \begin{equation}
-\rho:=\frac{\mu(T_{\mathrm{obs}})}{\mu(I)}=\frac{1}{1+r},\qquad
-r:=\frac{\mu(R)}{\mu(T_{\mathrm{obs}})},
+\rho=\frac{\mu(T_{\mathrm{obs}})}{\mu(I)}
+     =\frac{1}{1+r},\qquad
+r=\frac{\mu(R)}{\mu(T_{\mathrm{obs}})}.
 \end{equation}
-is not a function of $I$. Two corollaries are testable: (i) a model using scale $\lambda$
-incurs the error $(1-\lambda)\rho\,\mu(I)$, and (ii) when the scale is approximately
-independent of the image, a pixel-wise objective drifts toward the domain-average brightness
-and smooths high frequencies. Both are confirmed in Section~\ref{sec:photom}.
+This construction establishes a non-identifiability in the model,
+not the impossibility of predicting a likely scale from learned
+image statistics. We quantify that distinction through measured
+brightness bias and post-hoc photometric corrections
+(Section~\ref{sec:photom}).
 
-\subsection{Two losses, and where the signal can live}
+\subsection{Supervision objectives and spatial support}
 
-\textbf{Region loss.} We use $\Omega$ only at training time (detecting it from one frame is
-infeasible: the direct upper bound is IoU $0.494$). With mask $m_\Omega$,
+The occlusion mask is used as a training-time signal, not an
+additional input at test time. Writing $T$ for the paired training
+target, a masked reflection-normalized reconstruction term and
+a one-sided hinge term are
 \begin{equation}
-L^{\mathrm{err}}_\Omega=\frac{\sum_x m_\Omega|\hat T-T|}
-{\sum_x m_\Omega|\hat R|},\qquad
-L^{\mathrm{hinge}}_\Omega=\frac{\sum_x m_\Omega[T-\delta(x)-\hat T]_+}
-{\sum_x m_\Omega|\hat R|},
+L^{\mathrm{err}}_\Omega
+=\frac{\sum_xm_\Omega(x)|\hat T(x)-T(x)|}
+       {\sum_xm_\Omega(x)|\hat R(x)|},\qquad
+L^{\mathrm{hinge}}_\Omega
+=\frac{\sum_xm_\Omega(x)[T(x)-\delta(x)-\hat T(x)]_+}
+       {\sum_xm_\Omega(x)|\hat R(x)|}.
 \end{equation}
-and $L_\Omega=\sum_c w_c(\lambda_\Omega L^{\mathrm{err}}_\Omega+\lambda_h
-L^{\mathrm{hinge}}_\Omega)$ with $\lambda_\Omega=3$, $\lambda_h=1$. The normalizer is the
-\emph{local reflection amplitude} rather than a constant, which makes pairs with different
-reflection strengths comparable; the hinge is one-sided so that it never rewards smoothing.
+The complete region objective is
+$L_\Omega=\sum_cw_c(\lambda_\Omega L^{\mathrm{err}}_\Omega+
+\lambda_hL^{\mathrm{hinge}}_\Omega)$, with
+$\lambda_\Omega=3$ and $\lambda_h=1$. The denominator normalizes
+the error by the estimated reflection magnitude in the selected
+region. Our experiments distinguish this normalization from the
+choice of the region itself.
 
-\textbf{Why a boundary term cannot be validated by PSNR.} Suppose a regularizer acts only on
-a fraction $f_B$ of the pixels and can at best drive that region's error to zero, the region
-being $r$ times worse than the rest. Then
+Finally, consider the maximum \emph{direct} PSNR improvement
+obtainable when a correction changes only a pixel subset occupying
+fraction $f_B$. If its initial mean squared error is $r$ times
+that of the remaining pixels, even removing all error in that
+subset yields at most
 \begin{equation}
-\Delta\mathrm{PSNR}\le 10\log_{10}\frac{1+f_B(r-1)}{1-f_B}.
+\Delta\mathrm{PSNR}\leq
+10\log_{10}\frac{1+f_B(r-1)}{1-f_B}.
 \label{eq:bound}
 \end{equation}
-For a $2$-pixel band around a $15\%$-area region, $f_B\approx0.28\%$, and with $r=3$ the
-bound is $0.036$~dB --- an order of magnitude below the $0.26$~dB minimum detectable effect of
-our benchmark. Anything that only touches a thin band is therefore \emph{untestable} with a
-global score, however correct its physics.
+With $f_B\approx0.28\%$ and $r=3$, the limit is
+$0.036$~dB. This bound concerns changes \emph{confined to the
+subset}; it does not bound indirect, image-wide changes caused
+by training with a boundary regularizer.
