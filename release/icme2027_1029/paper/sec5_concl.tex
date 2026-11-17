@@ -1,24 +1,33 @@
-﻿% ==================== 5. Conclusion ====================
 \section{Conclusion}
 \label{sec:concl}
 
-We revisited what a real-pair SIRR protocol silently assumes, for the practical case of
-automotive tinted glass. The occlusion region is real, it is measurable, and its dominant
-effect is dominated by the reflection deficit ($16.8\%$) rather than by target darkening ($3.7\%$),
-while the input still falls $13\%$ below its own target inside $\Omega$ --- which is why a globally
-strength-calibrated correction over-corrects inside it. More usefully for practitioners, our
-controlled comparison shows that the benefit of an occlusion-mask loss does \emph{not} come
-from the mask: an area-matched random region is at least as good, and the active ingredient is
-the normalization of the error by the local reflection amplitude. Where the signal is
-demonstrably present --- the reflection layer itself --- replacing a gradient-comparison
-pseudo-label by true supervision triples the usable mask quality for free. We also give a
-closed-form bound that tells, before running anything, whether a region- or boundary-scale
-term can be validated by a global score at all, and an interventional test that exposes
-photometric conditions which do not actually condition. All negative results, the dataset and
-the evaluation protocol are released so that the next attempt can start from the right
-question.
+We studied how paired supervision behaves when the reference image is
+acquired through tinted automotive glass. Camera-side occlusion changes
+both reflected content and illumination, producing a local mismatch
+between the recorded mixture and its paired transmission target.
+The additive imaging model also leaves the absolute transmission
+scale ambiguous without additional assumptions or measurements.
+
+Our controlled experiments separate these issues from the benefits
+of training on the target domain. Fine-tuning on the better-matched
+data pool improves restoration on the frozen evaluation panel, but
+the results do not establish a benefit from localizing the loss to
+the true occlusion region: an area-matched random region performs
+similarly across the tested seeds. More accurate reflection-location
+labels likewise fail to improve reconstruction when used only as
+loss weights. A support-area calculation clarifies the limited direct
+effect of corrections restricted to a narrow boundary, while an
+intervention tests whether explicit photometric conditions influence
+the model output.
+
+The broader implication is methodological. Improvements in paired
+reflection removal should be attributed separately to data
+distribution, loss normalization, spatial supervision, and
+photometric control. Reporting the corresponding negative results
+is necessary to determine which components actually account for
+the observed gains.
 
 \section*{Reproducibility note}
-This submission extends an anonymized project report; per-arm logs, the frozen split hash and
-the evaluation script are included as supplementary material. Three-seed arms use seeds
-101/202/303.
+The frozen split, evaluation protocol, and per-run records are
+provided with the submission materials. Multi-seed experiments
+use seeds 101, 202, and 303.
