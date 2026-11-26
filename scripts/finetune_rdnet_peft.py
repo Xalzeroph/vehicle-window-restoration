@@ -1,21 +1,9 @@
 #!/usr/bin/env python3
-"""S1-PEFT: RDNet 贴膜域微调 + Mona 适配器（冻 FocalNet 主干，只训 mona + 其余可训参数）。
+"""RDNet + Mona teacher training on the frozen paired photo manifest.
 
-与 `finetune_rdnet_tint.py`（plain 主臂）的唯一差别 = 插 Mona 适配器，其余（数据/损失/调度/
-超参/存档格式）完全对齐。用法:
-
-  CUDA_VISIBLE_DEVICES=1 python3 scripts/finetune_rdnet_peft.py \
-      --mona both --out runs/ckpt/rdt_mona_s20260915 --iters 30000 --batch 8 --gpu 0
-
-数据: data/train_sets/train_triplets_rdt_0915（I/T/R/alpha, 5 档）
-损失: Σ_列 (w_col/Σw)·[ Charbonnier(T̂,T)·w(α) + 1.5·Charbonnier(R̂,R) ] + 0.2·|I−(T̂+R̂)|
-模型: FullNet_NLP + 官方 rdnet.pth；prompt code 由冻结的 cls_model（ConvNeXt）给出
-Mona: scripts/rdnet_peft.py（CVPR'25 PEFT；mode=both 时 +5.23M 可训参数）
-
-三个顺序/冻结坑（本脚本已显式处理并打印）:
-  1) 顺序：`FullNet_NLP(...)` 构造内部会 strict 加载 ./pretrained/focal.pth -> patch_focalnet 必须在构造之后。
-  2) 冻结：mona 参数也带 `baseball.` 前缀，会被冻结规则命中 -> 冻完必须显式解冻。
-  3) 加载：rdnet.pth 无 mona key -> 断言"非 mona missing=0 且 unexpected=0"，mona 只允许全 missing。
+Each sample provides observed input and tinted-transmission target. Supervise
+reflection as the observed residual I-T; this is not a separately captured
+physical reflection layer. The same dataset and loss apply to baseline and CCDD.
 """
 import argparse, csv, json, math, os, sys, time
 import numpy as np
@@ -49,43 +37,40 @@ def _seed_worker(worker_id):
 
 
 class TintDataset(Dataset):
-    """一场景一种：随机档 + 随机裁剪(224-320²) + 翻转。"""
+    """Paired observed/tinted-transmission samples from one frozen manifest."""
 
-    def __init__(self, root, size_min=224, size_max=320):
-        self.root = root
-        self.size = size_min          # 批内统一: 训练循环定期改（避免 collate 形状不一致）
-        with open(os.path.join(root, "meta.json")) as fp:
-            meta = json.load(fp)
-        self.levels = meta["levels"]
-        self.tags = [f"l{round(float(lv) * 100):03d}" for lv in self.levels]
-        self.ids = sorted(os.path.splitext(f)[0] for f in os.listdir(os.path.join(root, "T")))
-        assert self.ids, f"空数据集: {root}"
+    def __init__(self, manifest, size_min=224, size_max=320):
+        self.root = os.path.dirname(os.path.abspath(manifest))
+        with open(manifest, encoding="utf-8") as stream:
+            self.items = json.load(stream)["items"]
+        self.size = size_min
         self.smin, self.smax = size_min, size_max
 
     def __len__(self):
-        return len(self.ids)
+        return len(self.items)
 
-    def _img(self, sub, name):
-        return np.asarray(Image.open(os.path.join(self.root, sub, name)).convert("RGB"),
-                          np.float32).transpose(2, 0, 1) / 255.0
+    @staticmethod
+    def _image(path):
+        return np.asarray(Image.open(path).convert("RGB"), dtype=np.float32).transpose(2, 0, 1) / 255.0
 
-    def __getitem__(self, i):
-        sid = self.ids[i]
-        j = np.random.randint(len(self.tags))
-        I = self._img("I", f"{sid}_{self.tags[j]}.png")
-        T = self._img("T", sid + ".png")
-        R = self._img("R", sid + ".png")
-        A = np.load(os.path.join(self.root, "alpha", f"{sid}_{self.tags[j]}.npy")).astype(np.float32)
-        if A.ndim == 2:
-            A = A[None]
-        s = self.size
-        H, W = I.shape[-2:]
-        y0 = np.random.randint(0, H - s + 1); x0 = np.random.randint(0, W - s + 1)
-        I, T, R, A = (x[..., y0:y0 + s, x0:x0 + s] for x in (I, T, R, A))
+    def __getitem__(self, index):
+        folder = os.path.join(self.root, self.items[index]["relative_directory"])
+        observed = self._image(os.path.join(folder, "observed.png"))
+        target = self._image(os.path.join(folder, "target_tinted.png"))
+        size = self.size
+        height, width = observed.shape[-2:]
+        y = np.random.randint(height - size + 1)
+        x = np.random.randint(width - size + 1)
+        observed = observed[:, y:y+size, x:x+size]
+        target = target[:, y:y+size, x:x+size]
         if np.random.rand() < 0.5:
-            I, T, R, A = (x[..., ::-1].copy() for x in (I, T, R, A))
-        c = lambda x: torch.from_numpy(np.ascontiguousarray(x))    # noqa: E731
-        return c(I), c(T), c(R), c(A)
+            observed = observed[:, :, ::-1].copy()
+            target = target[:, :, ::-1].copy()
+        residual = observed - target
+        # The target is already film-attenuated; do not reapply film gain weights.
+        alpha = np.ones((1, size, size), dtype=np.float32)
+        tensor = lambda image: torch.from_numpy(np.ascontiguousarray(image))
+        return tensor(observed), tensor(target), tensor(residual), tensor(alpha)
 
 
 def build(pretrained_ckpt=None, save_memory=True, mona="both", grad_ckpt=True):
@@ -130,7 +115,7 @@ def build(pretrained_ckpt=None, save_memory=True, mona="both", grad_ckpt=True):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--triplets", default=os.path.join(PROJ, "data/train_sets/train_triplets_rdt_0915"))
+    ap.add_argument("--train-manifest", required=True, help="Frozen train/photo_manifest.json")
     ap.add_argument("--out", default=None)
     ap.add_argument("--mona", choices=["both", "ffn", "none"], default="both",
                     help="Mona 插入点: both=调制残差后+FFN 残差后; ffn=仅 FFN 残差后; none=不插(plain)")
@@ -182,7 +167,7 @@ def main():
           f"  | mona 可训 {mona_tr/1e6:.2f}M, baseball.* 可训 {bb_tr/1e6:.2f}M")
     net.to(dev); net_c.to(dev)
 
-    ds = TintDataset(os.path.join(PROJ, args.triplets))
+    ds = TintDataset(args.train_manifest)
     opt = torch.optim.Adam([p for p in net.parameters() if p.requires_grad], lr=args.lr)
     sched = torch.optim.lr_scheduler.LambdaLR(
         opt, lambda i: 0.1 + 0.45 * (1 + math.cos(math.pi * min(i, args.iters) / args.iters)))
@@ -203,7 +188,7 @@ def main():
         print(f"[rdt-peft] resume {args.resume} @ iter {start_it}", flush=True)
     logf = open(os.path.join(out, "train_log.csv"), "w")
     logf.write("iter,L_t,L_r,L_recons,total,sec\n")
-    print(f"[rdt-peft] 数据 {len(ds)} 场景 × {len(ds.tags)} 档; batch={args.batch}（320² 段自动降档）")
+    print(f"[rdt-peft] train manifest={args.train_manifest} paired images={len(ds)} batch={args.batch}", flush=True)
 
     # 裁剪尺寸与批大小绑定：320²@bs8 在 10GB 卡 OOM（实测 256² bs8≈7.5G）
     segs = [(224, args.batch), (256, min(args.batch, 6)), (320, min(args.batch, 4))]
