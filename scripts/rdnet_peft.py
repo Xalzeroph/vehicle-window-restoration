@@ -125,8 +125,8 @@ class CrossColumnRDNet(FullNet_NLP):
                 memory = self.column_route(current, previous, memory, feedback)
             transmission = tuple(state + revision for state, revision in zip(current, memory))
             reflection = tuple(state - revision for state, revision in zip(current, memory))
-            t_residual = self._decode_stream(decoder, transmission, 0, decoder.projback_)
-            r_residual = self._decode_stream(decoder, reflection, 3, decoder.projback_2)
+            r_residual = self._decode_stream(decoder, reflection, 0, decoder.projback_)
+            t_residual = self._decode_stream(decoder, transmission, 3, decoder.projback_2)
             previous_output = torch.cat((x_in - r_residual, x_in - t_residual), dim=1)
             outputs.append(previous_output)
             previous = current
