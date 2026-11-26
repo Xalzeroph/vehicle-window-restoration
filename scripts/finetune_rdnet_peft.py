@@ -75,7 +75,7 @@ class TintDataset(Dataset):
 
 def build(pretrained_ckpt=None, save_memory=True, mona="both", grad_ckpt=True):
     """构造 FullNet_NLP -> patch Mona -> 加载 rdnet.pth（顺序不可换，见模块 docstring）。"""
-    net = CrossColumnRDNet(channels=[64, 128, 256, 512], layers=[2, 2, 4, 2], num_subnet=4,
+    net = DARLRDNet(channels=[64, 128, 256, 512], layers=[2, 2, 4, 2], num_subnet=4,
                       loss_col=4, num_classes=1000, drop_path=0, save_memory=save_memory,
                       inter_supv=True, head_init_scale=None, kernel_size=3)
     n_blk = patch_focalnet(net, mona, grad_ckpt=grad_ckpt, verbose=True)  # 必须在构造后（构造内 strict 加载 focal.pth）
