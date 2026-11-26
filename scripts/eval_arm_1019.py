@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Single authority for paired-manifest RDNet teacher evaluation."""
+"""One canonical tiled evaluator for native paired RDNet/DARL image manifests."""
 import argparse
 import csv
 import json
@@ -30,12 +30,44 @@ def ssim(predicted, target):
     ]))
 
 
+def tiled_transmission(net, classifier, image, device, tile, overlap):
+    tensor = torch.from_numpy(image.transpose(2, 0, 1).copy()).unsqueeze(0).float().div_(255)
+    height, width = tensor.shape[-2:]
+    tensor = F.pad(tensor, (0, max(0, tile - width), 0, max(0, tile - height)),
+                   mode="reflect")
+    padded_h, padded_w = tensor.shape[-2:]
+    stride = tile - overlap
+
+    def starts(length):
+        positions = list(range(0, max(1, length - tile + 1), stride))
+        last = length - tile
+        if positions[-1] != last:
+            positions.append(last)
+        return positions
+
+    taper = torch.hann_window(tile, periodic=False).clamp_min(1e-2)
+    weight = taper[:, None] * taper[None, :]
+    output = torch.zeros((1, 3, padded_h, padded_w), dtype=torch.float32)
+    weight_sum = torch.zeros((1, 1, padded_h, padded_w), dtype=torch.float32)
+    for top in starts(padded_h):
+        for left in starts(padded_w):
+            patch = tensor[:, :, top:top + tile, left:left + tile].to(device)
+            with torch.autocast(device_type=device.type, enabled=device.type == "cuda"):
+                alpha = classifier(patch)
+                transmission = net(patch, alpha)[1][-1][:, 3:].float().cpu()
+            output[:, :, top:top + tile, left:left + tile] += transmission * weight
+            weight_sum[:, :, top:top + tile, left:left + tile] += weight
+    return (output / weight_sum)[:, :, :height, :width].clamp_(0, 1)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", required=True)
-    parser.add_argument("--checkpoint", required=True, help="'official' or complete RDNet teacher checkpoint")
+    parser.add_argument("--checkpoint", required=True, help="'official' or complete DARL teacher checkpoint")
     parser.add_argument("--out", required=True)
     parser.add_argument("--device", default="cuda:0")
+    parser.add_argument("--tile", type=int, default=256, help="Inference tile, multiple of 32")
+    parser.add_argument("--overlap", type=int, default=64, help="Overlapping pixels for Hann blending")
     args = parser.parse_args()
 
     with open(args.manifest, encoding="utf-8") as src:
@@ -55,25 +87,14 @@ def main():
     records = []
     with torch.inference_mode():
         for entry in items:
-            folder = os.path.join(root, entry["relative_directory"])
-            observed = load_image(os.path.join(folder, "observed.png"))
-            target = load_image(os.path.join(folder, "target.png"))
-            tensor = torch.from_numpy(observed.transpose(2, 0, 1).copy()).unsqueeze(0).to(
-                device=device, dtype=torch.float32
-            ).div_(255.0)
-            height, width = tensor.shape[-2:]
-            pad = (0, (-width) % 32, 0, (-height) % 32)
-            if any(pad):
-                tensor = F.pad(tensor, pad, mode="reflect")
-            with torch.autocast(device_type=device.type, enabled=device.type == "cuda"):
-                alpha = classifier(tensor)
-                transmission = net(tensor, alpha)[1][-1][:, 3:]
-            prediction = transmission[:, :, :height, :width].float().clamp_(0, 1)
-            prediction = prediction.mul_(255).round().to(torch.uint8)[0].permute(1, 2, 0).cpu().numpy()
+            observed = load_image(os.path.join(root, entry["input"]))
+            target = load_image(os.path.join(root, entry["target"]))
+            prediction = tiled_transmission(net, classifier, observed, device,
+                                            args.tile, args.overlap)
+            prediction = prediction.mul_(255).round().to(torch.uint8)[0].permute(1, 2, 0).numpy()
             row = {
                 "id": entry["id"],
                 "source_t_key": entry["source_t_key"],
-                "film_level": entry["film_level"],
                 "psnr": psnr(prediction, target),
                 "ssim": ssim(prediction, target),
                 "identity_psnr": psnr(observed, target),
@@ -83,17 +104,19 @@ def main():
             print(f"[eval] {len(records)}/{len(items)} {row['id']} PSNR={row['psnr']:.3f}", flush=True)
 
     keys = ("psnr", "ssim", "identity_psnr", "identity_ssim")
-    scenes = {}
+    groups = {}
     for row in records:
-        scenes.setdefault(row["source_t_key"], []).append(row)
+        groups.setdefault(row["source_t_key"], []).append(row)
     aggregate = lambda rows: {key: float(np.mean([v[key] for v in rows])) for key in keys}
     summary = {
         "manifest": args.manifest,
         "checkpoint": args.checkpoint,
+        "tile": args.tile,
+        "overlap": args.overlap,
         "n_images": len(records),
-        "n_sources": len(scenes),
+        "n_sources": len(groups),
         "per_image": aggregate(records),
-        "per_scene": aggregate([aggregate(rows) for rows in scenes.values()]),
+        "per_scene": aggregate([aggregate(rows) for rows in groups.values()]),
     }
     with open(os.path.join(args.out, "metrics.csv"), "w", newline="", encoding="utf-8") as dst:
         writer = csv.DictWriter(dst, fieldnames=records[0].keys())
