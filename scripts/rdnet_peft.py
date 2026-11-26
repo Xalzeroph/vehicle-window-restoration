@@ -36,9 +36,49 @@ RDNET = os.path.join(PROJ, "RDNet")
 if RDNET not in sys.path:
     sys.path.insert(0, RDNET)
 from models.arch.focalnet import FocalModulationBlock   # noqa: E402
+from models.arch.RDnet_ import FullNet_NLP  # noqa: E402
 
 MONA_MODULE_NAMES = ("mona1", "mona2")
 MONA_MODES = ("both", "ffn", "none")
+
+
+
+# ---------------------------------------------------------------- stage-wise residual routing
+class StageResidualMixer(nn.Module):
+    """Fuse existing RDNet stage corrections without another decoder.
+
+    The final-stage estimate is an exact initialization fixed point; learning
+    selects earlier-stage corrections at each pixel. Extra work is O(BHWC K).
+    """
+
+    def __init__(self, stages, channels=3):
+        super().__init__()
+        self.predictor = nn.Conv2d(channels + 2 * channels * (stages - 1), stages, 1)
+        nn.init.zeros_(self.predictor.weight)
+        nn.init.zeros_(self.predictor.bias)
+
+    def forward(self, image, estimates):
+        final = estimates[-1]
+        differences = torch.stack([estimate - final for estimate in estimates[:-1]], dim=1)
+        scores = self.predictor(torch.cat((image, differences.flatten(1, 2)), dim=1))
+        weights = scores[:, :-1].softmax(dim=1)
+        correction = (differences * weights[:, :, None]).sum(dim=1)
+        return final + scores[:, -1:].tanh() * correction
+
+
+class StageMixedRDNet(FullNet_NLP):
+    """RDNet + Mona's existing FocalNet adaptation + lightweight stage mixer."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        count = min(self.num_subnet, self.Loss_col - 1)
+        self.stage_mixer = StageResidualMixer(count)
+
+    def forward(self, x_in, alpha, prompt=True):
+        classes, estimates = super().forward(x_in, alpha, prompt=prompt)
+        if len(estimates) > 1:
+            estimates[-1] = self.stage_mixer(x_in, estimates)
+        return classes, estimates
 
 
 # ---------------------------------------------------------------- 官方实现照搬
