@@ -70,9 +70,9 @@ q_U=\frac{2\min(e_T,e_R)+\epsilon}{e_T+e_R+\epsilon}.
 
 ## 数据与评测
 
-主训练集为 Hugging Face \`qiuzhangTiTi/OpenRR-5k\` 原生真实拍摄配对：官方训练 5,000 对、官方验证 300 对，全部在 HDD3 上下载并解压，按同名 JPG 直接引用，不合成图像、不复制出第二套图片。
+真实配对训练集由 Hugging Face \`qiuzhangTiTi/OpenRR-5k\` 的官方训练 5,000 对与 \`zmy1234567890/tintedglass-rdt-synth\` 仓库的真实子集 713 对组成（\`rdt_1020\` 300 对、\`rdt_1019split\` 331 对、\`rdt_1026\` 82 对）。合并样本数 5,713 对，其中 Zhou 的数据来自 16 个采集场景，\`rdt_1026\` 含同一采集帧的重裁版本，不能按独立场景计数。严格排除该仓库的 \`rdt_0915\` 合成部分及 \`test/*\` 评测部分。全部数据在 HDD3 上按原路径引用，不合成图像、不复制出第二套图片。
 
-训练 manifest：\`datasets/real_sirr_hf/qiuzhangTiTi/OpenRR-5k/unpacked/train/manifest.json\`。
+联合训练 manifest：\`datasets/real_sirr_hf/openrr5k_plus_zhou_real/train/manifest.json\`。模型先在 OpenRR 5,000 对真实图像上训练至第 10,000 步，再从完整 checkpoint 连续恢复网络、优化器和 AMP scaler，并使用联合 manifest 完成余下步数，不重新初始化。
 验证 manifest：\`datasets/real_sirr_hf/qiuzhangTiTi/OpenRR-5k/unpacked/validation_input/manifest.json\`。
 
 训练器：\`scripts/finetune_rdnet_peft.py\`，教师模型构造唯一入口 \`build()\`；评测器：\`scripts/eval_arm_1019.py\`，统一以有重叠 Hann 窗的平铺推理处理 1024px 图像，避免与其他 GPU 作业争用显存。
