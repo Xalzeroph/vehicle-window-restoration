@@ -43,42 +43,94 @@ MONA_MODES = ("both", "ffn", "none")
 
 
 
-# ---------------------------------------------------------------- stage-wise residual routing
-class StageResidualMixer(nn.Module):
-    """Fuse existing RDNet stage corrections without another decoder.
+# ---------------------------------------------------------------- cross-column differential decoupling
+class CrossColumnRoute(nn.Module):
+    """Accumulate column-wise feature revisions with image-space feedback.
 
-    The final-stage estimate is an exact initialization fixed point; learning
-    selects earlier-stage corrections at each pixel. Extra work is O(BHWC K).
+    Four scales share their routing parameters across columns. Each operation
+    is linear in the number of feature elements, rather than quadratic attention.
+    All routing coefficients start at zero, exactly preserving official RDNet.
     """
 
-    def __init__(self, stages, channels=3):
+    def __init__(self, channels):
         super().__init__()
-        self.predictor = nn.Conv2d(channels + 2 * channels * (stages - 1), stages, 1)
-        nn.init.zeros_(self.predictor.weight)
-        nn.init.zeros_(self.predictor.bias)
+        self.current_scale = nn.ParameterList(
+            nn.Parameter(torch.zeros(c)) for c in channels)
+        self.delta_scale = nn.ParameterList(
+            nn.Parameter(torch.zeros(c)) for c in channels)
+        self.feedback_projection = nn.ModuleList(
+            nn.Conv2d(6, c, kernel_size=1) for c in channels)
+        for layer in self.feedback_projection:
+            nn.init.zeros_(layer.weight)
+            nn.init.zeros_(layer.bias)
 
-    def forward(self, image, estimates):
-        final = estimates[-1]
-        differences = torch.stack([estimate - final for estimate in estimates[:-1]], dim=1)
-        scores = self.predictor(torch.cat((image, differences.flatten(1, 2)), dim=1))
-        weights = scores[:, :-1].softmax(dim=1)
-        correction = (differences * weights[:, :, None]).sum(dim=1)
-        return final + scores[:, -1:].tanh() * correction
+    def forward(self, current, previous, memory, feedback):
+        next_memory = []
+        for i, (state, before, stored) in enumerate(zip(current, previous, memory)):
+            delta = state - before
+            observed = F.adaptive_avg_pool2d(feedback, state.shape[-2:])
+            logits = (
+                state * self.current_scale[i].view(1, -1, 1, 1)
+                + delta * self.delta_scale[i].view(1, -1, 1, 1)
+                + self.feedback_projection[i](observed)
+            )
+            next_memory.append(stored + delta * torch.tanh(logits))
+        return tuple(next_memory)
 
 
-class StageMixedRDNet(FullNet_NLP):
-    """RDNet + Mona's existing FocalNet adaptation + lightweight stage mixer."""
+class CrossColumnRDNet(FullNet_NLP):
+    """RDNet + Mona with column-difference memory and complementary T/R readouts.
+
+    The reversible SubNet and the pretrained FocalNet remain unchanged. The
+    existing decoder is reused for both streams; no second decoder is created.
+    Previous reconstruction feedback is stop-gradient to keep the reversible
+    computation path and activation cost independent of history length.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        count = min(self.num_subnet, self.Loss_col - 1)
-        self.stage_mixer = StageResidualMixer(count)
+        self.column_route = CrossColumnRoute(tuple(reversed(self.channels)))
+
+    @staticmethod
+    def _decode_stream(decoder, features, index, projection):
+        c0, c1, c2, c3 = features
+        value = decoder._forward_stage(index, c3) * c2
+        value = decoder._forward_stage(index + 1, value) * c1
+        value = decoder._forward_stage(index + 2, value) * c0
+        return projection(value)
 
     def forward(self, x_in, alpha, prompt=True):
-        classes, estimates = super().forward(x_in, alpha, prompt=prompt)
-        if len(estimates) > 1:
-            estimates[-1] = self.stage_mixer(x_in, estimates)
-        return classes, estimates
+        base, stem = self.baseball(x_in)
+        c0, c1, c2, c3 = (
+            adapter(feature)
+            for adapter, feature in zip(self.baseball_adapter[1:], base)
+        )
+        stem = self.baseball_adapter[0](stem)
+        x = self.prompt(alpha).unsqueeze(-1).unsqueeze(-1) * stem if prompt else stem
+
+        previous = None
+        memory = None
+        previous_output = None
+        outputs = []
+        decoder = self.decoder_blocks[-1]
+        for k in range(self.num_subnet):
+            current = getattr(self, f"subnet{k}")(x, c0, c1, c2, c3)
+            c0, c1, c2, c3 = current
+            if previous is None:
+                memory = tuple(torch.zeros_like(t) for t in current)
+            else:
+                feedback = torch.cat(
+                    (x_in - previous_output[:, 3:], previous_output[:, :3]), dim=1
+                ).detach()
+                memory = self.column_route(current, previous, memory, feedback)
+            transmission = tuple(state + revision for state, revision in zip(current, memory))
+            reflection = tuple(state - revision for state, revision in zip(current, memory))
+            t_residual = self._decode_stream(decoder, transmission, 0, decoder.projback_)
+            r_residual = self._decode_stream(decoder, reflection, 3, decoder.projback_2)
+            previous_output = torch.cat((x_in - r_residual, x_in - t_residual), dim=1)
+            outputs.append(previous_output)
+            previous = current
+        return [], outputs
 
 
 # ---------------------------------------------------------------- 官方实现照搬
