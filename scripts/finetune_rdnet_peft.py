@@ -3,7 +3,7 @@
 
 Each sample provides observed input and reflection-free transmission target. Supervise
 reflection as the observed residual I-T; this is not a separately captured
-physical reflection layer. The same dataset and loss apply to baseline and CCDD.
+physical reflection layer. Native paired data is used for DARL and the reference RDNet+Mona control.
 """
 import argparse, csv, json, math, os, sys, time
 import numpy as np
@@ -20,7 +20,7 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, RDNET)
 os.chdir(RDNET)
 from models.arch.classifier import PretrainedConvNext  # noqa: E402
-from rdnet_peft import (CrossColumnRDNet, patch_focalnet, mona_params, set_mona_trainable,   # noqa: E402
+from rdnet_peft import (DARLRDNet, patch_focalnet, mona_params, set_mona_trainable,   # noqa: E402
                         is_mona_name, mona_state_dict_keys)
 
 EPS = 1e-3
@@ -37,7 +37,7 @@ def _seed_worker(worker_id):
 
 
 class TintDataset(Dataset):
-    """Paired observed/tinted-transmission samples from one frozen manifest."""
+    """Native paired image samples from the frozen real data manifest."""
 
     def __init__(self, manifest, size_min=224, size_max=320):
         self.root = os.path.dirname(os.path.abspath(manifest))
@@ -54,9 +54,9 @@ class TintDataset(Dataset):
         return np.asarray(Image.open(path).convert("RGB"), dtype=np.float32).transpose(2, 0, 1) / 255.0
 
     def __getitem__(self, index):
-        folder = os.path.join(self.root, self.items[index]["relative_directory"])
-        observed = self._image(os.path.join(folder, "observed.png"))
-        target = self._image(os.path.join(folder, "target.png"))
+        item = self.items[index]
+        observed = self._image(os.path.join(self.root, item["input"]))
+        target = self._image(os.path.join(self.root, item["target"]))
         size = self.size
         height, width = observed.shape[-2:]
         y = np.random.randint(height - size + 1)
@@ -67,7 +67,7 @@ class TintDataset(Dataset):
             observed = observed[:, :, ::-1].copy()
             target = target[:, :, ::-1].copy()
         residual = observed - target
-        # The target is already film-attenuated; do not reapply film gain weights.
+        # Real paired samples do not carry a synthetic transmission attenuation field.
         alpha = np.ones((1, size, size), dtype=np.float32)
         tensor = lambda image: torch.from_numpy(np.ascontiguousarray(image))
         return tensor(observed), tensor(target), tensor(residual), tensor(alpha)
@@ -86,7 +86,7 @@ def build(pretrained_ckpt=None, save_memory=True, mona="both", grad_ckpt=True):
     n_sd_mona = len(mona_state_dict_keys(sd))
     miss, unex = net.load_state_dict(sd, strict=False)
     miss_mona = [k for k in miss if is_mona_name(k)]
-    miss_core = [k for k in miss if not is_mona_name(k) and not k.startswith('column_route.')]
+    miss_core = [k for k in miss if not is_mona_name(k) and not k.startswith('attribution.')]
     print(f"[rdt-peft] rdnet.pth: mona={mona} blocks={n_blk} "
           f"missing={len(miss)}(非mona {len(miss_core)}/mona新增 {len(miss_mona)}) "
           f"unexpected={len(unex)}  net_mona_keys={n_net_mona} ckpt_mona_keys={n_sd_mona}")
@@ -134,6 +134,8 @@ def main():
     ap.add_argument("--wlow-cap", type=float, default=10.0)
     ap.add_argument("--lam-r", type=float, default=1.5)
     ap.add_argument("--lam-recons", type=float, default=0.2)
+    ap.add_argument("--lam-attr", type=float, default=0.02,
+                    help="Weak three-way attribution supervision from paired real-image gradients")
     ap.add_argument("--save-memory", action="store_true", default=True)
     ap.add_argument("--resume", default="", help="ckpt 路径，续训（恢复 net/opt/scaler/iter）")
     ap.add_argument("--gpu", type=int, default=0)
@@ -187,7 +189,7 @@ def main():
         sched.last_epoch = start_it
         print(f"[rdt-peft] resume {args.resume} @ iter {start_it}", flush=True)
     logf = open(os.path.join(out, "train_log.csv"), "w")
-    logf.write("iter,L_t,L_r,L_recons,total,sec\n")
+    logf.write("iter,L_t,L_r,L_recons,L_attr,total,sec\n")
     print(f"[rdt-peft] train manifest={args.train_manifest} paired images={len(ds)} batch={args.batch}", flush=True)
 
     # 裁剪尺寸与批大小绑定：320²@bs8 在 10GB 卡 OOM（实测 256² bs8≈7.5G）
@@ -213,7 +215,7 @@ def main():
             with torch.no_grad():
                 code = net_c(I)
             with torch.cuda.amp.autocast():
-                _, x_img_out = net(I, code, prompt=True)
+                attribution_logits, x_img_out = net(I, code, prompt=True)
                 L_t = L_r = torch.zeros((), device=dev)
                 wsum = 0.0
                 for i, out_col in enumerate(x_img_out):
@@ -231,7 +233,36 @@ def main():
                 L_t = L_t / wsum; L_r = L_r / wsum
                 R_hat, T_hat = x_img_out[-1][:, :3], x_img_out[-1][:, 3:]
                 L_recons = args.lam_recons * (I - T_hat - R_hat).abs().mean()
-                total = L_t + L_r + L_recons
+                if args.lam_attr:
+                    def gradient_energy(image):
+                        horizontal = F.pad(
+                            (image[:, :, :, 1:] - image[:, :, :, :-1]).abs().mean(1, keepdim=True),
+                            (0, 1, 0, 0)
+                        )
+                        vertical = F.pad(
+                            (image[:, :, 1:, :] - image[:, :, :-1, :]).abs().mean(1, keepdim=True),
+                            (0, 0, 0, 1)
+                        )
+                        return horizontal + vertical
+
+                    with torch.no_grad():
+                        edge_t = gradient_energy(T)
+                        edge_r = gradient_energy(R)
+                        difference = (edge_t - edge_r).abs()
+                        mass = edge_t + edge_r + 1e-3
+                        soft_labels = torch.cat((
+                            (edge_t - edge_r).relu(),
+                            (edge_r - edge_t).relu(),
+                            edge_t + edge_r - difference + 1e-3
+                        ), dim=1) / mass
+                    L_attr = sum(
+                        -(F.adaptive_avg_pool2d(soft_labels, logits.shape[-2:])
+                          * F.log_softmax(logits.float(), dim=1)).sum(1).mean()
+                        for logits in attribution_logits
+                    ) / len(attribution_logits)
+                else:
+                    L_attr = torch.zeros((), device=dev)
+                total = L_t + L_r + L_recons + args.lam_attr * L_attr
             opt.zero_grad(set_to_none=True)
             scaler.scale(total).backward()
             scaler.step(opt); scaler.update(); sched.step()
@@ -239,13 +270,14 @@ def main():
             if it % args.log_every == 0 or it == 1:
                 sec = time.time() - t0
                 run = dict(L_t=float(L_t.detach()), L_r=float(L_r.detach()),
-                           L_recons=float(L_recons.detach()), total=float(total.detach()))
+                           L_recons=float(L_recons.detach()), L_attr=float(L_attr.detach()),
+                           total=float(total.detach()))
                 peak = torch.cuda.max_memory_allocated(dev) / 2 ** 30
                 print(f"[rdt-peft] it {it:5d} L_t={run['L_t']:.4f} L_r={run['L_r']:.4f} "
-                      f"L_recons={run['L_recons']:.4f} total={run['total']:.4f} {sec:.0f}s "
+                      f"L_recons={run['L_recons']:.4f} L_attr={run['L_attr']:.4f} total={run['total']:.4f} {sec:.0f}s "
                       f"peak={peak:.2f}G", flush=True)
                 logf.write(",".join([str(it)] + [f"{run[k]:.5f}" for k in
-                                                 ("L_t", "L_r", "L_recons", "total")]
+                                                 ("L_t", "L_r", "L_recons", "L_attr", "total")]
                                     + [f"{sec:.1f}"]) + "\n")
                 logf.flush()
             if it % args.save_every == 0:
