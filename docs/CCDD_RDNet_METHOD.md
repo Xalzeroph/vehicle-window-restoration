@@ -25,16 +25,12 @@ a,b 是每尺度逐通道参数，W 是 6 -> C_l 的 1×1 投影。所有可逆�
 
 RDNet 具有多列可逆编码（CVPR 2025）；GFRRN 已经采用 Mona 参数高效适配（CVPR 2026）；ReflexSplit 已经研究双流差分注意力及跨尺度门控（CVPR 2026）。CCDD 的区别是跨可逆列的状态变化记忆，以及恢复结果反馈下的互补读出。不得把 Mona、双流或差分本身描述为首次提出。
 
-## 训练与评测
+## 真实数据训练协议
 
-训练和评估在同一份已下载的 `tintedglass_hf_rebuild_20261029` 冻结数据划分上进行，使用 `photo_manifest.json` 所列的摄影内容筛选样本：训练 1,820 对、验证 105 对、独立测试 45 对。数据为摄影来源与反射素材合成，不宣称为真实车外拍摄。训练／验证／测试透射源互不重叠。
+使用 Hugging Face 上 HigherHu/S2R-Bench 的 S2R-Ref 实拍配对视频，在 2026-11-26 完成下载。该数据是实拍玻璃反射输入和对应无反射透射层，不是合成反射图。每个视频以每秒一帧、960×540 尺寸等时间戳抽取输入与 GT，按视频标识 SHA-256 固定划分，50 个视频 273 对图像训练，10 个视频 56 对图像作内部验证。全部产物保存在 HDD3 的 `datasets/real_sirr_hf/s2r_real_frame_pairs` 中。训练监督为直接配对的真实透射层 T 和图像差值 I-T；后者是残差代理，不宣称为真实反射物理层的独立观测。
 
-每份样本读取 `observed.png`（输入 I）和 `target_tinted.png`（目标 T）。T 是已经受贴膜衰减的透射图而非原始透明玻璃透射图。重建残差监督采用 I-T；该量包含成像噪声与截断，并不等于独立实拍的纯反射层。针对已衰减的目标不再重复使用 alpha 权重（`--lam-wlow 0`）。
+研究限制：S2R-Ref 原本是公开 benchmark，这些视频经用于训练后，不能再把同一视频作为官方独立 S2R 测试结果。内部验证必须按视频分组，公开泛化评价应使用无交叉的 OpenRR 数据。S2R-Ref 本身来源于 DRR 训练划分，未来与 DRR 合并时需要执行源场景去重。
 
-训练入口为 `scripts/finetune_rdnet_peft.py --train-manifest ...`，评测入口为 `scripts/eval_arm_1019.py --manifest ...`。配置：6000 iterations、batch 1、Adam 学习率 1e-4、三个连续裁剪阶段 224/256/320、Mona both、seed 101。初始 CCDD 增量为零。每 500 步保存 checkpoint，训练、评测与权重均位于机械盘。其余 seeds 和同数据下原 RDNet+Mona 对照使用相同训练协议。
+当前小规模真实数据训练入口为 `scripts/finetune_rdnet_peft.py`，参数：`--train-manifest .../s2r_real_frame_pairs/train/manifest.json --mona both --gpu 3 --iters 2000 --batch 1 --lr 1e-4 --seed 101 --seg-iters 600 --lam-wlow 0`。训练从官方 RDNet 权重初始化，不复用此前合成数据 checkpoint。每 200 步保存 checkpoint。训练完成后使用同一模型构造入口，在 `validation/manifest.json` 的 10 个独立视频上评测 PSNR／SSIM。
 
-测试使用已冻结的 45 张未参与训练的配对样本（9 个唯一透射来源），按 uint8 量化、RGB 三通道 PSNR 均值与标准 SSIM 计算逐图和逐来源聚合。无论输出是否改善都不进行 GT 引导的推理后处理。
-
-同一冻结测试口径下，原始 RDNet 官方零样本基线：PSNR 24.4535 dB、SSIM 0.90959；直接输入基线：PSNR 19.0504 dB、SSIM 0.83086。**这不是训练后 CCDD 的成绩，也不是此前真实 15 场景面板的成绩。**
-
-研究消融按原始 RDNet+Mona、跨列差分与互补读出、完整 CCDD 及恢复反馈分解进行。只有在训练预算、数据、优化和评价口径一致时，才将性能差异归因于机制。
+OpenRR-5k 的完整 5000 对真实训练包仍在下载；完成后应采用其官方训练划分作为正式主训练数据，并保留官方验证集完整用于最终对比。此前的 `tintedglass_hf_rebuild_20261029` 为合成数据，不用于本协议。
