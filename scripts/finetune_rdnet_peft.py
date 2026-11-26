@@ -57,11 +57,17 @@ class TintDataset(Dataset):
             target = opened.convert("RGB")
         size = self.size
         width, height = observed.size
-        y = np.random.randint(height - size + 1)
-        x = np.random.randint(width - size + 1)
-        crop = (x, y, x + size, y + size)
-        observed = np.asarray(observed.crop(crop), dtype=np.float32).transpose(2, 0, 1) / 255.0
-        target = np.asarray(target.crop(crop), dtype=np.float32).transpose(2, 0, 1) / 255.0
+        patch = min(size, width, height)
+        y = np.random.randint(height - patch + 1)
+        x = np.random.randint(width - patch + 1)
+        crop = (x, y, x + patch, y + patch)
+        observed = observed.crop(crop)
+        target = target.crop(crop)
+        if patch != size:
+            observed = observed.resize((size, size), Image.Resampling.BICUBIC)
+            target = target.resize((size, size), Image.Resampling.BICUBIC)
+        observed = np.asarray(observed, dtype=np.float32).transpose(2, 0, 1) / 255.0
+        target = np.asarray(target, dtype=np.float32).transpose(2, 0, 1) / 255.0
         if np.random.rand() < 0.5:
             observed = observed[:, :, ::-1].copy()
             target = target[:, :, ::-1].copy()
