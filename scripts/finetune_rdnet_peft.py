@@ -32,7 +32,7 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, RDNET)
 os.chdir(RDNET)
 from models.arch.classifier import PretrainedConvNext  # noqa: E402
-from rdnet_peft import (StageMixedRDNet, patch_focalnet, mona_params, set_mona_trainable,   # noqa: E402
+from rdnet_peft import (CrossColumnRDNet, patch_focalnet, mona_params, set_mona_trainable,   # noqa: E402
                         is_mona_name, mona_state_dict_keys)
 
 EPS = 1e-3
@@ -90,7 +90,7 @@ class TintDataset(Dataset):
 
 def build(pretrained_ckpt=None, save_memory=True, mona="both", grad_ckpt=True):
     """构造 FullNet_NLP -> patch Mona -> 加载 rdnet.pth（顺序不可换，见模块 docstring）。"""
-    net = StageMixedRDNet(channels=[64, 128, 256, 512], layers=[2, 2, 4, 2], num_subnet=4,
+    net = CrossColumnRDNet(channels=[64, 128, 256, 512], layers=[2, 2, 4, 2], num_subnet=4,
                       loss_col=4, num_classes=1000, drop_path=0, save_memory=save_memory,
                       inter_supv=True, head_init_scale=None, kernel_size=3)
     n_blk = patch_focalnet(net, mona, grad_ckpt=grad_ckpt, verbose=True)  # 必须在构造后（构造内 strict 加载 focal.pth）
@@ -101,7 +101,7 @@ def build(pretrained_ckpt=None, save_memory=True, mona="both", grad_ckpt=True):
     n_sd_mona = len(mona_state_dict_keys(sd))
     miss, unex = net.load_state_dict(sd, strict=False)
     miss_mona = [k for k in miss if is_mona_name(k)]
-    miss_core = [k for k in miss if not is_mona_name(k) and not k.startswith('stage_mixer.')]
+    miss_core = [k for k in miss if not is_mona_name(k) and not k.startswith('column_route.')]
     print(f"[rdt-peft] rdnet.pth: mona={mona} blocks={n_blk} "
           f"missing={len(miss)}(非mona {len(miss_core)}/mona新增 {len(miss_mona)}) "
           f"unexpected={len(unex)}  net_mona_keys={n_net_mona} ckpt_mona_keys={n_sd_mona}")
