@@ -43,53 +43,74 @@ MONA_MODES = ("both", "ffn", "none")
 
 
 
-# ---------------------------------------------------------------- cross-column differential decoupling
-class CrossColumnRoute(nn.Module):
-    """Accumulate column-wise feature revisions with image-space feedback.
+# ---------------------------------------------------------------- deferred attribution via reversible lifting
+class DeferredAttribution(nn.Module):
+    """Lossless three-state attribution, conditioned only on the conserved feature.
 
-    Four scales share their routing parameters across columns. Each operation
-    is linear in the number of feature elements, rather than quadratic attention.
-    All routing coefficients start at zero, exactly preserving official RDNet.
+    At every scale T + R + U = C. Each affine lifting step preserves the sum
+    of the exchanged pair. Its scale and shift depend only on C, which remains
+    fixed during the exchange, making each step analytically invertible.
     """
 
     def __init__(self, channels):
         super().__init__()
-        self.current_scale = nn.ParameterList(
-            nn.Parameter(torch.zeros(c)) for c in channels)
-        self.delta_scale = nn.ParameterList(
-            nn.Parameter(torch.zeros(c)) for c in channels)
-        self.feedback_projection = nn.ModuleList(
-            nn.Conv2d(6, c, kernel_size=1) for c in channels)
-        for layer in self.feedback_projection:
+        self.gates = nn.ModuleList(nn.Conv2d(c, 3, kernel_size=1) for c in channels)
+        self.lifts = nn.ModuleList(
+            nn.Conv2d(c, 4 * c, kernel_size=3, padding=1, groups=c)
+            for c in channels
+        )
+        for layer in (*self.gates, *self.lifts):
             nn.init.zeros_(layer.weight)
             nn.init.zeros_(layer.bias)
 
-    def forward(self, current, previous, memory, feedback):
-        next_memory = []
-        for i, (state, before, stored) in enumerate(zip(current, previous, memory)):
-            delta = state - before
-            observed = F.adaptive_avg_pool2d(feedback, state.shape[-2:])
-            logits = (
-                state * self.current_scale[i].view(1, -1, 1, 1)
-                + delta * self.delta_scale[i].view(1, -1, 1, 1)
-                + self.feedback_projection[i](observed)
+    @staticmethod
+    def _lift(assigned, unresolved, log_scale, translation):
+        shared = assigned + unresolved
+        difference = assigned - unresolved
+        revised = torch.exp(log_scale) * difference + translation
+        return (shared + revised) * 0.5, (shared - revised) * 0.5
+
+    def forward(self, current, previous, states):
+        updated = []
+        gate_logits = []
+        for i, feature in enumerate(current):
+            if states is None:
+                assigned_t = torch.zeros_like(feature)
+                assigned_r = torch.zeros_like(feature)
+                unresolved = feature
+            else:
+                assigned_t, assigned_r, unresolved = states[i]
+                unresolved = unresolved + (feature - previous[i])
+
+            condition = F.group_norm(feature, 1)
+            logits = self.gates[i](condition)
+            probability = torch.softmax(logits, dim=1)
+            log_t, shift_t, log_r, shift_r = self.lifts[i](condition).chunk(4, dim=1)
+            p_t, p_r = probability[:, :1], probability[:, 1:2]
+
+            assigned_t, unresolved = self._lift(
+                assigned_t, unresolved, p_t * 0.5 * torch.tanh(log_t), p_t * shift_t
             )
-            next_memory.append(stored + delta * torch.tanh(logits))
-        return tuple(next_memory)
+            assigned_r, unresolved = self._lift(
+                assigned_r, unresolved, p_r * 0.5 * torch.tanh(log_r), p_r * shift_r
+            )
+            updated.append((assigned_t, assigned_r, unresolved))
+            gate_logits.append(logits)
+        return tuple(updated), tuple(gate_logits)
 
 
-class CrossColumnRDNet(FullNet_NLP):
-    """RDNet + Mona with column-difference memory and complementary T/R readouts.
+class DARLRDNet(FullNet_NLP):
+    """RDNet + Mona with conservative, reversible deferred layer attribution.
 
-    The reversible SubNet and the pretrained FocalNet remain unchanged. The
-    existing decoder is reused for both streams; no second decoder is created.
-    Previous reconstruction feedback is stop-gradient to keep the reversible
-    computation path and activation cost independent of history length.
+    The original pre-trained FocalNet, reversible SubNets, and both decoder
+    paths are reused exactly. Zero-initialized lifts preserve initial RDNet
+    predictions. The latent U state means unresolved attribution, not a
+    third physical layer.
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.column_route = CrossColumnRoute(tuple(reversed(self.channels)))
+        self.attribution = DeferredAttribution(tuple(reversed(self.channels)))
 
     @staticmethod
     def _decode_stream(decoder, features, index, projection):
@@ -109,28 +130,20 @@ class CrossColumnRDNet(FullNet_NLP):
         x = self.prompt(alpha).unsqueeze(-1).unsqueeze(-1) * stem if prompt else stem
 
         previous = None
-        memory = None
-        previous_output = None
+        states = None
         outputs = []
         decoder = self.decoder_blocks[-1]
         for k in range(self.num_subnet):
             current = getattr(self, f"subnet{k}")(x, c0, c1, c2, c3)
             c0, c1, c2, c3 = current
-            if previous is None:
-                memory = tuple(torch.zeros_like(t) for t in current)
-            else:
-                feedback = torch.cat(
-                    (x_in - previous_output[:, 3:], previous_output[:, :3]), dim=1
-                ).detach()
-                memory = self.column_route(current, previous, memory, feedback)
-            transmission = tuple(state + revision for state, revision in zip(current, memory))
-            reflection = tuple(state - revision for state, revision in zip(current, memory))
+            states, gate_logits = self.attribution(current, previous, states)
+            transmission = tuple(pending + assigned_t for assigned_t, _, pending in states)
+            reflection = tuple(pending + assigned_r for _, assigned_r, pending in states)
             r_residual = self._decode_stream(decoder, reflection, 0, decoder.projback_)
             t_residual = self._decode_stream(decoder, transmission, 3, decoder.projback_2)
-            previous_output = torch.cat((x_in - r_residual, x_in - t_residual), dim=1)
-            outputs.append(previous_output)
+            outputs.append(torch.cat((x_in - r_residual, x_in - t_residual), dim=1))
             previous = current
-        return [], outputs
+        return gate_logits, outputs
 
 
 # ---------------------------------------------------------------- 官方实现照搬
