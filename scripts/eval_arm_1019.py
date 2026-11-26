@@ -57,7 +57,7 @@ def main():
         for entry in items:
             folder = os.path.join(root, entry["relative_directory"])
             observed = load_image(os.path.join(folder, "observed.png"))
-            target = load_image(os.path.join(folder, "target_tinted.png"))
+            target = load_image(os.path.join(folder, "target.png"))
             tensor = torch.from_numpy(observed.transpose(2, 0, 1).copy()).unsqueeze(0).to(
                 device=device, dtype=torch.float32
             ).div_(255.0)
