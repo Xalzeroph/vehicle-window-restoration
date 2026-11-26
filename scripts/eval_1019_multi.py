@@ -38,14 +38,14 @@ import torch
 import torch.nn.functional as F
 from skimage.metrics import structural_similarity as ssim_fn
 
-PROJ = "/DataDisk/zmy_code/TintedGlass_Enhance"
+PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RDNET_DIR = os.path.join(PROJ, "RDNet")
 PAIR_DIR = os.path.join(PROJ, "data/test_sets/real_pair_1019")
 PRED_ROOT = os.path.join(PROJ, "runs/pred")
 EVAL_DIR = os.path.join(PROJ, "eval")
 
 CKPT = {
-    "rdnet_zs": "/DataDisk/zmy_code/RDNet-main/rdnet.pth",
+    "rdnet_zs": os.path.join(PROJ, "pretrained/rdnet.pth"),
     "ft_s2main": os.path.join(PROJ, "runs/ckpt/rdt_s2_main_s101/ckpt_10000.pth"),
 }
 
@@ -80,33 +80,21 @@ def gain_match(q, g):
 
 
 # ---------------- RDNet ----------------
-def build_rdnet(mona: str = "none"):
-    sys.path.insert(0, RDNET_DIR)
-    cwd = os.getcwd()
+def build_rdnet(mona: str = "both"):
+    """Construct the exact teacher used by training (single authority)."""
+    workdir = os.getcwd()
     os.chdir(RDNET_DIR)
-    from models.arch.RDnet_ import FullNet_NLP
-    from models.arch.classifier import PretrainedConvNext
-    from rdnet_peft import patch_focalnet
-    net = FullNet_NLP(channels=[64, 128, 256, 512], layers=[2, 2, 4, 2], num_subnet=4,
-                      loss_col=4, num_classes=1000, drop_path=0, save_memory=True,
-                      inter_supv=True, head_init_scale=None, kernel_size=3)
-    if mona != "none":
-        n = patch_focalnet(net, mona, verbose=False)
-        log(f"  patch_focalnet mode={mona}: {n} blocks")
-    ck_path = os.path.join(PROJ, "pretrained/cls_model.pth")
-    net_c = PretrainedConvNext("convnext_small_in22k")
-    ck2 = torch.load(ck_path, map_location="cpu")
-    sd2 = ck2.get("icnn", ck2.get("model", ck2))
-    net_c.load_state_dict(sd2, strict=False)
-    net_c.eval().requires_grad_(False)
-    os.chdir(cwd)
-    return net, net_c
+    try:
+        from finetune_rdnet_peft import build
+        return build(save_memory=True, mona=mona, grad_ckpt=False)
+    finally:
+        os.chdir(workdir)
 
 
 def load_rdnet(net, path, mona: str):
     ck = torch.load(path, map_location="cpu", weights_only=False)
     sd = ck.get("icnn", ck) if isinstance(ck, dict) else ck
-    miss, unex = net.load_state_dict(sd, strict=False)
+    miss, unex = net.load_state_dict(sd, strict=True)
     log(f"  ckpt={os.path.basename(path)} missing={len(miss)} unexpected={len(unex)} "
         f"iter={ck.get('iter', '-') if isinstance(ck, dict) else '-'}")
     if mona != "none":
