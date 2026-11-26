@@ -49,29 +49,26 @@ class TintDataset(Dataset):
     def __len__(self):
         return len(self.items)
 
-    @staticmethod
-    def _image(path):
-        return np.asarray(Image.open(path).convert("RGB"), dtype=np.float32).transpose(2, 0, 1) / 255.0
-
     def __getitem__(self, index):
         item = self.items[index]
-        observed = self._image(os.path.join(self.root, item["input"]))
-        target = self._image(os.path.join(self.root, item["target"]))
+        with Image.open(os.path.join(self.root, item["input"])) as opened:
+            observed = opened.convert("RGB")
+        with Image.open(os.path.join(self.root, item["target"])) as opened:
+            target = opened.convert("RGB")
         size = self.size
-        height, width = observed.shape[-2:]
+        width, height = observed.size
         y = np.random.randint(height - size + 1)
         x = np.random.randint(width - size + 1)
-        observed = observed[:, y:y+size, x:x+size]
-        target = target[:, y:y+size, x:x+size]
+        crop = (x, y, x + size, y + size)
+        observed = np.asarray(observed.crop(crop), dtype=np.float32).transpose(2, 0, 1) / 255.0
+        target = np.asarray(target.crop(crop), dtype=np.float32).transpose(2, 0, 1) / 255.0
         if np.random.rand() < 0.5:
             observed = observed[:, :, ::-1].copy()
             target = target[:, :, ::-1].copy()
         residual = observed - target
-        # Real paired samples do not carry a synthetic transmission attenuation field.
         alpha = np.ones((1, size, size), dtype=np.float32)
         tensor = lambda image: torch.from_numpy(np.ascontiguousarray(image))
         return tensor(observed), tensor(target), tensor(residual), tensor(alpha)
-
 
 def build(pretrained_ckpt=None, save_memory=True, mona="both", grad_ckpt=True):
     """构造 FullNet_NLP -> patch Mona -> 加载 rdnet.pth（顺序不可换，见模块 docstring）。"""
