@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """RDNet + Mona teacher training on the frozen paired photo manifest.
 
-Each sample provides observed input and tinted-transmission target. Supervise
+Each sample provides observed input and reflection-free transmission target. Supervise
 reflection as the observed residual I-T; this is not a separately captured
 physical reflection layer. The same dataset and loss apply to baseline and CCDD.
 """
@@ -56,7 +56,7 @@ class TintDataset(Dataset):
     def __getitem__(self, index):
         folder = os.path.join(self.root, self.items[index]["relative_directory"])
         observed = self._image(os.path.join(folder, "observed.png"))
-        target = self._image(os.path.join(folder, "target_tinted.png"))
+        target = self._image(os.path.join(folder, "target.png"))
         size = self.size
         height, width = observed.shape[-2:]
         y = np.random.randint(height - size + 1)
@@ -115,7 +115,7 @@ def build(pretrained_ckpt=None, save_memory=True, mona="both", grad_ckpt=True):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--train-manifest", required=True, help="Frozen train/photo_manifest.json")
+    ap.add_argument("--train-manifest", required=True, help="Frozen real-pair training manifest.json")
     ap.add_argument("--out", default=None)
     ap.add_argument("--mona", choices=["both", "ffn", "none"], default="both",
                     help="Mona 插入点: both=调制残差后+FFN 残差后; ffn=仅 FFN 残差后; none=不插(plain)")
